@@ -2,6 +2,8 @@
 
 // This has been adapted from the Vulkan tutorial
 #include <sstream>
+#include <vector>
+#include <cmath>
 
 #include <json.hpp>
 
@@ -26,9 +28,16 @@ struct Vertex {
 	glm::vec2 UV;
 };
 
+struct TavernNPC {
+	std::string name;
+	glm::vec3 position;
+	float interactionRadius;
+	std::string prompt;
+};
+
 // MAIN !
 
-class Skeleton26ReplaceName : public BaseProject {
+class DungeonTavern : public BaseProject {
 	protected:
 	// Here you list all the Vulkan objects you need:
 	
@@ -56,13 +65,25 @@ class Skeleton26ReplaceName : public BaseProject {
 
 	glm::mat4 ViewPrj;
 	glm::mat4 View;
-	
+
+    glm::vec3 camPos;
+    float yaw;
+    float pitch, moveSpeed, rotSpeed;
+    bool showInteractionPrompt;
+    int activeNPC;
+    std::vector<TavernNPC> tavernNPCs;
+
+	public:
+	DungeonTavern()
+		: Ar(4.0f / 3.0f), ViewPrj(1.0f), View(1.0f), camPos(0.0f, 1.4f, 5.0f), yaw(-90.0f),
+		  pitch(0.0f), moveSpeed(3.5f), rotSpeed(90.0f), showInteractionPrompt(false), activeNPC(-1) {}
+
 	// Here you set the main application parameters
-	void setWindowParameters() {
+	void setWindowParameters() override {
 		// window size, titile and initial background
 		windowWidth = 800;
 		windowHeight = 600;
-		windowTitle = "Skeleton: place the name of your app here";
+		windowTitle = "Dungeon Tavern";
     	windowResizable = GLFW_TRUE;
 		
 		// Initial aspect ratio
@@ -70,7 +91,7 @@ class Skeleton26ReplaceName : public BaseProject {
 	}
 	
 	// What to do when the window changes size
-	void onWindowResize(int w, int h) {
+	void onWindowResize(int w, int h) override {
 		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = (float)w / (float)h;
 		// Update Render Pass
@@ -78,12 +99,12 @@ class Skeleton26ReplaceName : public BaseProject {
 		RP.height = h;
 		
 		// updates the textual output
-		txt.resizeScreen(w, h);
+		txt.resizeScreen((int)w, (int)h);
 	}
 	
 	// Here you load and setup all your Vulkan Models and Texutures.
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
-	void localInit() {
+	void localInit() override {
 		// Descriptor Layouts [what will be passed to the shaders]
 		DSLlocal.init(this, {
 					// this array contains the binding:
@@ -149,7 +170,20 @@ class Skeleton26ReplaceName : public BaseProject {
 		}
 
 		// initializes the textual output
-		txt.init(this, windowWidth, windowHeight);
+		txt.init(this, (int)windowWidth, (int)windowHeight);
+
+		camPos = glm::vec3(0.0f, 1.4f, 5.0f);
+		yaw = -90.0f;
+		pitch = 0.0f;
+		moveSpeed = 3.5f;
+		rotSpeed = 90.0f;
+		showInteractionPrompt = false;
+		activeNPC = -1;
+		tavernNPCs = {
+			{"Innkeeper", glm::vec3(0.0f, 0.0f, 0.0f), 1.75f, "Press E to talk to the Innkeeper"},
+			{"Bard", glm::vec3(2.5f, 0.0f, -2.0f), 1.75f, "Press E to listen to the Bard"},
+			{"Merchant", glm::vec3(-2.5f, 0.0f, -1.5f), 1.75f, "Press E to trade with the Merchant"}
+		};
 
 		// submits the main command buffer
 		submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
@@ -160,7 +194,7 @@ class Skeleton26ReplaceName : public BaseProject {
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
-	void pipelinesAndDescriptorSetsInit() {
+	void pipelinesAndDescriptorSetsInit() override {
 		// creates the render passes
 		RP.create();
 		
@@ -178,7 +212,7 @@ class Skeleton26ReplaceName : public BaseProject {
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
-	void pipelinesAndDescriptorSetsCleanup() {
+	void pipelinesAndDescriptorSetsCleanup() override {
 		P.cleanup();
 
 		RP.cleanup();
@@ -191,7 +225,7 @@ class Skeleton26ReplaceName : public BaseProject {
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
 	// You also have to destroy the pipelines
-	void localCleanup() {
+	void localCleanup() override {
 		DSLlocal.cleanup();
 		DSLglobal.cleanup();
 
@@ -209,7 +243,7 @@ class Skeleton26ReplaceName : public BaseProject {
 	static void populateCommandBufferAccess(VkCommandBuffer commandBuffer, int currentImage, void *Params) {
 		// Simple trick to avoid having always 'T->'
 		// in che code that populates the command buffer!
-		Skeleton26ReplaceName *T = (Skeleton26ReplaceName *)Params;
+		auto *T = static_cast<DungeonTavern *>(Params);
 		T->populateCommandBuffer(commandBuffer, currentImage);
 	}
 
@@ -226,7 +260,7 @@ class Skeleton26ReplaceName : public BaseProject {
 
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
-	void updateUniformBuffer(uint32_t currentImage) {
+	void updateUniformBuffer(uint32_t currentImage) override {
 		static bool debounce = false;
 		static int curDebounce = 0;
 
@@ -237,22 +271,76 @@ class Skeleton26ReplaceName : public BaseProject {
 
 		// moves the view
 		float deltaT = GameLogic();
-		
+		const float deltaYaw = glm::radians(rotSpeed) * deltaT;
+		const float deltaPitch = glm::radians(rotSpeed) * deltaT;
+		if(glfwGetKey(window, GLFW_KEY_LEFT)) yaw -= glm::degrees(deltaYaw);
+		if(glfwGetKey(window, GLFW_KEY_RIGHT)) yaw += glm::degrees(deltaYaw);
+		if(glfwGetKey(window, GLFW_KEY_UP)) pitch += glm::degrees(deltaPitch);
+		if(glfwGetKey(window, GLFW_KEY_DOWN)) pitch -= glm::degrees(deltaPitch);
+		pitch = glm::clamp(pitch, -89.0f, 89.0f);
+
+		const glm::vec3 forward = glm::normalize(glm::vec3(
+			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+			sin(glm::radians(pitch)),
+			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+		));
+		const glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+		const glm::vec3 up = glm::normalize(glm::cross(right, forward));
+
+		glm::vec3 move(0.0f);
+		if(glfwGetKey(window, GLFW_KEY_W)) move += forward;
+		if(glfwGetKey(window, GLFW_KEY_S)) move -= forward;
+		if(glfwGetKey(window, GLFW_KEY_A)) move -= right;
+		if(glfwGetKey(window, GLFW_KEY_D)) move += right;
+		if(glfwGetKey(window, GLFW_KEY_SPACE)) move += up * 0.2f;
+		if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) move -= up * 0.2f;
+		if(glm::length(move) > 0.0f) {
+			camPos += glm::normalize(move) * moveSpeed * deltaT;
+		}
+
+		glm::vec3 interactionTarget(0.0f);
+		showInteractionPrompt = false;
+		activeNPC = -1;
+		float bestDistance = 99999.0f;
+		for(size_t i = 0; i < tavernNPCs.size(); ++i) {
+			float d = glm::length(camPos - tavernNPCs[i].position);
+			if(d < tavernNPCs[i].interactionRadius && d < bestDistance) {
+				bestDistance = d;
+				activeNPC = static_cast<int>(i);
+				showInteractionPrompt = true;
+				interactionTarget = tavernNPCs[i].position;
+			}
+		}
+
+		if(showInteractionPrompt && glfwGetKey(window, GLFW_KEY_E) && !debounce) {
+			debounce = true;
+			curDebounce = 12;
+			std::ostringstream oss;
+			oss << "Talking to " << tavernNPCs[activeNPC].name << "...";
+			txt.print(1.0f, 28.0f, oss.str(), 1, "CO", false, false, true, TAL_LEFT, TRH_LEFT, TRV_BOTTOM, {1.0f,0.9f,0.7f,1.0f}, {0.15f,0.05f,0.0f,0.85f});
+		}
+		if(!glfwGetKey(window, GLFW_KEY_E)) {
+			debounce = false;
+		}
+		if(curDebounce > 0) {
+			--curDebounce;
+		}
+
 		// defines the global parameters for the uniform
 		static float lightRotationAngle = 0.0f; // Static variable to keep track of rotation
 		lightRotationAngle += -0.5f * deltaT; // Increment rotation angle based on time
 
 		const glm::mat4 lightView = glm::rotate(glm::mat4(1), glm::radians(lightRotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)) * 
-									glm::rotate(glm::mat4(1), glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+										glm::rotate(glm::mat4(1), glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		const glm::vec3 lightDir =  glm::vec3(lightView * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 
 		GlobalUniformBufferObject gubo{};
 
 		gubo.lightDir = lightDir;
 		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)*5.0f;
-		gubo.eyePos = glm::vec3(glm::inverse(View)[3]);
+		gubo.eyePos = camPos;
 
-		DSglobal.map(currentImage, &gubo, 0);
+		DSglobal.map((int)currentImage, &gubo, 0);
 
 		// defines the local parameters for the uniforms
 		UniformBufferObject ubo{};		
@@ -264,8 +352,8 @@ class Skeleton26ReplaceName : public BaseProject {
 			ubo.mvpMat = ViewPrj * ubo.mMat;
 			
 			// DS[1] = Pchar pass (main render): set0=DSLglobal, set1=DSLlocal
-			SC.TI[0].I[instanceId].DS[0][0]->map(currentImage, &gubo, 0); // global (light/camera)
-			SC.TI[0].I[instanceId].DS[0][1]->map(currentImage, &ubo, 0); // camera MVPs
+			SC.TI[0].I[instanceId].DS[0][0]->map((int)currentImage, &gubo, 0); // global (light/camera)
+			SC.TI[0].I[instanceId].DS[0][1]->map((int)currentImage, &ubo, 0); // camera MVPs
 		}
 		
 		// updates the FPS
@@ -276,9 +364,11 @@ class Skeleton26ReplaceName : public BaseProject {
 		elapsedT += deltaT;
 		if(elapsedT > 1.0f) {
 			float Fps = (float)countedFrames / elapsedT;
-			
 			std::ostringstream oss;
 			oss << "FPS: " << Fps << "\n";
+			if(showInteractionPrompt && activeNPC >= 0) {
+				oss << tavernNPCs[activeNPC].prompt << "\n";
+			}
 
 			txt.print(1.0f, 1.0f, oss.str(), 1, "CO", false, false, true,TAL_RIGHT,TRH_RIGHT,TRV_BOTTOM,{1.0f,0.0f,0.0f,1.0f},{0.8f,0.8f,0.0f,1.0f});
 			
@@ -297,7 +387,8 @@ class Skeleton26ReplaceName : public BaseProject {
 
 		// Integration with the timers and the controllers
 		float deltaT;
-		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
+		auto m = glm::vec3(0.0f);
+		auto r = glm::vec3(0.0f);
 		bool fire = false;
 		getSixAxis(deltaT, m, r, fire);
 
@@ -306,9 +397,12 @@ class Skeleton26ReplaceName : public BaseProject {
 		Prj[1][1] *= -1;
 
 		// View
-		View = glm::lookAt(glm::vec3(0.0f, 1.0f, 5.0f), // Pos
-						   glm::vec3(0.0f),				// Target
-						   glm::vec3(0.0f, 1.0f, 0.0f));
+		const glm::vec3 forward = glm::normalize(glm::vec3(
+			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+			sin(glm::radians(pitch)),
+			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+		));
+		View = glm::lookAt(camPos, camPos + forward, glm::vec3(0.0f, 1.0f, 0.0f));
 
 		// View-Projection
 		ViewPrj = Prj * View;
@@ -320,7 +414,7 @@ class Skeleton26ReplaceName : public BaseProject {
 
 // This is the main: probably you do not need to touch this!
 int main() {
-    Skeleton26ReplaceName app;
+    DungeonTavern app;
 
     try {
         app.run(false);
