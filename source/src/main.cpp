@@ -91,6 +91,9 @@ class DungeonTavern : public BaseProject {
     glm::vec3 camPos;
     float yaw;
     float pitch, moveSpeed, rotSpeed;
+    double lastMouseX;
+    double lastMouseY;
+    bool mouseLookInitialized;
     bool showInteractionPrompt;
     int activeNPC;
     std::vector<TavernNPC> tavernNPCs;
@@ -101,7 +104,8 @@ class DungeonTavern : public BaseProject {
 	public:
 	DungeonTavern()
 		: Ar(4.0f / 3.0f), ViewPrj(1.0f), View(1.0f), camPos(0.0f, 1.4f, 5.0f), yaw(-90.0f),
-		  pitch(0.0f), moveSpeed(3.5f), rotSpeed(90.0f), showInteractionPrompt(false), activeNPC(-1) {}
+		  pitch(0.0f), moveSpeed(10.0f), rotSpeed(10.0f), lastMouseX(0.0), lastMouseY(0.0),
+		  mouseLookInitialized(false), showInteractionPrompt(false), activeNPC(-1) {}
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -235,8 +239,11 @@ class DungeonTavern : public BaseProject {
 		camPos = glm::vec3(0.0f, 1.4f, 5.0f);
 		yaw = -90.0f;
 		pitch = 0.0f;
-		moveSpeed = 3.5f;
-		rotSpeed = 90.0f;
+		moveSpeed = 10.0f;
+		rotSpeed = 10.0f;
+		lastMouseX = 0.0;
+		lastMouseY = 0.0;
+		mouseLookInitialized = false;
 		showInteractionPrompt = false;
 		activeNPC = -1;
 		tavernNPCs = {
@@ -244,6 +251,7 @@ class DungeonTavern : public BaseProject {
 			{"Bard", glm::vec3(2.5f, 0.0f, -2.0f), 1.75f, "Press E to listen to the Bard"},
 			{"Merchant", glm::vec3(-2.5f, 0.0f, -1.5f), 1.75f, "Press E to trade with the Merchant"}
 		};
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 		// submits the main command buffer
 		submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
@@ -325,6 +333,10 @@ class DungeonTavern : public BaseProject {
 	void updateUniformBuffer(uint32_t currentImage) override {
 		static bool debounce = false;
 		static int curDebounce = 0;
+		float deltaT;
+		glm::vec3 m(0.0f);
+		glm::vec3 r(0.0f);
+		bool fire = false;
 
 		// handle the ESC key to exit the app
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -332,7 +344,8 @@ class DungeonTavern : public BaseProject {
 		}
 
 		// moves the view
-		float deltaT = GameLogic();
+		getSixAxis(deltaT, m, r, fire);
+		updateMouseLook();
 		const float deltaYaw = glm::radians(rotSpeed) * deltaT;
 		const float deltaPitch = glm::radians(rotSpeed) * deltaT;
 		if(glfwGetKey(window, GLFW_KEY_LEFT)) yaw -= glm::degrees(deltaYaw);
@@ -342,23 +355,21 @@ class DungeonTavern : public BaseProject {
 		pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
 		const glm::vec3 forward = glm::normalize(glm::vec3(
-			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-			sin(glm::radians(pitch)),
-			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+			cos(glm::radians(yaw)),
+			0.0f,
+			sin(glm::radians(yaw))
 		));
 		const glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
-		const glm::vec3 up = glm::normalize(glm::cross(right, forward));
 
 		glm::vec3 move(0.0f);
 		if(glfwGetKey(window, GLFW_KEY_W)) move += forward;
 		if(glfwGetKey(window, GLFW_KEY_S)) move -= forward;
 		if(glfwGetKey(window, GLFW_KEY_A)) move -= right;
 		if(glfwGetKey(window, GLFW_KEY_D)) move += right;
-		if(glfwGetKey(window, GLFW_KEY_SPACE)) move += up * 0.2f;
-		if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) move -= up * 0.2f;
 		if(glm::length(move) > 0.0f) {
 			camPos += glm::normalize(move) * moveSpeed * deltaT;
 		}
+		camPos.y = 1.4f;
 
 		glm::vec3 interactionTarget(0.0f);
 		showInteractionPrompt = false;
@@ -387,6 +398,8 @@ class DungeonTavern : public BaseProject {
 		if(curDebounce > 0) {
 			--curDebounce;
 		}
+
+		updateViewProjection();
 
 		// defines the global parameters for the uniform
 		static float lightRotationAngle = 0.0f; // Static variable to keep track of rotation
@@ -452,35 +465,52 @@ class DungeonTavern : public BaseProject {
 		txt.updateCommandBuffer();
 	}
 	
-	float GameLogic() {
+	glm::vec3 getForwardVector() const {
+		return glm::normalize(glm::vec3(
+			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+			sin(glm::radians(pitch)),
+			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+		));
+	}
+
+	void updateMouseLook() {
+		double xpos = 0.0;
+		double ypos = 0.0;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		if(!mouseLookInitialized) {
+			lastMouseX = xpos;
+			lastMouseY = ypos;
+			mouseLookInitialized = true;
+			return;
+		}
+
+		const float mouseSensitivity = 0.08f;
+		const float dx = static_cast<float>(xpos - lastMouseX);
+		const float dy = static_cast<float>(ypos - lastMouseY);
+		lastMouseX = xpos;
+		lastMouseY = ypos;
+
+		yaw += dx * mouseSensitivity;
+		pitch -= dy * mouseSensitivity;
+		pitch = glm::clamp(pitch, -89.0f, 89.0f);
+	}
+
+	void updateViewProjection() {
 		// Camera FOV-y, Near Plane and Far Plane
 		const float FOVy = glm::radians(45.0f);
 		const float nearPlane = 0.1f;
 		const float farPlane = 100.f;
-
-		// Integration with the timers and the controllers
-		float deltaT;
-		auto m = glm::vec3(0.0f);
-		auto r = glm::vec3(0.0f);
-		bool fire = false;
-		getSixAxis(deltaT, m, r, fire);
 
 		// Projection
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		Prj[1][1] *= -1;
 
 		// View
-		const glm::vec3 forward = glm::normalize(glm::vec3(
-			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-			sin(glm::radians(pitch)),
-			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-		));
+		const glm::vec3 forward = getForwardVector();
 		View = glm::lookAt(camPos, camPos + forward, glm::vec3(0.0f, 1.0f, 0.0f));
 
 		// View-Projection
 		ViewPrj = Prj * View;
-
-		return deltaT;
 	}
 };
 

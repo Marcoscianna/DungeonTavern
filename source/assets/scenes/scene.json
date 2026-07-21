@@ -32,7 +32,6 @@
 		{"id": "tavern_material", "VD": "VDposUV", "model": "assets/models/tavern/tavern_material.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_goriz", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_goriz.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_vert", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_vert.gltf",  "format":"GLTF"},
-		{"id": "guard", "VD": "VDanim", "model": "assets/models/guard.gltf",  "format":"GLTF"},
 		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG"}
 	],
 	"textures": [
