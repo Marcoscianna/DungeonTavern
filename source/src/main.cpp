@@ -10,6 +10,7 @@
 #include "modules/Starter.hpp"
 #include "modules/TextMaker.hpp"
 #include "modules/Scene.hpp"
+#include "modules/Animations.hpp"
 
 // The uniform buffer object used in this example
 struct UniformBufferObject {
@@ -35,6 +36,22 @@ struct TavernNPC {
 	std::string prompt;
 };
 
+// L'UBO per i modelli animati (contiene l'array delle ossa)
+struct AnimUniformBufferObject {
+	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mMat;
+	alignas(16) glm::mat4 bones[128]; // Array per lo scheletro (max 128 ossa)
+};
+
+// Il vertice per i modelli animati
+struct VertexAnim {
+	alignas(16) glm::vec3 pos;
+	alignas(16) glm::vec2 UV;
+	alignas(16) glm::vec3 norm;
+	alignas(16) glm::vec4 jointWeights;
+	alignas(16) glm::vec4 jointIndices;
+};
+
 // MAIN !
 
 class DungeonTavern : public BaseProject {
@@ -43,6 +60,11 @@ class DungeonTavern : public BaseProject {
 	
 	// Descriptor Layouts [what will be passed to the shaders]
 	DescriptorSetLayout DSLlocal, DSLglobal;
+
+	// NUOVI OGGETTI PER LE ANIMAZIONI
+	DescriptorSetLayout DSLanim;
+	VertexDescriptor VDanim;
+	Pipeline Panim;
 
 	// Vertex formants, Pipelines [Shader couples] and Render passes
 	VertexDescriptor VD;
@@ -72,6 +94,9 @@ class DungeonTavern : public BaseProject {
     bool showInteractionPrompt;
     int activeNPC;
     std::vector<TavernNPC> tavernNPCs;
+	Animations npcAnims;
+	SkeletalAnimation guardSkin;
+	AnimBlender guardBlender;
 
 	public:
 	DungeonTavern()
@@ -105,6 +130,13 @@ class DungeonTavern : public BaseProject {
 	// Here you load and setup all your Vulkan Models and Texutures.
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() override {
+
+		// 1. Crea il Layout per l'UBO Animato (identico al locale, ma con AnimUniformBufferObject)
+		DSLanim.init(this, {
+				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(AnimUniformBufferObject), 1},
+				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}
+		});
+
 		// Descriptor Layouts [what will be passed to the shaders]
 		DSLlocal.init(this, {
 					// this array contains the binding:
@@ -130,6 +162,21 @@ class DungeonTavern : public BaseProject {
 				         sizeof(glm::vec2), UV}
 				});
 
+		VDanim.init(this, {
+				{0, sizeof(VertexAnim), VK_VERTEX_INPUT_RATE_VERTEX}
+		}, {
+							{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexAnim, pos), sizeof(glm::vec3), POSITION},
+							{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexAnim, UV), sizeof(glm::vec2), UV},
+							{0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexAnim, norm), sizeof(glm::vec3), NORMAL},
+							{0, 3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexAnim, jointWeights), sizeof(glm::vec4), JOINTWEIGHT},
+							{0, 4, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexAnim, jointIndices), sizeof(glm::vec4), JOINTINDEX}
+		});
+
+		Panim.init(this, &VDanim,
+				   "shaders/skinning.vert.spv",
+				   "shaders/toChangeBlinnFromPos.frag.spv",
+				   {&DSLglobal, &DSLanim});
+
 		// initializes the render passes
 		RP.init(this);
 		// sets the blue sky
@@ -145,15 +192,16 @@ class DungeonTavern : public BaseProject {
 
 
 		// sets the size of the Descriptor Set Pool (it MUST be done before loading the scene)
-		DPSZs.uniformBlocksInPool = 2;
-		DPSZs.texturesInPool = 1;
-		DPSZs.setsInPool = 2;
+		DPSZs.uniformBlocksInPool = 20;
+		DPSZs.texturesInPool = 10;
+		DPSZs.setsInPool = 20;
 
 		// to support scene
-		VDRs.resize(1);
+		VDRs.resize(2);
 		VDRs[0].init("VDposUV",  &VD);
+		VDRs[1].init("VDanim",   &VDanim);
 
-		PRs.resize(1);
+		PRs.resize(2);
 		PRs[0].init("BlinnPos", {
 							{&P, {//Pipeline and DSL for the main pass
 							 /*DSLglobal*/{},
@@ -163,6 +211,18 @@ class DungeonTavern : public BaseProject {
 								 }
 								}
 						  }, /*TotalNtextures*/1, &VD);
+
+
+		// Tecnica 1: Animata
+		PRs[1].init("AnimTech", {
+				{&Panim, { // Usa la pipeline animata
+						/*DSLglobal*/{},
+						/*DSLanim*/{
+											 /*t0*/{true,  0, {}} // Una texture per ora (la Diffuse)
+									 }
+				}
+				}
+		}, /*TotalNtextures*/1, &VDanim); // Usa VDanim
 
 		if(SC.init(this, 1, VDRs, PRs, "assets/scenes/scene.json") != 0) {
 			std::cout << "ERROR LOADING THE SCENE\n";
@@ -200,6 +260,7 @@ class DungeonTavern : public BaseProject {
 		
 		// This creates a new pipeline (with the current surface), using its shaders for the provided render pass
 		P.create(&RP);
+		Panim.create(&RP);
 		
 		DSglobal.init(this, &DSLglobal, {});
 		
@@ -214,7 +275,7 @@ class DungeonTavern : public BaseProject {
 	// Here you destroy your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsCleanup() override {
 		P.cleanup();
-
+		Panim.cleanup();
 		RP.cleanup();
 		
 		DSglobal.cleanup();
@@ -230,6 +291,7 @@ class DungeonTavern : public BaseProject {
 		DSLglobal.cleanup();
 
 		P.destroy();
+		Panim.destroy();
 
 		RP.destroy();
 
@@ -343,19 +405,30 @@ class DungeonTavern : public BaseProject {
 		DSglobal.map((int)currentImage, &gubo, 0);
 
 		// defines the local parameters for the uniforms
-		UniformBufferObject ubo{};		
+		UniformBufferObject ubo{};
 
-		int instanceId;
-		// character
-		for(instanceId = 0; instanceId < SC.TI[0].InstanceCount; instanceId++) {
-			ubo.mMat = SC.TI[0].I[instanceId].Wm;
+		for(int i = 0; i < SC.TI[0].InstanceCount; i++) {
+			ubo.mMat = SC.TI[0].I[i].Wm;
 			ubo.mvpMat = ViewPrj * ubo.mMat;
-			
-			// DS[1] = Pchar pass (main render): set0=DSLglobal, set1=DSLlocal
-			SC.TI[0].I[instanceId].DS[0][0]->map((int)currentImage, &gubo, 0); // global (light/camera)
-			SC.TI[0].I[instanceId].DS[0][1]->map((int)currentImage, &ubo, 0); // camera MVPs
+
+			SC.TI[0].I[i].DS[0][0]->map((int)currentImage, &gubo, 0);
+			SC.TI[0].I[i].DS[0][1]->map((int)currentImage, &ubo, 0);
 		}
-		
+
+		AnimUniformBufferObject aubo{};
+
+		for(int b = 0; b < 128; b++) {
+			aubo.bones[b] = glm::mat4(1.0f);
+		}
+
+		for(int i = 0; i < SC.TI[1].InstanceCount; i++) {
+			aubo.mMat = SC.TI[1].I[i].Wm;
+			aubo.mvpMat = ViewPrj * aubo.mMat;
+
+			SC.TI[1].I[i].DS[0][0]->map((int)currentImage, &gubo, 0);
+			SC.TI[1].I[i].DS[0][1]->map((int)currentImage, &aubo, 0);
+		}
+
 		// updates the FPS
 		static float elapsedT = 0.0f;
 		static int countedFrames = 0;
