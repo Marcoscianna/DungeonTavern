@@ -213,6 +213,17 @@ class DungeonTavern : public BaseProject {
           exit(0);
        }
 
+       // --- Inizializza animazioni per guard_npc (carica separatamente l'asset GLTF)
+       {
+           AssetFile *guardAF = new AssetFile();
+           guardAF->init("assets/models/guard_npc.gltf", GLTF);
+           npcAnims.init(*guardAF);
+           // Sostituire "Armature" con il nome base dell'animazione presente nel GLTF (vedi output in console)
+           guardSkin.init(&npcAnims, 1, "Armature", 0);
+           AnimBlendSegment seg = {0, -1, 0.0f, 0};
+           guardBlender.init(std::vector<AnimBlendSegment>{seg});
+       }
+
        // initializes the textual output
        txt.init(this, (int)windowWidth, (int)windowHeight);
 
@@ -367,12 +378,26 @@ class DungeonTavern : public BaseProject {
 
        AnimUniformBufferObject aubo{};
 
+       // Avanza e campiona l'animazione del guard
+       guardBlender.Advance(deltaT);
+       guardSkin.Sample(guardBlender);
+       std::vector<glm::mat4> *bm = guardSkin.getTransformMatrices();
+       int nB = guardSkin.getNTMs();
        for(int b = 0; b < 128; b++) {
-          aubo.bones[b] = glm::mat4(1.0f);
+          if(b < nB) aubo.bones[b] = (*bm)[b];
+          else aubo.bones[b] = glm::mat4(1.0f);
        }
 
        for(int i = 0; i < SC.TI[1].InstanceCount; i++) {
           aubo.mMat = SC.TI[1].I[i].Wm;
+
+          // Quick fix: if this is the guard_1 instance, apply a scale correction
+          if(SC.TI[1].I[i].id != nullptr && *SC.TI[1].I[i].id == "guard_1") {
+              // Fine-tune this factor if necessary
+              float s = 0.1f;
+              aubo.mMat = aubo.mMat * glm::scale(glm::mat4(1.0f), glm::vec3(s));
+          }
+
           aubo.mvpMat = ViewPrj * aubo.mMat;
 
           SC.TI[1].I[i].DS[0][0]->map((int)currentImage, &gubo, 0);

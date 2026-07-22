@@ -32,7 +32,8 @@
 		{"id": "tavern_material", "VD": "VDposUV", "model": "assets/models/tavern/tavern_material.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_goriz", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_goriz.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_vert", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_vert.gltf",  "format":"GLTF"},
-		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG"}
+		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG"},
+		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF"}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -72,7 +73,10 @@
 		{"id": "svecha", "texture": "assets/textures/tavern/svecha.png", "format": "C"},
 		{"id": "bytilka", "texture": "assets/textures/tavern/bytilka.png", "format": "C"},
 		{"id": "tgbc", "texture": "assets/textures/tavern/temn_goriz_baseColor.png", "format": "C"},
-		{"id": "tvbc", "texture": "assets/textures/tavern/temn_vert_baseColor.png", "format": "C"}
+		{"id": "tvbc", "texture": "assets/textures/tavern/temn_vert_baseColor.png", "format": "C"},
+		{"id": "tex_guard_diffuse", "texture": "assets/textures/npc/guard_02_diffuse.png", "format": "C"},
+		{"id": "tex_guard_normal",  "texture": "assets/textures/npc/guard_02_normal.png",  "format": "N"},
+		{"id": "tex_guard_specular", "texture": "assets/textures/npc/guard_02_specular.png", "format": "S"}
 	],
 	"instances": [
 		{
@@ -116,7 +120,22 @@
 		{
 			"technique": "AnimTech",
 			"elements": [
-				{"id": "guard", "model": "guard", "texture": ["tex_guard1"], "translate": [0.0, 0.0, 0.0]}
+				{
+					"id": "guard",
+					"model": "guard",
+					"texture": ["tex_guard1"],
+					"translate": [-2.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "guard_1",
+					"model": "guard_npc",
+					"texture": ["tex_guard_diffuse"],
+					"translate": [5.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				}
 			]
 		}
 	]
