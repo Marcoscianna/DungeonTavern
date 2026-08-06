@@ -317,7 +317,7 @@ class DungeonTavern : public BaseProject {
        player.processInput(window, deltaT);
 
        // Forza l'altezza della testa/camera fissa
-       player.position.y = 1.4f;
+       //player.position.y = 1.4f;
 
        // Calcolo distanza interazione NPC basato su player.position
        glm::vec3 interactionTarget(0.0f);

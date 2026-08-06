@@ -32,6 +32,7 @@
 		{"id": "tavern_material", "VD": "VDposUV", "model": "assets/models/tavern/tavern_material.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_goriz", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_goriz.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_vert", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_vert.gltf",  "format":"GLTF"},
+		{"id": "tavolo_lungo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_lungo.gltf",  "format":"GLTF"},
 		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG"},
 		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF"}
 	],
@@ -74,6 +75,7 @@
 		{"id": "bytilka", "texture": "assets/textures/tavern/bytilka.png", "format": "C"},
 		{"id": "tgbc", "texture": "assets/textures/tavern/temn_goriz_baseColor.png", "format": "C"},
 		{"id": "tvbc", "texture": "assets/textures/tavern/temn_vert_baseColor.png", "format": "C"},
+		{"id": "tex_tavolo_lungo", "texture": "assets/textures/tavern/elements/tavolo_lungo_text.png", "format": "C"},
 		{"id": "tex_guard_diffuse", "texture": "assets/textures/npc/guard_02_diffuse.png", "format": "C"},
 		{"id": "tex_guard_normal",  "texture": "assets/textures/npc/guard_02_normal.png",  "format": "N"},
 		{"id": "tex_guard_specular", "texture": "assets/textures/npc/guard_02_specular.png", "format": "S"}
@@ -114,7 +116,10 @@
 				{"id": "tavern_svet", "model": "tavern_svet", "texture": ["svet"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_material", "model": "tavern_material", "texture": ["material"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_tg", "model": "tavern_temn_goriz", "texture": ["tgbc"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
-				{"id": "tavern_tv", "model": "tavern_temn_vert", "texture": ["tvbc"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
+				{"id": "tavern_tv", "model": "tavern_temn_vert", "texture": ["tvbc"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
+				{"id": "tavolo_lungo1", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [15.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
+				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [7.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
+				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]}
 			]
 		},
 		{
