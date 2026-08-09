@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/glfw-populate"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/4cfbebba2c2692161830b82a7230755f/glfw-populate.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/876b980ce9e30ca83f0c4e04b8dbb178/glfw-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/marco/CLionProjects/DungeonTavern/build/_deps/glfw-subbuild/CMakeFiles/d2b48175813ad9d7978e7472ce3272c8/glfw-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glfw-populate"
+		],
+		"name" : "glfw-populate"
+	}
+}

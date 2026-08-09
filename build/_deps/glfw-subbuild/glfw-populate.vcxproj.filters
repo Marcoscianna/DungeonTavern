@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\d2b48175813ad9d7978e7472ce3272c8\glfw-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\876b980ce9e30ca83f0c4e04b8dbb178\glfw-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\4cfbebba2c2692161830b82a7230755f\glfw-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\glfw-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3A824701-7E44-3EF8-A293-8C030175C571}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

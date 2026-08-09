@@ -1,0 +1,10 @@
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/marco/CLionProjects/DungeonTavern -BC:/Users/marco/CLionProjects/DungeonTavern/build --check-stamp-file C:/Users/marco/CLionProjects/DungeonTavern/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

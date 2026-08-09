@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\_deps\glfw-subbuild\CMakeFiles\4cfbebba2c2692161830b82a7230755f\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3A824701-7E44-3EF8-A293-8C030175C571}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

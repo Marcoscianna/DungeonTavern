@@ -8,9 +8,9 @@
 #include <json.hpp>
 
 #include "modules/Starter.hpp"
+#include "modules/Animations.hpp"
 #include "modules/TextMaker.hpp"
 #include "modules/Scene.hpp"
-#include "modules/Animations.hpp"
 #include "Player.hpp" // Include della classe Player
 
 // The uniform buffer object used in this example
@@ -50,7 +50,7 @@ struct VertexAnim {
     alignas(16) glm::vec2 UV;
     alignas(16) glm::vec3 norm;
     alignas(16) glm::vec4 jointWeights;
-    alignas(16) glm::vec4 jointIndices;
+    alignas(16) glm::uvec4 jointIndices;
 };
 
 // MAIN !
@@ -159,7 +159,7 @@ class DungeonTavern : public BaseProject {
                       {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexAnim, UV), sizeof(glm::vec2), UV},
                       {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexAnim, norm), sizeof(glm::vec3), NORMAL},
                       {0, 3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexAnim, jointWeights), sizeof(glm::vec4), JOINTWEIGHT},
-                      {0, 4, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexAnim, jointIndices), sizeof(glm::vec4), JOINTINDEX}
+                      {0, 4, VK_FORMAT_R32G32B32A32_UINT, offsetof(VertexAnim, jointIndices), sizeof(glm::uvec4), JOINTINDEX}
        });
 
        Panim.init(this, &VDanim,
@@ -218,9 +218,8 @@ class DungeonTavern : public BaseProject {
            AssetFile *guardAF = new AssetFile();
            guardAF->init("assets/models/guard_npc.gltf", GLTF);
            npcAnims.init(*guardAF);
-           // Sostituire "Armature" con il nome base dell'animazione presente nel GLTF (vedi output in console)
-           guardSkin.init(&npcAnims, 1, "Armature", 0);
-           AnimBlendSegment seg = {0, -1, 0.0f, 0};
+           guardSkin.init(&npcAnims, 1, "mixamo.com", 0);
+           AnimBlendSegment seg = { 0, 255, 1.0f, 0 };
            guardBlender.init(std::vector<AnimBlendSegment>{seg});
        }
 
@@ -243,8 +242,6 @@ class DungeonTavern : public BaseProject {
        submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
 
        // Prepares for showing the FPS count
-       txt.print(1.0f, 1.0f, "FPS:",1,"CO",false,false,true,TAL_RIGHT,TRH_RIGHT,TRV_BOTTOM,{1.0f,0.0f,0.0f,1.0f},{0.8f,0.8f,0.0f,1.0f});
-
     }
 
     // Here you create your pipelines and Descriptor Sets!
@@ -300,18 +297,14 @@ class DungeonTavern : public BaseProject {
     void updateUniformBuffer(uint32_t currentImage) override {
        static bool debounce = false;
        static int curDebounce = 0;
-       float deltaT;
-       glm::vec3 m(0.0f);
-       glm::vec3 r(0.0f);
-       bool fire = false;
-
+       static double lastTime = glfwGetTime();
+       double now = glfwGetTime();
+       float deltaT = static_cast<float>(now - lastTime);
+       lastTime = now;
        // handle the ESC key to exit the app
        if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
           glfwSetWindowShouldClose(window, GL_TRUE);
        }
-
-       // Ottiene deltaT dalla funzione Starter
-       getSixAxis(deltaT, m, r, fire);
 
        // Gestione dell'input (movimento WASD e orientamento mouse) tramite Player
        player.processInput(window, deltaT);
@@ -337,9 +330,6 @@ class DungeonTavern : public BaseProject {
        if(showInteractionPrompt && glfwGetKey(window, GLFW_KEY_E) && !debounce) {
           debounce = true;
           curDebounce = 12;
-          std::ostringstream oss;
-          oss << "Talking to " << tavernNPCs[activeNPC].name << "...";
-          txt.print(1.0f, 28.0f, oss.str(), 1, "CO", false, false, true, TAL_LEFT, TRH_LEFT, TRV_BOTTOM, {1.0f,0.9f,0.7f,1.0f}, {0.15f,0.05f,0.0f,0.85f});
        }
        if(!glfwGetKey(window, GLFW_KEY_E)) {
           debounce = false;
@@ -378,28 +368,36 @@ class DungeonTavern : public BaseProject {
 
        AnimUniformBufferObject aubo{};
 
-       // Avanza e campiona l'animazione del guard
+       // 1. Avanza e campiona le ossa del guard
        guardBlender.Advance(deltaT);
        guardSkin.Sample(guardBlender);
+
+       // 2. Copia le matrici delle ossa nel buffer
        std::vector<glm::mat4> *bm = guardSkin.getTransformMatrices();
        int nB = guardSkin.getNTMs();
        for(int b = 0; b < 128; b++) {
-          if(b < nB) aubo.bones[b] = (*bm)[b];
-          else aubo.bones[b] = glm::mat4(1.0f);
+          if(b < nB) {
+             aubo.bones[b] = (*bm)[b];
+          } else {
+             aubo.bones[b] = glm::mat4(1.0f);
+          }
        }
 
+       // 3. Mappa i dati sulle istanze animate
        for(int i = 0; i < SC.TI[1].InstanceCount; i++) {
           aubo.mMat = SC.TI[1].I[i].Wm;
 
-          // Quick fix: if this is the guard_1 instance, apply a scale correction
+          // Scala e rotazione per raddrizzare la guardia
           if(SC.TI[1].I[i].id != nullptr && *SC.TI[1].I[i].id == "guard_1") {
-              // Fine-tune this factor if necessary
-              float s = 0.1f;
-              aubo.mMat = aubo.mMat * glm::scale(glm::mat4(1.0f), glm::vec3(s));
+             float s = 0.03f;
+             glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(s));
+             glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(+90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+             aubo.mMat = aubo.mMat * rotMat * scaleMat;
           }
 
           aubo.mvpMat = ViewPrj * aubo.mMat;
 
+          // Mappa l'UBO con le ossa aggiornate
           SC.TI[1].I[i].DS[0][0]->map((int)currentImage, &gubo, 0);
           SC.TI[1].I[i].DS[0][1]->map((int)currentImage, &aubo, 0);
        }
@@ -412,14 +410,6 @@ class DungeonTavern : public BaseProject {
        elapsedT += deltaT;
        if(elapsedT > 1.0f) {
           float Fps = (float)countedFrames / elapsedT;
-          std::ostringstream oss;
-          oss << "FPS: " << Fps << "\n";
-          if(showInteractionPrompt && activeNPC >= 0) {
-             oss << tavernNPCs[activeNPC].prompt << "\n";
-          }
-
-          txt.print(1.0f, 1.0f, oss.str(), 1, "CO", false, false, true,TAL_RIGHT,TRH_RIGHT,TRV_BOTTOM,{1.0f,0.0f,0.0f,1.0f},{0.8f,0.8f,0.0f,1.0f});
-
           elapsedT = 0.0f;
           countedFrames = 0;
        }

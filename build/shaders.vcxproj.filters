@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\d2b26d6ac8c993164128eff857a858da\ColliderShow.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\c3a5ed4adcafd26b978569eee3ba0875\ColliderShow.frag.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\d2b26d6ac8c993164128eff857a858da\ColliderShow.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\c3a5ed4adcafd26b978569eee3ba0875\ColliderShow.vert.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\d2b26d6ac8c993164128eff857a858da\Text.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\c3a5ed4adcafd26b978569eee3ba0875\Text.frag.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\d2b26d6ac8c993164128eff857a858da\Text.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\c3a5ed4adcafd26b978569eee3ba0875\Text.vert.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\22b5ec2a2400a617ded4cfbefdecdb4a\skinning.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\2e808501fd42402c45169ccb150d09c9\skinning.vert.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\22b5ec2a2400a617ded4cfbefdecdb4a\toChangeBlinnFromPos.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\2e808501fd42402c45169ccb150d09c9\toChangeBlinnFromPos.frag.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\22b5ec2a2400a617ded4cfbefdecdb4a\toChangeSimplePos.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\2e808501fd42402c45169ccb150d09c9\toChangeSimplePos.vert.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\dfa2cb37bfa6aa6faab7cfef0354f3a6\shaders.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\marco\CLionProjects\DungeonTavern\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\marco\CLionProjects\DungeonTavern\build\CMakeFiles\shaders" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{7865F047-72BC-3BDE-A6C3-833FF0B91414}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

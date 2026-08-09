@@ -1,0 +1,10 @@
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\DFA2CB37BFA6AA6FAAB7CFEF0354F3A6\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/marco/CLionProjects/DungeonTavern -BC:/Users/marco/CLionProjects/DungeonTavern/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/marco/CLionProjects/DungeonTavern/build/SkeletonToChange.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

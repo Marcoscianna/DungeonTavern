@@ -1,0 +1,214 @@
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\D2B26D6AC8C993164128EFF857A858DA\COLLIDERSHOW.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/ColliderShow.frag.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/framework/ColliderShow.frag
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\C3A5ED4ADCAFD26B978569EEE3BA0875\COLLIDERSHOW.FRAG.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/ColliderShow.frag.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework/ColliderShow.frag.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\D2B26D6AC8C993164128EFF857A858DA\COLLIDERSHOW.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/ColliderShow.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/framework/ColliderShow.vert
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\C3A5ED4ADCAFD26B978569EEE3BA0875\COLLIDERSHOW.VERT.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/ColliderShow.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework/ColliderShow.vert.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\D2B26D6AC8C993164128EFF857A858DA\TEXT.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/Text.frag.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/framework/Text.frag
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\C3A5ED4ADCAFD26B978569EEE3BA0875\TEXT.FRAG.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/Text.frag.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework/Text.frag.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\D2B26D6AC8C993164128EFF857A858DA\TEXT.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/Text.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/framework/Text.vert
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\C3A5ED4ADCAFD26B978569EEE3BA0875\TEXT.VERT.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/framework/Text.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/framework/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/framework/Text.vert.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\22B5EC2A2400A617DED4CFBEFDECDB4A\SKINNING.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/skinning.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/skinning.vert
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\2E808501FD42402C45169CCB150D09C9\SKINNING.VERT.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/skinning.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders//
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/skinning.vert.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\22B5EC2A2400A617DED4CFBEFDECDB4A\TOCHANGEBLINNFROMPOS.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/toChangeBlinnFromPos.frag.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/toChangeBlinnFromPos.frag
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\2E808501FD42402C45169CCB150D09C9\TOCHANGEBLINNFROMPOS.FRAG.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/toChangeBlinnFromPos.frag.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders//
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/toChangeBlinnFromPos.frag.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\22B5EC2A2400A617DED4CFBEFDECDB4A\TOCHANGESIMPLEPOS.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/spv/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.304.0\Bin\glslc.exe -o C:/Users/marco/CLionProjects/DungeonTavern/build/spv/toChangeSimplePos.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/source/shaders/toChangeSimplePos.vert
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\2E808501FD42402C45169CCB150D09C9\TOCHANGESIMPLEPOS.VERT.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/marco/CLionProjects/DungeonTavern/build/spv/toChangeSimplePos.vert.spv C:/Users/marco/CLionProjects/DungeonTavern/build/Debug/shaders//
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/marco/CLionProjects/DungeonTavern/build/shader_copy_stamps/toChangeSimplePos.vert.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\BUILD\CMAKEFILES\DFA2CB37BFA6AA6FAAB7CFEF0354F3A6\SHADERS.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\MARCO\CLIONPROJECTS\DUNGEONTAVERN\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/marco/CLionProjects/DungeonTavern -BC:/Users/marco/CLionProjects/DungeonTavern/build --check-stamp-file C:/Users/marco/CLionProjects/DungeonTavern/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
