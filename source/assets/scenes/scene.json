@@ -125,21 +125,26 @@
 		{
 			"technique": "AnimTech",
 			"elements": [
-				{
-					"id": "guard",
-					"model": "guard",
-					"texture": ["tex_guard1"],
-					"translate": [-2.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "guard_1",
+				{   "id": "door_guard_r",
 					"model": "guard_npc",
 					"texture": ["tex_guard_diffuse"],
-					"translate": [5.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
+					"translate": [9.0,0.0,-8.0],
+					"eulerAngles": [90.0, 180.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per parlare con la guardia destra",
+					"interactionRadius": 4.0,
+					"dialogues": ["Ciao viandante.","Benvenuto alla Taverna!"]
+				},
+				{
+					"id": "door_guard_l",
+					"model": "guard_npc",
+					"texture": ["tex_guard_diffuse"],
+					"translate": [13.8, 0.0, -8.0],
+					"eulerAngles": [90.0, 180.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per parlare con la guardia sinistra",
+					"interactionRadius": 4.0,
+					"dialogues": ["Ciao viandante.","Benvenuto alla Taverna!"]
 				}
 			]
 		}
