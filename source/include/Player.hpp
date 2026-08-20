@@ -57,6 +57,7 @@ public:
     glm::mat4 getViewMatrix() const;
     glm::mat4 getProjectionMatrix(float aspectRatio) const;
     glm::mat4 getViewProjectionMatrix(float aspectRatio) const;
+    Collider* getCollider() const { return playerCollider; }
 };
 
 #endif // PLAYER_HPP

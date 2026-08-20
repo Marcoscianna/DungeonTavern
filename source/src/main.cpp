@@ -14,6 +14,7 @@
 #include "Player.hpp"
 #include "modules/TextMaker.hpp"
 #include "DialogueManager.hpp"
+#include "PhysicsManager.hpp"
 
 struct UniformBufferObject {
     alignas(16) glm::mat4 mvpMat;
@@ -72,6 +73,9 @@ protected:
 
     // Oggetto Player per gestire movimento e visuale
     Player player;
+
+    // Oggetto per gestire la fisica degli oggetti
+    PhysicsManager physicsManager;
 
     // ==========================================
     // SISTEMA NPC: Logica e Grafica
@@ -286,6 +290,8 @@ public:
             };
         }
 
+        physicsManager.init(SC, "assets/scenes/scene.json", 0.2f);
+
         // NON TOGLIERE: Trucco anti-crash per il buffer vuoto del TextMaker
         txt.print(-100.0f, -100.0f, " ");
 
@@ -396,6 +402,13 @@ public:
 
         // Aggiornamento finale dei modelli animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);
+
+        // =========================================================
+        // UPDATE PHYSICS (Gravità per oggetti dinamici)
+        // =========================================================
+
+        bool canInteract = !dialogueManager.isDialogueActive();
+        physicsManager.update(window, deltaT, SC, player, canInteract,txt);
 
         // Aggiornamento FPS
         static float elapsedT = 0.0f;
