@@ -15,11 +15,16 @@ class Player;
 class Collider;
 class TextMaker;
 
-// Struttura per gestire i dati fisici di ogni oggetto
 struct PhysicsObject {
     int instanceIndex;
     glm::vec3 velocity;
+    glm::vec3 angularVelocity; // Per la rotazione in volo
+    float mass;                // Resistenza alla spinta
+    float bounciness;          // Coefficiente di restituzione (rimbalzo)
+    float friction;            // Attrito col terreno
     bool isHeld;
+    glm::vec3 originalScale;
+    glm::quat originalRotation;
 };
 
 enum class PhysicsUIState { NONE, GRAB, HOLD };
@@ -30,10 +35,9 @@ private:
     Collider* floorCollider;
     float gravity;
 
-    int heldObjectIndex;     // Indice dell'oggetto attualmente in mano (-1 se nessuno)
-    bool ePressedLastFrame;  // Tracker per il tasto E
+    int heldObjectIndex;
+    bool ePressedLastFrame;
     bool tPressedLastFrame;
-
     PhysicsUIState uiState;
 
 public:
@@ -41,9 +45,7 @@ public:
     ~PhysicsManager();
 
     void init(const Scene& scene, const std::string& sceneFilePath = "assets/scenes/scene.json", float floorLevel = 0.0f);
-
     void update(GLFWwindow* window, float deltaT, Scene& scene, const Player& player, bool canInteract, TextMaker& txt);
-
     Collider* getFloorCollider();
 };
 

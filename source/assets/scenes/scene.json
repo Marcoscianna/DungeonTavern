@@ -124,7 +124,8 @@
 				{"id": "tavolo_lungo1", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [15.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
 				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [7.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
 				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]},
-				{"id": "vassoio", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [20.0, 20.0, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true}
+				{"id": "vassoio_leggero", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [20.0, 20.0, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true, "mass": 5.0, "bounciness": 0.1, "friction": 0.5},
+				{"id": "vassoio_pesante", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [25.0, 20.0, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true, "mass": 0.5, "bounciness": 0.8, "friction": 0.95}
 			]
 		},
 		{
