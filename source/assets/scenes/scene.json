@@ -35,7 +35,7 @@
 		{"id": "tavolo_lungo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_lungo.gltf",  "format":"GLTF"},
 		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": true}},
 		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": true,
-			"children": [{"type":"AABB", "params": [-60.0,-40.0,0.0,60.0,40.0,220.0]}]
+			"children": [{"type":"AABB", "params": [-60.0,-40.0,0.0,60.0,40.0,-220.0]}]
 		}},
 		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF"}
 	],
