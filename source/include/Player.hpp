@@ -7,7 +7,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <GLFW/glfw3.h>
 
+// Forward declarations per evitare problemi di inclusione
+class Scene;
+class Collider;
+
 class Player {
+    Collider* playerCollider; // Usiamo un puntatore al collider
+
 public:
     // Posizione e orientamento
     glm::vec3 position;
@@ -21,25 +27,31 @@ public:
     float nearPlane;
     float farPlane;
 
+    float colliderRadius;
+
     // Stato del mouse
     double lastMouseX;
     double lastMouseY;
     bool mouseLookInitialized;
 
-    // Costruttore
+    // Costruttore e Distruttore
     Player(glm::vec3 startPos = glm::vec3(0.0f, 1.2f, 3.0f));
+    ~Player();
 
-    // Inizializzazione posizione/orientamento
-    void init(glm::vec3 startPos = glm::vec3(0.0f, 1.2f, 3.0f), float startYaw = -90.0f, float startPitch = 0.0f);
+    // Inizializzazione posizione/orientamento e collider
+    void init(glm::vec3 startPos = glm::vec3(0.0f, 1.2f, 3.0f), float startYaw = -90.0f, float startPitch = 0.0f, float radius = 0.5f);
 
     // Vettori di direzione
     glm::vec3 getForwardVector() const;
     glm::vec3 getRightVector() const;
     glm::vec3 getUpVector() const;
 
-    // Gestione dell'input per movimento WASD/Spazio/Shift e rotazione mouse
-    void processInput(GLFWwindow* window, float deltaTime);
+    // Gestione dell'input per movimento WASD/Spazio/Shift e risoluzione collisioni
+    void processInput(GLFWwindow* window, float deltaTime, const Scene& scene);
     void updateMouseLook(GLFWwindow* window);
+
+    // Helper per verificare collisioni a una data coordinata
+    bool checkCollisionAt(const glm::vec3& testPos, const Scene& scene);
 
     // Matrici per Vulkan
     glm::mat4 getViewMatrix() const;

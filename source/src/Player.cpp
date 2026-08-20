@@ -1,10 +1,22 @@
+#include <json.hpp>
+
+#include "../include/modules/Starter.hpp"
+#include "../include/modules/Scene.hpp"
 #include "../include/Player.hpp"
 
 Player::Player(glm::vec3 startPos) {
+    playerCollider = nullptr;
     init(startPos);
 }
 
-void Player::init(glm::vec3 startPos, float startYaw, float startPitch) {
+Player::~Player() {
+    if (playerCollider != nullptr) {
+        delete playerCollider;
+        playerCollider = nullptr;
+    }
+}
+
+void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float radius) {
     position = startPos;
     yaw = startYaw;
     pitch = startPitch;
@@ -16,9 +28,16 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch) {
     lastMouseX = 0.0;
     lastMouseY = 0.0;
     mouseLookInitialized = false;
+
+    // Inizializza il collider dinamico
+    colliderRadius = radius;
+    if (playerCollider == nullptr) {
+        playerCollider = new Collider();
+    }
+    playerCollider->initSphere(0.0f, 0.0f, 0.0f, colliderRadius);
+    playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
 }
 
-// Update the player's position and orientation based on input
 glm::vec3 Player::getForwardVector() const {
     glm::vec3 forward;
     forward.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -47,7 +66,7 @@ void Player::updateMouseLook(GLFWwindow* window) {
     }
 
     float xoffset = static_cast<float>(xpos - lastMouseX);
-    float yoffset = static_cast<float>(lastMouseY - ypos); // invertito: coordinate Y vanno dal basso verso l'alto
+    float yoffset = static_cast<float>(lastMouseY - ypos);
 
     lastMouseX = xpos;
     lastMouseY = ypos;
@@ -55,38 +74,77 @@ void Player::updateMouseLook(GLFWwindow* window) {
     yaw += xoffset * rotSpeed;
     pitch += yoffset * rotSpeed;
 
-    // Limita il pitch per evitare il ribaltamento della telecamera
     if (pitch > 89.0f)
         pitch = 89.0f;
     if (pitch < -89.0f)
         pitch = -89.0f;
 }
 
-void Player::processInput(GLFWwindow* window, float deltaTime) {
-    // Aggiorna prima l'orientamento con il mouse
+bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene) {
+    glm::mat4 testWm = glm::translate(glm::mat4(1.0f), testPos);
+    playerCollider->setWorldMatrix(testWm);
+
+    for (int i = 0; i < scene.InstanceCount; i++) {
+        if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene) {
+    // 1. Mouse Look
     updateMouseLook(window);
 
     float velocity = moveSpeed * deltaTime;
-
-    // Movimento orizzontale
     glm::vec3 forward = getForwardVector();
     glm::vec3 forwardFlat = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
     glm::vec3 rightFlat = getRightVector();
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        position += forwardFlat * velocity;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        position -= forwardFlat * velocity;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        position -= rightFlat * velocity;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        position += rightFlat * velocity;
+    // 2. Calcola posizione desiderata (target)
+    glm::vec3 targetPos = position;
 
-    // Movimento verticale
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        targetPos += forwardFlat * velocity;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        targetPos -= forwardFlat * velocity;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        targetPos -= rightFlat * velocity;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        targetPos += rightFlat * velocity;
+
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        position.y += velocity;
+        targetPos.y += velocity;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        position.y -= velocity;
+        targetPos.y -= velocity;
+
+    // 3. Risoluzione collisioni asse per asse (Sliding lungo i muri)
+    glm::vec3 resolvedPos = position;
+
+    // Test asse X
+    glm::vec3 testX = resolvedPos;
+    testX.x = targetPos.x;
+    if (!checkCollisionAt(testX, scene)) {
+        resolvedPos.x = targetPos.x;
+    }
+
+    // Test asse Z
+    glm::vec3 testZ = resolvedPos;
+    testZ.z = targetPos.z;
+    if (!checkCollisionAt(testZ, scene)) {
+        resolvedPos.z = targetPos.z;
+    }
+
+    // Test asse Y
+    glm::vec3 testY = resolvedPos;
+    testY.y = targetPos.y;
+    if (!checkCollisionAt(testY, scene)) {
+        resolvedPos.y = targetPos.y;
+    }
+
+    // 4. Assegna posizione finale e aggiorna matrice del collider
+    position = resolvedPos;
+    playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
 }
 
 glm::mat4 Player::getViewMatrix() const {
@@ -95,7 +153,7 @@ glm::mat4 Player::getViewMatrix() const {
 
 glm::mat4 Player::getProjectionMatrix(float aspectRatio) const {
     glm::mat4 Prj = glm::perspective(FOVy, aspectRatio, nearPlane, farPlane);
-    Prj[1][1] *= -1; // Inversione Y per il sistema di coordinate Vulkan
+    Prj[1][1] *= -1;
     return Prj;
 }
 

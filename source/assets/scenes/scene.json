@@ -33,8 +33,10 @@
 		{"id": "tavern_temn_goriz", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_goriz.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_vert", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_vert.gltf",  "format":"GLTF"},
 		{"id": "tavolo_lungo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_lungo.gltf",  "format":"GLTF"},
-		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG"},
-		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF"}
+		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": true}},
+		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": true,
+			"children": [{"type":"FitAABB", "params": [8.0,0.0,-9.0,10.0,4.0,-7.0]}, {"type":"FitAABB", "params": [12.8,0.0,-9.0,14.8,4.0,-7.0]}]
+		}}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
