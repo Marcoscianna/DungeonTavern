@@ -35,8 +35,9 @@
 		{"id": "tavolo_lungo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_lungo.gltf",  "format":"GLTF"},
 		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": true}},
 		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": true,
-			"children": [{"type":"FitAABB", "params": [8.0,0.0,-9.0,10.0,4.0,-7.0]}, {"type":"FitAABB", "params": [12.8,0.0,-9.0,14.8,4.0,-7.0]}]
-		}}
+			"children": [{"type":"AABB", "params": [-60.0,-40.0,0.0,60.0,40.0,220.0]}]
+		}},
+		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF"}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -78,6 +79,7 @@
 		{"id": "tgbc", "texture": "assets/textures/tavern/temn_goriz_baseColor.png", "format": "C"},
 		{"id": "tvbc", "texture": "assets/textures/tavern/temn_vert_baseColor.png", "format": "C"},
 		{"id": "tex_tavolo_lungo", "texture": "assets/textures/tavern/elements/tavolo_lungo_text.png", "format": "C"},
+		{"id": "tex_vassoio", "texture": "assets/textures/tavern/elements/vassoio.png", "format": "C"},
 		{"id": "tex_guard_diffuse", "texture": "assets/textures/npc/guard_02__diffuse.png", "format": "C"},
 		{"id": "tex_guard_normal",  "texture": "assets/textures/npc/guard_02__normal.png",  "format": "N"},
 		{"id": "tex_guard_specular", "texture": "assets/textures/npc/guard_02__specular.png", "format": "S"}
@@ -121,7 +123,8 @@
 				{"id": "tavern_tv", "model": "tavern_temn_vert", "texture": ["tvbc"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavolo_lungo1", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [15.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
 				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [7.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
-				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]}
+				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]},
+				{"id": "vassoio", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [11.0, 20.0, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true}
 			]
 		},
 		{
