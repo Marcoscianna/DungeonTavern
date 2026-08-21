@@ -14,6 +14,7 @@
 #include "Player.hpp"
 #include "modules/TextMaker.hpp"
 #include "DialogueManager.hpp"
+#include "LightManager.hpp"
 #include "PhysicsManager.hpp"
 
 struct UniformBufferObject {
@@ -21,15 +22,10 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 mMat;
 };
 
-struct GlobalUniformBufferObject {
-    alignas(16) glm::vec3 lightDir;
-    alignas(16) glm::vec4 lightColor;
-    alignas(16) glm::vec3 eyePos;
-};
-
 struct Vertex {
     glm::vec3 pos;
     glm::vec2 UV;
+    glm::vec3 norm;
 };
 
 // Il vertice per i modelli animati
@@ -56,6 +52,7 @@ protected:
     VertexDescriptor VD;
     RenderPass RP;
     Pipeline P;
+    Pipeline Pemissive;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     DescriptorSet DSglobal;
@@ -77,6 +74,9 @@ protected:
     // Oggetto per gestire la fisica degli oggetti
     PhysicsManager physicsManager;
 
+    // Oggetto per gestire il ciclo giorno/notte e le luci dinamiche
+    LightManager lightManager;
+
     // ==========================================
     // SISTEMA NPC: Logica e Grafica
     // ==========================================
@@ -91,7 +91,8 @@ protected:
     DialogueManager dialogueManager;
 
 public:
-    DungeonTavern() : Ar(4.0f / 3.0f) {} // Costruttore molto più pulito ora
+    DungeonTavern() : Ar(4.0f / 3.0f) {
+    } // Costruttore molto più pulito ora
 
     void setWindowParameters() override {
         windowWidth = 800;
@@ -138,7 +139,8 @@ public:
                     {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
                 }, {
                     {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos), sizeof(glm::vec3), POSITION},
-                    {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV), sizeof(glm::vec2), UV}
+                    {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV), sizeof(glm::vec2), UV},
+                    {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm), sizeof(glm::vec3), NORMAL}
                 });
 
         VDanim.init(this, {
@@ -159,15 +161,19 @@ public:
 
         Panim.init(this, &VDanim,
                    "shaders/skinning.vert.spv",
-                   "shaders/toChangeBlinnFromPos.frag.spv",
+                   "shaders/blinn.frag.spv",
                    {&DSLglobal, &DSLanim});
 
         RP.init(this);
-        RP.properties[0].clearValue = {0.0f, 0.9f, 1.0f, 1.0f};
+        RP.properties[0].clearValue = {0.01f, 0.02f, 0.02f, 1.0f};
 
-        P.init(this, &VD, "shaders/toChangeSimplePos.vert.spv",
-               "shaders/toChangeBlinnFromPos.frag.spv",
+        P.init(this, &VD, "shaders/static.vert.spv",
+               "shaders/blinn.frag.spv",
                {&DSLglobal, &DSLlocal});
+
+        Pemissive.init(this, &VD, "shaders/static.vert.spv",
+                       "shaders/emissive.frag.spv",
+                       {&DSLglobal, &DSLlocal});
 
         DPSZs.uniformBlocksInPool = 20;
         DPSZs.texturesInPool = 10;
@@ -177,28 +183,10 @@ public:
         VDRs[0].init("VDposUV", &VD);
         VDRs[1].init("VDanim", &VDanim);
 
-        PRs.resize(2);
-        PRs[0].init("BlinnPos", {
-                        {
-                            &P, {
-                                /*DSLglobal*/{},
-                                /*DSLlocal*/{
-                                    /*t0*/{true, 0, {}}
-                                }
-                            }
-                        }
-                    }, 1, &VD);
-
-        PRs[1].init("AnimTech", {
-                        {
-                            &Panim, {
-                                /*DSLglobal*/{},
-                                /*DSLanim*/{
-                                    /*t0*/{true, 0, {}}
-                                }
-                            }
-                        }
-                    }, 1, &VDanim);
+        PRs.resize(3);
+        PRs[0].init("BlinnPos", {{&P, {{}, {{true, 0, {}}}}}}, 1, &VD);
+        PRs[1].init("AnimTech", {{&Panim, {{}, {{true, 0, {}}}}}}, 1, &VDanim);
+        PRs[2].init("EmissiveTech", {{&Pemissive, {{}, {{true, 0, {}}}}}}, 1, &VD);
 
         if (SC.init(this, 1, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -291,6 +279,8 @@ public:
         }
 
         physicsManager.init(SC, "assets/scenes/scene.json", 0.2f);
+        lightManager.init(12.0f);
+        lightManager.loadLightsFromJson("assets/scenes/scene.json");
 
         // NON TOGLIERE: Trucco anti-crash per il buffer vuoto del TextMaker
         txt.print(-100.0f, -100.0f, " ");
@@ -302,6 +292,7 @@ public:
         RP.create();
         P.create(&RP);
         Panim.create(&RP);
+        Pemissive.create(&RP);
 
         DSglobal.init(this, &DSLglobal, {});
 
@@ -312,6 +303,7 @@ public:
     void pipelinesAndDescriptorSetsCleanup() override {
         P.cleanup();
         Panim.cleanup();
+        Pemissive.cleanup();
         RP.cleanup();
 
         DSglobal.cleanup();
@@ -323,9 +315,11 @@ public:
     void localCleanup() override {
         DSLlocal.cleanup();
         DSLglobal.cleanup();
+        DSLanim.cleanup();
 
         P.destroy();
         Panim.destroy();
+        Pemissive.destroy();
 
         npcAnimManager.cleanup();
         dialogueManager.cleanup(txt);
@@ -362,6 +356,7 @@ public:
         // =========================================================
 
         dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
+        lightManager.update(deltaT, window);
 
         // Il giocatore può muoversi solo se NON sta parlando
         if (!dialogueManager.isDialogueActive()) {
@@ -376,18 +371,23 @@ public:
         glm::mat4 ViewPrj = player.getViewProjectionMatrix(Ar);
         SC.updateColliderVisualizer(currentImage, ViewPrj);
 
-        static float lightRotationAngle = 0.0f;
-        lightRotationAngle += -0.5f * deltaT;
+        // =========================================================
+        // SIMULAZIONE CICLO GIORNO / NOTTE PARAMETRICO
+        // =========================================================
 
-        const glm::mat4 lightView = glm::rotate(glm::mat4(1), glm::radians(lightRotationAngle),
-                                                glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(
-                                        glm::mat4(1), glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        const glm::vec3 lightDir = glm::vec3(lightView * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+        glm::vec4 sky = lightManager.getSkyColor();
+        RP.properties[0].clearValue = {sky.r, sky.g, sky.b, 1.0f};
+
+        static float skyUpdateTimer = 0.0f;
+        skyUpdateTimer += deltaT;
+        if(lightManager.isTimeAccelerated() || skyUpdateTimer > 1.0f) {
+            submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
+            skyUpdateTimer = 0.0f;
+        }
 
         GlobalUniformBufferObject gubo{};
-        gubo.lightDir = lightDir;
-        gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) * 5.0f;
         gubo.eyePos = player.position;
+        lightManager.applyToGUBO(gubo); // Inserisce luci direzionali e puntiformi nella GUBO
 
         DSglobal.map((int) currentImage, &gubo, 0);
 
@@ -400,6 +400,14 @@ public:
             SC.TI[0].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
         }
 
+        for (int i = 0; i < SC.TI[2].InstanceCount; i++) {
+            ubo.mMat = SC.TI[2].I[i].Wm;
+            ubo.mvpMat = ViewPrj * ubo.mMat;
+
+            SC.TI[2].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
+            SC.TI[2].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+        }
+
         // Aggiornamento finale dei modelli animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);
 
@@ -408,7 +416,7 @@ public:
         // =========================================================
 
         bool canInteract = !dialogueManager.isDialogueActive();
-        physicsManager.update(window, deltaT, SC, player, canInteract,txt);
+        physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
         // Aggiornamento FPS
         static float elapsedT = 0.0f;
@@ -423,6 +431,25 @@ public:
         }
 
         txt.updateCommandBuffer();
+
+        // =========================================================
+        // DEBUG: PREMI 'P' PER STAMPARE LA POSIZIONE NELLA CONSOLE
+        // =========================================================
+        static bool pPressed = false;
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+            if (!pPressed) {
+
+                std::cout << "{\n";
+                std::cout << "   \"position\": [" << player.position.x << ", " << player.position.y << ", " << player.position.z << "],\n";
+                std::cout << "   \"color\": [1.0, 0.6, 0.2],\n";
+                std::cout << "   \"intensity\": 15.0\n";
+                std::cout << "},\n";
+
+                pPressed = true;
+            }
+        } else {
+            pPressed = false;
+        }
     }
 };
 
