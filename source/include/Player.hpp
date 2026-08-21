@@ -10,6 +10,7 @@
 // Forward declarations per evitare problemi di inclusione
 class Scene;
 class Collider;
+class PhysicsManager;
 
 class Player {
     Collider* playerCollider; // Usiamo un puntatore al collider
@@ -47,7 +48,8 @@ public:
     glm::vec3 getUpVector() const;
 
     // Gestione dell'input per movimento WASD/Spazio/Shift e risoluzione collisioni
-    void processInput(GLFWwindow* window, float deltaTime, const Scene& scene);
+    void processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager);
+    bool checkCollisionAt(const glm::vec3& testPos, const Scene& scene, const PhysicsManager& physManager);
     void updateMouseLook(GLFWwindow* window);
 
     // Helper per verificare collisioni a una data coordinata

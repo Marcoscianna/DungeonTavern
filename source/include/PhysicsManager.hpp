@@ -7,13 +7,13 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
-// Forward declarations
-struct GLFWwindow;
 class Scene;
 class Player;
 class Collider;
 class TextMaker;
+struct GLFWwindow;
 
 struct PhysicsObject {
     int instanceIndex;
@@ -32,6 +32,10 @@ enum class PhysicsUIState { NONE, GRAB, HOLD };
 class PhysicsManager {
 private:
     std::vector<PhysicsObject> physicsObjects;
+
+    // Lista dei collider customizzati letti dal JSON
+    std::vector<Collider*> customColliders;
+
     Collider* floorCollider;
     float gravity;
 
@@ -44,9 +48,11 @@ public:
     PhysicsManager();
     ~PhysicsManager();
 
-    void init(const Scene& scene, const std::string& sceneFilePath = "assets/scenes/scene.json", float floorLevel = 0.0f);
+    void init( Scene& scene, const std::string& sceneFilePath = "assets/scenes/scene.json", float floorLevel = 0.0f);
     void update(GLFWwindow* window, float deltaT, Scene& scene, const Player& player, bool canInteract, TextMaker& txt);
-    Collider* getFloorCollider();
+
+    Collider* getFloorCollider() const;
+    const std::vector<Collider*>& getCustomColliders() const;
 };
 
 #endif // PHYSICS_MANAGER_HPP

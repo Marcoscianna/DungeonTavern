@@ -2,6 +2,7 @@
 
 #include "../include/modules/Starter.hpp"
 #include "../include/modules/Scene.hpp"
+#include "../include/PhysicsManager.hpp"
 #include "../include/Player.hpp"
 
 Player::Player(glm::vec3 startPos) {
@@ -92,7 +93,26 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene) {
     return false;
 }
 
-void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene) {
+bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, const PhysicsManager& physManager) {
+    glm::mat4 testWm = glm::translate(glm::mat4(1.0f), testPos);
+    playerCollider->setWorldMatrix(testWm);
+
+    // Test contro la scena
+    for (int i = 0; i < scene.InstanceCount; i++) {
+        if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
+            return true;
+        }
+    }
+
+    // Test contro i muri custom del JSON
+    for (Collider* cld : physManager.getCustomColliders()) {
+        if (playerCollider->collidesWith(*cld)) return true;
+    }
+
+    return false;
+}
+
+void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager) {
     // 1. Mouse Look
     updateMouseLook(window);
 
@@ -124,21 +144,19 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     // Test asse X
     glm::vec3 testX = resolvedPos;
     testX.x = targetPos.x;
-    if (!checkCollisionAt(testX, scene)) {
-        resolvedPos.x = targetPos.x;
-    }
+    if (!checkCollisionAt(testX, scene, physManager)) resolvedPos.x = targetPos.x;
 
     // Test asse Z
     glm::vec3 testZ = resolvedPos;
     testZ.z = targetPos.z;
-    if (!checkCollisionAt(testZ, scene)) {
+    if (!checkCollisionAt(testZ, scene, physManager)) {
         resolvedPos.z = targetPos.z;
     }
 
     // Test asse Y
     glm::vec3 testY = resolvedPos;
     testY.y = targetPos.y;
-    if (!checkCollisionAt(testY, scene)) {
+    if (!checkCollisionAt(testY, scene, physManager)) {
         resolvedPos.y = targetPos.y;
     }
 

@@ -23,9 +23,13 @@ PhysicsManager::~PhysicsManager() {
         delete floorCollider;
         floorCollider = nullptr;
     }
+    for (Collider* cld : customColliders) {
+        delete cld;
+    }
+    customColliders.clear();
 }
 
-void PhysicsManager::init(const Scene& scene, const std::string& sceneFilePath, float floorLevel) {
+void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float floorLevel) {
     if (floorCollider == nullptr) floorCollider = new Collider();
     floorCollider->initAABB(-50.0f, -1.0f, -50.0f, 50.0f, floorLevel, 50.0f);
 
@@ -37,6 +41,25 @@ void PhysicsManager::init(const Scene& scene, const std::string& sceneFilePath, 
             ifs >> js;
             ifs.close();
             if (js.contains("instances")) {
+                // --- LETTURA CUSTOM COLLIDERS ---
+                if (js.contains("customColliders")) {
+                    for (const auto& cc : js["customColliders"]) {
+                        std::string type = cc.value("type", "AABB");
+                        if (type == "AABB" && cc.contains("params")) {
+                            std::vector<float> p = cc["params"].get<std::vector<float>>();
+                            if (p.size() >= 6) {
+                                Collider* cld = new Collider();
+                                cld->initAABB(p[0], p[1], p[2], p[3], p[4], p[5]);
+                                cld->setWorldMatrix(glm::mat4(1.0f));
+                                customColliders.push_back(cld);
+
+                                if (cc.value("visible", false)) {
+                                    scene.ColShow.show(cld); // Disegna il wireframe per il debug
+                                }
+                            }
+                        }
+                    }
+                }
                 for (const auto &tech: js["instances"]) {
                     for (const auto &el: tech["elements"]) {
                         if (el.value("physics", false)) {
@@ -111,6 +134,18 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
             for (float d = 0.5f; d <= 4.0f; d += 0.2f) {
                 raycastPoint.setWorldMatrix(glm::translate(glm::mat4(1.0f), rayOrigin + rayDir * d));
+
+                // 1. Se il raggio colpisce un muro, si ferma (niente grab attraverso i muri)
+                bool hitWall = false;
+                for (Collider* cld : customColliders) {
+                    if (raycastPoint.collidesWith(*cld)) {
+                        hitWall = true;
+                        break;
+                    }
+                }
+                if (hitWall) break;
+
+                // 2. Controlla gli oggetti
                 for (int i = 0; i < physicsObjects.size(); i++) {
                     Instance* inst = scene.I[physicsObjects[i].instanceIndex];
                     if (inst->C && raycastPoint.collidesWith(*(inst->C))) {
@@ -199,10 +234,15 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
         auto checkCollision = [&]() -> bool {
             inst->C->setWorldMatrix(inst->Wm);
+            // Controllo Istanze Standard
             for (int j = 0; j < scene.InstanceCount; j++) {
                 if (j == po.instanceIndex) continue;
                 if (*(scene.I[j]->id) == "house") continue;
                 if (scene.I[j]->C && inst->C->collidesWith(*(scene.I[j]->C))) return true;
+            }
+            // Controllo Custom Colliders
+            for (Collider* cld : customColliders) {
+                if (inst->C->collidesWith(*cld)) return true;
             }
             if (floorCollider && inst->C->collidesWith(*floorCollider)) return true;
             if (player.getCollider() && inst->C->collidesWith(*(player.getCollider()))) return true;
@@ -279,6 +319,5 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
     }
 }
 
-Collider* PhysicsManager::getFloorCollider() {
-    return floorCollider;
-}
+Collider* PhysicsManager::getFloorCollider() const { return floorCollider; }
+const std::vector<Collider*>& PhysicsManager::getCustomColliders() const { return customColliders; }

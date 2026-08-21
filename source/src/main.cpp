@@ -360,7 +360,7 @@ public:
 
         // Il giocatore può muoversi solo se NON sta parlando
         if (!dialogueManager.isDialogueActive()) {
-            player.processInput(window, deltaT, SC);
+            player.processInput(window, deltaT, SC, physicsManager);
         }
 
         // =========================================================
