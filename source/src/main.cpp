@@ -57,6 +57,8 @@ protected:
     // Ombre
     RenderPass RPshadow;
     Pipeline Pshadow, PanimShadow;
+    bool shadowsEnabled = true;
+    bool lPressedLastFrame = false;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     DescriptorSet DSglobal;
@@ -396,6 +398,13 @@ public:
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
 
+        // --- TOGGLE OMBRE ---
+        bool lPressed = glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS;
+        if (lPressed && !lPressedLastFrame) {
+            shadowsEnabled = !shadowsEnabled;
+        }
+        lPressedLastFrame = lPressed;
+
         // =========================================================
         // 1. UPDATE GAME LOGIC (Dialoghi, Input, Collisioni)
         // =========================================================
@@ -435,6 +444,7 @@ public:
         // =========================================================
         GlobalUniformBufferObject gubo{};
         gubo.eyePos = player.position;
+        gubo.shadowToggle = shadowsEnabled ? 1.0f : 0.0f;
         lightManager.applyToGUBO(gubo);
 
         glm::mat4 lightProj = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, 1.0f, 100.0f);

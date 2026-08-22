@@ -24,6 +24,7 @@ public:
     // Parametri di movimento e vista
     float moveSpeed;
     float rotSpeed; // Sensibilità mouse
+    float playerVelocityY;
     float FOVy;
     float nearPlane;
     float farPlane;
@@ -34,6 +35,10 @@ public:
     double lastMouseX;
     double lastMouseY;
     bool mouseLookInitialized;
+
+    //Debug
+    bool flyMode;
+    bool mPressedLastFrame;
 
     // Costruttore e Distruttore
     Player(glm::vec3 startPos = glm::vec3(0.0f, 1.2f, 3.0f));

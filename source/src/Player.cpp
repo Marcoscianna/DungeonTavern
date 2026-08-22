@@ -7,6 +7,9 @@
 
 Player::Player(glm::vec3 startPos) {
     playerCollider = nullptr;
+    if (startPos.y < 1.51f) {
+        startPos.y = 2.0f;
+    }
     init(startPos);
 }
 
@@ -23,6 +26,9 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float ra
     pitch = startPitch;
     moveSpeed = 10.0f;
     rotSpeed = 0.1f;
+    flyMode = false;
+    mPressedLastFrame = false;
+    playerVelocityY = 0.0f;
     FOVy = glm::radians(45.0f);
     nearPlane = 0.1f;
     farPlane = 100.0f;
@@ -35,7 +41,8 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float ra
     if (playerCollider == nullptr) {
         playerCollider = new Collider();
     }
-    playerCollider->initSphere(0.0f, 0.0f, 0.0f, colliderRadius);
+
+    playerCollider->initAABB(-0.3f, -3.0f, -0.3f, 0.3f, 0.2f, 0.3f);
     playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
 }
 
@@ -81,30 +88,23 @@ void Player::updateMouseLook(GLFWwindow* window) {
         pitch = -89.0f;
 }
 
-bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene) {
-    glm::mat4 testWm = glm::translate(glm::mat4(1.0f), testPos);
-    playerCollider->setWorldMatrix(testWm);
-
-    for (int i = 0; i < scene.InstanceCount; i++) {
-        if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, const PhysicsManager& physManager) {
     glm::mat4 testWm = glm::translate(glm::mat4(1.0f), testPos);
     playerCollider->setWorldMatrix(testWm);
 
-    // Test contro la scena
+    if (testPos.y - 3.0f <= 0.0f) {
+        return true;
+    }
+
+    // 2. Test contro gli oggetti della scena
     for (int i = 0; i < scene.InstanceCount; i++) {
+
         if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
             return true;
         }
     }
 
-    // Test contro i muri custom del JSON
+    // 3. Test contro i muri custom invisibili del JSON
     for (Collider* cld : physManager.getCustomColliders()) {
         if (playerCollider->collidesWith(*cld)) return true;
     }
@@ -113,56 +113,111 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
 }
 
 void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager) {
-    // 1. Mouse Look
     updateMouseLook(window);
 
-    float velocity = moveSpeed * deltaTime;
+    // --- TOGGLE FLY MODE ---
+    bool mPressed = glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS;
+    if (mPressed && !mPressedLastFrame) {
+        flyMode = !flyMode;
+        if (flyMode) playerVelocityY = 0.0f; // Azzera la gravità quando inizi a volare
+    }
+    mPressedLastFrame = mPressed;
+
+    float velocity = moveSpeed * deltaTime * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 3.0f : 1.0f); // Shift per volare/correre 3x più veloce
     glm::vec3 forward = getForwardVector();
     glm::vec3 forwardFlat = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
     glm::vec3 rightFlat = getRightVector();
 
-    // 2. Calcola posizione desiderata (target)
-    glm::vec3 targetPos = position;
+    // --- LOGICA FLY MODE (Nessuna gravità, niente collisioni) ---
+    if (flyMode) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) position += forward * velocity;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) position -= forward * velocity;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) position -= rightFlat * velocity;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) position += rightFlat * velocity;
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) position.y += velocity;
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        targetPos += forwardFlat * velocity;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        targetPos -= forwardFlat * velocity;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        targetPos -= rightFlat * velocity;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        targetPos += rightFlat * velocity;
+        playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
+        return;
+    }
 
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        targetPos.y += velocity;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        targetPos.y -= velocity;
+    // 1. Raccogli l'input orizzontale (WASD)
+    glm::vec3 desiredMove(0.0f);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) desiredMove += forwardFlat;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) desiredMove -= forwardFlat;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) desiredMove -= rightFlat;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) desiredMove += rightFlat;
 
-    // 3. Risoluzione collisioni asse per asse (Sliding lungo i muri)
+    // Normalizza la direzione e moltiplicala per la velocità per evitare la super-velocità in diagonale
+    if (glm::length(desiredMove) > 0.01f) {
+        desiredMove = glm::normalize(desiredMove) * velocity;
+    }
+
     glm::vec3 resolvedPos = position;
+    float stepHeight = 0.35f;
 
-    // Test asse X
-    glm::vec3 testX = resolvedPos;
-    testX.x = targetPos.x;
-    if (!checkCollisionAt(testX, scene, physManager)) resolvedPos.x = targetPos.x;
+    // SUB-STEPPING
+    float moveLength = glm::length(desiredMove);
+    int numSteps = (int)(moveLength / 0.1f) + 1;
+    glm::vec3 stepMove = desiredMove / (float)numSteps;
 
-    // Test asse Z
-    glm::vec3 testZ = resolvedPos;
-    testZ.z = targetPos.z;
-    if (!checkCollisionAt(testZ, scene, physManager)) {
-        resolvedPos.z = targetPos.z;
+    // mini-passi in sequenza
+    for (int i = 0; i < numSteps; i++) {
+
+        // Asse X
+        glm::vec3 testX = resolvedPos;
+        testX.x += stepMove.x;
+        if (!checkCollisionAt(testX, scene, physManager)) {
+            resolvedPos.x = testX.x;
+        } else {
+            // Tenta di salire il gradino
+            glm::vec3 stepUpX = testX; stepUpX.y += stepHeight;
+            if (!checkCollisionAt(stepUpX, scene, physManager)) {
+                resolvedPos.x = testX.x;
+                resolvedPos.y += stepHeight;
+            }
+        }
+
+        // Asse Z
+        glm::vec3 testZ = resolvedPos;
+        testZ.z += stepMove.z;
+        if (!checkCollisionAt(testZ, scene, physManager)) {
+            resolvedPos.z = testZ.z;
+        } else {
+            // Tenta di salire il gradino
+            glm::vec3 stepUpZ = testZ; stepUpZ.y += stepHeight;
+            if (!checkCollisionAt(stepUpZ, scene, physManager)) {
+                resolvedPos.z = testZ.z;
+                resolvedPos.y += stepHeight;
+            }
+        }
     }
 
-    // Test asse Y
+    // --- 4. Risoluzione Asse Y (Gravità e Salto Reale) ---
+    playerVelocityY -= 15.0f * deltaTime; // Applica la forza di gravità
+
     glm::vec3 testY = resolvedPos;
-    testY.y = targetPos.y;
+    testY.y += playerVelocityY * deltaTime; // Calcola dove cadremo
+
     if (!checkCollisionAt(testY, scene, physManager)) {
-        resolvedPos.y = targetPos.y;
+        resolvedPos.y = testY.y; // Cadi (o sali in aria se stiamo saltando)
+    } else {
+        if (playerVelocityY < 0.0f) {
+            // Abbiamo toccato terra! (Siamo in piedi su un pavimento o un gradino)
+            playerVelocityY = 0.0f;
+
+            // Possiamo saltare SOLO se siamo a terra
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+                playerVelocityY = 6.0f; // Forza del salto verso l'alto
+            }
+        } else {
+            // Abbiamo sbattuto la testa saltando
+            playerVelocityY = 0.0f;
+        }
     }
 
-    // 4. Assegna posizione finale e aggiorna matrice del collider
+    // Applica e muovi il collider
     position = resolvedPos;
-    playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
+    playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position)); //
 }
 
 glm::mat4 Player::getViewMatrix() const {

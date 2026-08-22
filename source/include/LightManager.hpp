@@ -20,6 +20,7 @@ struct GlobalUniformBufferObject {
     alignas(16) glm::mat4 lightVP;
     alignas(16) PointLight pLights[50];
     alignas(4)  int numLights;
+    float shadowToggle;
 };
 
 class LightManager {

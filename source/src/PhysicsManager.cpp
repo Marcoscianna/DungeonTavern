@@ -32,7 +32,7 @@ PhysicsManager::~PhysicsManager() {
 void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float floorLevel) {
     if (floorCollider == nullptr) floorCollider = new Collider();
     floorCollider->initAABB(-50.0f, -1.0f, -50.0f, 50.0f, floorLevel, 50.0f);
-
+    floorCollider->setWorldMatrix(glm::mat4(1.0f));
     physicsObjects.clear();
     try {
         std::ifstream ifs(sceneFilePath);
@@ -234,18 +234,28 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
         auto checkCollision = [&]() -> bool {
             inst->C->setWorldMatrix(inst->Wm);
-            // Controllo Istanze Standard
+
+            float objectY = inst->Wm[3][1];
+            float halfHeight = glm::length(glm::vec3(inst->Wm[1])) * 0.5f;
+
+            if (objectY - halfHeight <= 0.0f) { // Se tocca lo Zero
+                return true;
+            }
+
+            // 2. Controllo Istanze
             for (int j = 0; j < scene.InstanceCount; j++) {
                 if (j == po.instanceIndex) continue;
-                if (*(scene.I[j]->id) == "house") continue;
                 if (scene.I[j]->C && inst->C->collidesWith(*(scene.I[j]->C))) return true;
             }
-            // Controllo Custom Colliders
+
+            // 3. Controllo Muri Invisibili JSON
             for (Collider* cld : customColliders) {
                 if (inst->C->collidesWith(*cld)) return true;
             }
-            if (floorCollider && inst->C->collidesWith(*floorCollider)) return true;
-            if (player.getCollider() && inst->C->collidesWith(*(player.getCollider()))) return true;
+
+            // 4. Test contro la faccia del Giocatore
+            if (player.getCollider() && inst->C->collidesWith(*(player.getCollider()))) return true; 
+
             return false;
         };
 

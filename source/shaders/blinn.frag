@@ -21,6 +21,7 @@ layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
     mat4 lightVP;
     PointLight pLights[50];
     int numLights;
+    float shadowToggle;
 } gubo;
 
 // La mappa delle ombre generata nel Pass 0
@@ -74,7 +75,7 @@ void main() {
         }
         shadow = 1.0 - (currentShadow / 9.0);
     }
-
+    shadow = mix(1.0, shadow, gubo.shadowToggle);
     vec3 finalLight = (albedo * NdotL + specular) * gubo.lightColor.rgb * shadow;
 
     // ==========================================
