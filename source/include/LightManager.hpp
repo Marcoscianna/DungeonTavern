@@ -17,7 +17,8 @@ struct GlobalUniformBufferObject {
     alignas(16) glm::vec3 lightDir;
     alignas(16) glm::vec4 lightColor;
     alignas(16) glm::vec3 eyePos;
-    alignas(16) PointLight pLights[5];
+    alignas(16) glm::mat4 lightVP;
+    alignas(16) PointLight pLights[50];
     alignas(4)  int numLights;
 };
 
@@ -99,8 +100,10 @@ public:
             dayFactor = sin((timeOfDay - 6.0f) / 12.0f * 3.14159265f);
         }
 
-        float sunAngle = (timeOfDay - 6.0f) / 12.0f * 180.0f;
-        glm::mat4 lightView = glm::rotate(glm::mat4(1.0f), glm::radians(sunAngle), glm::vec3(0.0f, 0.0f, 1.0f)) *
+        // 4. Posizione e Colore Luce Direzionale (Sole/Luna)
+        float sunAngle = (timeOfDay - 12.0f) / 12.0f * 90.0f;
+
+        glm::mat4 lightView = glm::rotate(glm::mat4(1.0f), glm::radians(sunAngle), glm::vec3(0.0f, 1.0f, 0.0f)) *
                               glm::rotate(glm::mat4(1.0f), glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         currentDirLightDir = glm::vec3(lightView * glm::vec4(0.0f, -1.0f, 0.0f, 0.0f));
 
@@ -117,7 +120,7 @@ public:
         gubo.lightDir = currentDirLightDir;
         gubo.lightColor = currentDirLightColor;
 
-        gubo.numLights = std::min((int)internalLights.size(), 5);
+        gubo.numLights = std::min((int)internalLights.size(), 50);
         for(int i = 0; i < gubo.numLights; i++) {
             gubo.pLights[i].position = internalLights[i].position;
 

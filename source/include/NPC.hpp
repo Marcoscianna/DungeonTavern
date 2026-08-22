@@ -8,10 +8,12 @@
 #include <vector>
 #include <json.hpp>
 
+
 #include "glm/fwd.hpp"
 #include "modules/Starter.hpp"
 #include "modules/Scene.hpp"
 #include "Player.hpp"
+#include "LightManager.hpp"
 #include "modules/Animations.hpp"
 
 struct AnimBlendSegment;
@@ -96,10 +98,21 @@ class AnimNPC {
 		}
 
 		aubo.mMat = instance->Wm * modelAdjustment;
-		aubo.mvpMat = viewProj * aubo.mMat;
 
+		// =========================================================
+		// PASS 0: SHADOW MAP (Punto di vista del Sole)
+		// =========================================================
+		// Usiamo gubo.lightVP che abbiamo calcolato nel main.cpp
+		aubo.mvpMat = gubo.lightVP * aubo.mMat;
 		instance->DS[0][0]->map((int)currentImage, &gubo, 0);
 		instance->DS[0][1]->map((int)currentImage, &aubo, 0);
+
+		// =========================================================
+		// PASS 1: COLORE (Punto di vista del Giocatore)
+		// =========================================================
+		aubo.mvpMat = viewProj * aubo.mMat;
+		instance->DS[1][0]->map((int)currentImage, &gubo, 0);
+		instance->DS[1][1]->map((int)currentImage, &aubo, 0);
 	}
 
 	void advance(float deltaT) {

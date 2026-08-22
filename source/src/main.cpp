@@ -43,16 +43,20 @@ protected:
     // Descriptor Layouts [what will be passed to the shaders]
     DescriptorSetLayout DSLlocal, DSLglobal;
 
-    // NUOVI OGGETTI PER LE ANIMAZIONI
+    // Animazioni
     DescriptorSetLayout DSLanim;
     VertexDescriptor VDanim;
     Pipeline Panim;
 
-    // Vertex formants, Pipelines [Shader couples] and Render passes
+    // Vertex formants, Pipelines and Render passes
     VertexDescriptor VD;
     RenderPass RP;
     Pipeline P;
     Pipeline Pemissive;
+
+    // Ombre
+    RenderPass RPshadow;
+    Pipeline Pshadow, PanimShadow;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     DescriptorSet DSglobal;
@@ -132,7 +136,8 @@ public:
                            {
                                0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS,
                                sizeof(GlobalUniformBufferObject), 1
-                           }
+                           },
+                           {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}
                        });
 
         VD.init(this, {
@@ -159,11 +164,6 @@ public:
                         }
                     });
 
-        Panim.init(this, &VDanim,
-                   "shaders/skinning.vert.spv",
-                   "shaders/blinn.frag.spv",
-                   {&DSLglobal, &DSLanim});
-
         RP.init(this);
         RP.properties[0].clearValue = {0.01f, 0.02f, 0.02f, 1.0f};
 
@@ -171,9 +171,18 @@ public:
                "shaders/blinn.frag.spv",
                {&DSLglobal, &DSLlocal});
 
+        Panim.init(this, &VDanim,
+                   "shaders/skinning.vert.spv",
+                   "shaders/blinn.frag.spv",
+                   {&DSLglobal, &DSLanim});
+
         Pemissive.init(this, &VD, "shaders/static.vert.spv",
                        "shaders/emissive.frag.spv",
                        {&DSLglobal, &DSLlocal});
+
+        Pshadow.init(this, &VD, "shaders/shadow.vert.spv", "shaders/shadow.frag.spv", {&DSLglobal, &DSLlocal});
+        PanimShadow.init(this, &VDanim, "shaders/shadow_anim.vert.spv", "shaders/shadow.frag.spv",
+                         {&DSLglobal, &DSLanim});
 
         DPSZs.uniformBlocksInPool = 20;
         DPSZs.texturesInPool = 10;
@@ -184,11 +193,20 @@ public:
         VDRs[1].init("VDanim", &VDanim);
 
         PRs.resize(3);
-        PRs[0].init("BlinnPos", {{&P, {{}, {{true, 0, {}}}}}}, 1, &VD);
-        PRs[1].init("AnimTech", {{&Panim, {{}, {{true, 0, {}}}}}}, 1, &VDanim);
-        PRs[2].init("EmissiveTech", {{&Pemissive, {{}, {{true, 0, {}}}}}}, 1, &VD);
+        PRs[0].init("BlinnPos", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &P, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
+        PRs[1].init("AnimTech", {
+                        {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Panim, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VDanim);
+        PRs[2].init("EmissiveTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
 
-        if (SC.init(this, 1, VDRs, PRs, "assets/scenes/scene.json") != 0) {
+        if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
             exit(0);
         }
@@ -289,22 +307,40 @@ public:
     }
 
     void pipelinesAndDescriptorSetsInit() override {
+        //texture depth 1048x2048
+        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        RPshadow.create();
         RP.create();
+
+        Pshadow.create(&RPshadow);
+        PanimShadow.create(&RPshadow);
         P.create(&RP);
         Panim.create(&RP);
         Pemissive.create(&RP);
 
-        DSglobal.init(this, &DSLglobal, {});
+        DSglobal.init(this, &DSLglobal, { RPshadow.attachments[0].getViewAndSampler() });
+
+        // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
+        TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
+        for(int t = 0; t < 3; t++) {     // Per le 3 tecniche (Blinn, Anim, Emissive)
+            for(int p = 0; p < 2; p++) { // Per i 2 Passaggi (Shadow, Color)
+                // Inseriamo la shadow map nel Set 0 (che avevamo lasciato vuoto)
+                PRs[t].PT[p].texDefs[0].push_back(shadowTexDef);
+            }
+        }
 
         SC.pipelinesAndDescriptorSetsInit();
         txt.pipelinesAndDescriptorSetsInit();
     }
 
     void pipelinesAndDescriptorSetsCleanup() override {
+        Pshadow.cleanup();
+        PanimShadow.cleanup();
         P.cleanup();
         Panim.cleanup();
         Pemissive.cleanup();
         RP.cleanup();
+        RPshadow.cleanup();
 
         DSglobal.cleanup();
 
@@ -317,6 +353,8 @@ public:
         DSLglobal.cleanup();
         DSLanim.cleanup();
 
+        Pshadow.destroy();
+        PanimShadow.destroy();
         P.destroy();
         Panim.destroy();
         Pemissive.destroy();
@@ -325,6 +363,7 @@ public:
         dialogueManager.cleanup(txt);
 
         RP.destroy();
+        RPshadow.destroy();
 
         SC.localCleanup();
         txt.localCleanup();
@@ -336,8 +375,14 @@ public:
     }
 
     void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
-        RP.begin(commandBuffer, currentImage);
+        // PASS 0: Disegna le ombre nella mappa del sole
+        RPshadow.begin(commandBuffer, 0);
         SC.populateCommandBuffer(commandBuffer, 0, currentImage);
+        RPshadow.end(commandBuffer);
+
+        // PASS 1: Disegna la scena su schermo
+        RP.begin(commandBuffer, currentImage);
+        SC.populateCommandBuffer(commandBuffer, 1, currentImage);
         RP.end(commandBuffer);
     }
 
@@ -380,32 +425,62 @@ public:
 
         static float skyUpdateTimer = 0.0f;
         skyUpdateTimer += deltaT;
-        if(lightManager.isTimeAccelerated() || skyUpdateTimer > 1.0f) {
+        if (lightManager.isTimeAccelerated() || skyUpdateTimer > 1.0f) {
             submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
             skyUpdateTimer = 0.0f;
         }
 
+        // =========================================================
+        // CALCOLO DELLA TELECAMERA DEL SOLE (SHADOW MAPPING)
+        // =========================================================
         GlobalUniformBufferObject gubo{};
         gubo.eyePos = player.position;
-        lightManager.applyToGUBO(gubo); // Inserisce luci direzionali e puntiformi nella GUBO
+        lightManager.applyToGUBO(gubo);
+
+        glm::mat4 lightProj = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, 1.0f, 100.0f);
+        lightProj[1][1] *= -1; // Inversione asse Y per Vulkan
+
+        // Scegliamo un punto fisso al centro della taverna
+        glm::vec3 tavernCenter = glm::vec3(11.0f, 0.0f, -25.0f);
+
+        // Posizioniamo il sole rispetto al centro della taverna
+        glm::vec3 lightPos = tavernCenter - gubo.lightDir * 50.0f;
+        glm::mat4 lightViewMat = glm::lookAt(lightPos, tavernCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        gubo.lightVP = lightProj * lightViewMat;
 
         DSglobal.map((int) currentImage, &gubo, 0);
 
         UniformBufferObject ubo{};
+
+        // --- AGGIORNA GLI OGGETTI STATICI (Tecnica 0) ---
         for (int i = 0; i < SC.TI[0].InstanceCount; i++) {
             ubo.mMat = SC.TI[0].I[i].Wm;
-            ubo.mvpMat = ViewPrj * ubo.mMat;
 
+            // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
+            ubo.mvpMat = gubo.lightVP * ubo.mMat;
             SC.TI[0].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
             SC.TI[0].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+
+            // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
+            ubo.mvpMat = ViewPrj * ubo.mMat;
+            SC.TI[0].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
+            SC.TI[0].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
         }
 
+        // --- AGGIORNA GLI OGGETTI LUMINOSI (Tecnica 2) ---
         for (int i = 0; i < SC.TI[2].InstanceCount; i++) {
             ubo.mMat = SC.TI[2].I[i].Wm;
-            ubo.mvpMat = ViewPrj * ubo.mMat;
 
+            // PASS 0 (Ombre)
+            ubo.mvpMat = gubo.lightVP * ubo.mMat;
             SC.TI[2].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
             SC.TI[2].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+
+            // PASS 1 (Colore)
+            ubo.mvpMat = ViewPrj * ubo.mMat;
+            SC.TI[2].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
+            SC.TI[2].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
         }
 
         // Aggiornamento finale dei modelli animati
@@ -438,9 +513,9 @@ public:
         static bool pPressed = false;
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (!pPressed) {
-
                 std::cout << "{\n";
-                std::cout << "   \"position\": [" << player.position.x << ", " << player.position.y << ", " << player.position.z << "],\n";
+                std::cout << "   \"position\": [" << player.position.x << ", " << player.position.y << ", " << player.
+                        position.z << "],\n";
                 std::cout << "   \"color\": [1.0, 0.6, 0.2],\n";
                 std::cout << "   \"intensity\": 15.0\n";
                 std::cout << "},\n";
