@@ -307,8 +307,8 @@ public:
     }
 
     void pipelinesAndDescriptorSetsInit() override {
-        //texture depth 1048x2048
-        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        //texture depth 4096x4096
+        RPshadow.init(this, 4096, 4096, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 
