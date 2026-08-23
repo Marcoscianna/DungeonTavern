@@ -118,6 +118,7 @@
 				{"id": "tavern_material", "model": "tavern_material", "texture": ["material"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_tg", "model": "tavern_temn_goriz", "texture": ["tgbc"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_tv", "model": "tavern_temn_vert", "texture": ["tvbc"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
+				{"id": "tavern_svet", "model": "tavern_svet", "texture": ["svet"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavolo_lungo1", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [16.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
 				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [7.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
 				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]},
@@ -155,8 +156,7 @@
 			"technique": "EmissiveTech",
 			"elements": [
 				{"id": "tavern_fire", "model": "tavern_fire", "texture": ["fire_e"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
-				{"id": "tavern_svecha", "model": "tavern_svecha", "texture": ["svecha"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
-				{"id": "tavern_svet", "model": "tavern_svet", "texture": ["svet"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
+				{"id": "tavern_svecha", "model": "tavern_svecha", "texture": ["svecha"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
 			]
 		}
 	],
@@ -522,6 +522,113 @@
 		{
 			"type": "AABB",
 			"params": [25.2121, 6.17785, 29.5054, 24.3797, 11.184, 36.0172],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [12.5525, 6.17785, 29.5054, 11.6629, 11.184, 36.0172],
+			"visible": false
+		},
+		{
+			"id": "SCALA 1",
+			"type": "AABB",
+			"params": [3.62212, 0.0, 10.7763, 1.34526, 0.553837, 10.2886],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 0.553837, 10.2886, 1.34526, 1.1076, 9.8009],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 1.1076, 9.8009, 1.34526, 1.6615, 9.3133],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 1.6615, 9.3133, 1.34526, 2.21528, 8.8257],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 2.21528, 8.8257, 1.34526, 2.76899, 8.3380],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 2.76899, 8.3380, 1.34526, 3.32302, 7.8503],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 3.32302, 7.8503, 1.34526, 3.87685, 7.3626],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 3.87685, 7.3626, 1.34526, 4.43069, 6.8750],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 4.43069, 6.8750, 1.34526, 4.98453, 6.3873],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [3.62212, 4.98453, 6.3873, 1.34526, 5.53837, 5.8996],
+			"visible": false
+		},
+		{
+			"id": "SCALA 2",
+			"type": "AABB",
+			"params": [30.5292, 0.0, 20.7292, 32.7256, 0.553837, 21.2169],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 0.553837, 21.2169, 32.7256, 1.1076, 21.7045],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 1.1076, 21.7045, 32.7256, 1.6615, 22.1922],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 1.6615, 22.1922, 32.7256, 2.21528, 22.6798],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 2.21528, 22.6799, 32.7256, 2.76899, 23.1675],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 2.76899, 23.1675, 32.7256, 3.32302, 23.6552],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 3.32302, 23.6552, 32.7256, 3.87685, 24.1428],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 3.87685, 24.1428, 32.7256, 4.43069, 24.63048],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 4.43069, 24.63048, 32.7256, 4.98453, 25.1181],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [30.5292, 4.98453, 25.1181, 32.7256, 5.53837, 27.0],
 			"visible": false
 		}
 	]

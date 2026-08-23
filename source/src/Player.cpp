@@ -115,6 +115,11 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
 void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager) {
     updateMouseLook(window);
 
+    //Limitatore di deltaTime per evitare movimenti troppo grandi in caso di frame rate basso
+    if (deltaTime > 0.1f) {
+        deltaTime = 0.1f;
+    }
+
     // --- TOGGLE FLY MODE ---
     bool mPressed = glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS;
     if (mPressed && !mPressedLastFrame) {
@@ -123,7 +128,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     }
     mPressedLastFrame = mPressed;
 
-    float velocity = moveSpeed * deltaTime * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 3.0f : 1.0f); // Shift per volare/correre 3x più veloce
+    float velocity = moveSpeed * deltaTime * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 2.0f : 1.0f); // Shift per volare/correre 2x più veloce
     glm::vec3 forward = getForwardVector();
     glm::vec3 forwardFlat = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
     glm::vec3 rightFlat = getRightVector();
@@ -134,7 +139,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) position -= forward * velocity;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) position -= rightFlat * velocity;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) position += rightFlat * velocity;
-        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) position.y += velocity;
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) position.y += velocity*2;
 
         playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
         return;
@@ -153,7 +158,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     }
 
     glm::vec3 resolvedPos = position;
-    float stepHeight = 0.35f;
+    float stepHeight = 0.6f;
 
     // SUB-STEPPING
     float moveLength = glm::length(desiredMove);
@@ -193,7 +198,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     }
 
     // --- 4. Risoluzione Asse Y (Gravità e Salto Reale) ---
-    playerVelocityY -= 15.0f * deltaTime; // Applica la forza di gravità
+    playerVelocityY -= 40.0f * deltaTime; // Applica la forza di gravità
 
     glm::vec3 testY = resolvedPos;
     testY.y += playerVelocityY * deltaTime; // Calcola dove cadremo
@@ -207,7 +212,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
 
             // Possiamo saltare SOLO se siamo a terra
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-                playerVelocityY = 6.0f; // Forza del salto verso l'alto
+                playerVelocityY = 12.0f; // Forza del salto verso l'alto
             }
         } else {
             // Abbiamo sbattuto la testa saltando

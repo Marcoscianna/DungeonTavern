@@ -169,7 +169,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
         }
     }
 
-    // --- AGGIORNAMENTO UI ROBUSTO ANTI-GLITCH ---
+    // --- AGGIORNAMENTO UI ---
     bool textExists = (txt.Blocks.find(99) != txt.Blocks.end());
 
     if (targetUIState != uiState) {
@@ -238,7 +238,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
             float objectY = inst->Wm[3][1];
             float halfHeight = glm::length(glm::vec3(inst->Wm[1])) * 0.5f;
 
-            if (objectY - halfHeight <= 0.0f) { // Se tocca lo Zero
+            if (objectY - halfHeight <= 0.0f) {
                 return true;
             }
 
