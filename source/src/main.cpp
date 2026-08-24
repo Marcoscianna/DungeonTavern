@@ -30,11 +30,11 @@ struct Vertex {
 
 // Il vertice per i modelli animati
 struct VertexAnim {
-    alignas(16) glm::vec3 pos;
-    alignas(16) glm::vec2 UV;
-    alignas(16) glm::vec3 norm;
-    alignas(16) glm::vec4 jointWeights;
-    alignas(16) glm::uvec4 jointIndices;
+    glm::vec3 pos;
+    glm::vec2 UV;
+    glm::vec3 norm;
+    glm::vec4 jointWeights;
+    glm::uvec4 jointIndices;
 };
 
 // MAIN !
@@ -186,9 +186,10 @@ public:
         PanimShadow.init(this, &VDanim, "shaders/shadow_anim.vert.spv", "shaders/shadow.frag.spv",
                          {&DSLglobal, &DSLanim});
 
-        DPSZs.uniformBlocksInPool = 20;
-        DPSZs.texturesInPool = 10;
-        DPSZs.setsInPool = 20;
+
+        DPSZs.uniformBlocksInPool = 300;
+        DPSZs.texturesInPool = 150;
+        DPSZs.setsInPool = 300;
 
         VDRs.resize(2);
         VDRs[0].init("VDposUV", &VD);
@@ -223,9 +224,13 @@ public:
         // =====================================================================
 
         // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
+        // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
         npcAnimManager.init({
-            {"door_guard_r", "assets/models/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"door_guard_l", "assets/models/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}}
+            {"door_guard_r", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
+            {"door_guard_l", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
+            {"peasant_npc", "assets/models/npc/peasant/peasant_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
+            {"fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
+            {"male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}}
         });
 
         // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---

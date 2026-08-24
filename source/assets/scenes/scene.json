@@ -34,18 +34,18 @@
 		{"id": "tavern_temn_vert", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_vert.gltf",  "format":"GLTF"},
 		{"id": "tavolo_lungo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_lungo.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "house", "VD": "VDposUV", "model": "assets/models/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": false}},
-		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": false,
+		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/npc/guard/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": false,
 			"children": [{"type":"AABB", "params": [-60.0,-40.0,0.0,60.0,40.0,-220.0]}]
 		}},
+		{"id": "peasant_npc", "VD": "VDanim", "model": "assets/models/npc/peasant/peasant_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "male_npc", "VD": "VDanim", "model": "assets/models/npc/male/male_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "fighter_npc", "VD": "VDanim", "model": "assets/models/npc/fighter/fighter_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
 		{"id": "tex_house", "texture": "assets/textures/SPW_Medieval.png", "format": "C"},
 		{"id": "tex_element", "texture": "assets/textures/Textures_Forniture.png", "format": "C"},
-		{"id": "tex_guard1", "texture": "assets/textures/guard/Paladin_diffuse.png", "format": "C"},
-		{"id": "tex_guard2", "texture": "assets/textures/guard/Paladin_normal.png", "format": "C"},
-		{"id": "tex_guard3", "texture": "assets/textures/guard/Paladin_specular.png", "format": "C"},
 		{"id": "fire_bc", "texture": "assets/textures/tavern/fire_baseColor.png", "format": "C"},
 		{"id": "fire_e", "texture": "assets/textures/tavern/fire_emissive.jpg", "format": "C"},
 		{"id": "flag_mbc", "texture": "assets/textures/tavern/flag_me_baseColor.jpg", "format": "C"},
@@ -82,7 +82,17 @@
 		{"id": "tex_vassoio", "texture": "assets/textures/tavern/elements/vassoio.png", "format": "C"},
 		{"id": "tex_guard_diffuse", "texture": "assets/textures/npc/guard_02__diffuse.png", "format": "C"},
 		{"id": "tex_guard_normal",  "texture": "assets/textures/npc/guard_02__normal.png",  "format": "C"},
-		{"id": "tex_guard_specular", "texture": "assets/textures/npc/guard_02__specular.png", "format": "C"}
+		{"id": "tex_guard_specular", "texture": "assets/textures/npc/guard_02__specular.png", "format": "C"},
+		{"id": "tex_peasant_diffuse", "texture": "assets/textures/npc/Peasant_Girl_diffuse.png", "format": "C"},
+		{"id": "tex_peasant_normal",  "texture": "assets/textures/npc/Peasant_Girl_normal.png",  "format": "C"},
+		{"id": "tex_peasant_specular", "texture": "assets/textures/npc/Peasant_Girl_specular.png", "format": "C"},
+		{"id": "tex_male_diffuse", "texture": "assets/textures/npc/Peasant_Man_diffuse.png", "format": "C"},
+		{"id": "tex_male_normal",  "texture": "assets/textures/npc/Peasant_Man_normal.png",  "format": "C"},
+		{"id": "tex_male_specular", "texture": "assets/textures/npc/Peasant_Man_specular.png", "format": "C"},
+		{"id": "tex_fighter_diffuse", "texture": "assets/textures/npc/Ch39_1001_Diffuse.png", "format": "C"},
+		{"id": "tex_fighter_normal",  "texture": "assets/textures/npc/Ch39_1001_Normal.png",  "format": "C"},
+		{"id": "tex_fighter_specular", "texture": "assets/textures/npc/Ch39_1001_Specular.png", "format": "C"},
+		{"id": "tex_fighter2_glossiness", "texture": "assets/textures/npc/Ch39_1001_Glossiness.png", "format": "C"}
 	],
 	"instances": [
 		{
@@ -129,15 +139,16 @@
 		{
 			"technique": "AnimTech",
 			"elements": [
-				{   "id": "door_guard_r",
+				{
+					"id": "door_guard_r",
 					"model": "guard_npc",
 					"texture": ["tex_guard_diffuse"],
-					"translate": [9.0,0.0,-8.0],
+					"translate": [9.0, 0.0, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per parlare con la guardia destra",
 					"interactionRadius": 4.0,
-					"dialogues": ["Ciao viandante.","Benvenuto alla Taverna!"]
+					"dialogues": ["Ciao viandante.", "Benvenuto alla Taverna!"]
 				},
 				{
 					"id": "door_guard_l",
@@ -148,7 +159,40 @@
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per parlare con la guardia sinistra",
 					"interactionRadius": 4.0,
-					"dialogues": ["Ciao viandante.","Benvenuto alla Taverna!"]
+					"dialogues": ["Ciao viandante.", "Benvenuto alla Taverna!"]
+				},
+				{
+					"id": "peasant_npc",
+					"model": "peasant_npc",
+					"texture": ["tex_peasant_diffuse"],
+					"translate": [7.8, 1.0, 21.5],
+					"eulerAngles": [90.0, 180.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per interagire con la paesana",
+					"interactionRadius": 4.0,
+					"dialogues": ["Uff...", "Cosa vuoi?"]
+				},
+				{
+					"id": "male_npc",
+					"model": "male_npc",
+					"texture": ["tex_male_diffuse"],
+					"translate": [13.0, 0.3, 16.0],
+					"eulerAngles": [90.0, 0.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per interagire con il paesano",
+					"interactionRadius": 4.0,
+					"dialogues": ["Questa taverna è il posto migliore per rilassarsi dopo una lunga giornata di lavoro.", "Vuoi un bicchiere di vino?"]
+				},
+				{
+					"id": "fighter_npc",
+					"model": "fighter_npc",
+					"texture": ["tex_fighter_diffuse"],
+					"translate": [5.0, 0.3, -3.0],
+					"eulerAngles": [90.0, 90.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per interagire con il guerriero",
+					"interactionRadius": 4.0,
+					"dialogues": ["Mi sto allenando per diventare il miglior guerriero del regno."]
 				}
 			]
 		},
