@@ -331,3 +331,9 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
 Collider* PhysicsManager::getFloorCollider() const { return floorCollider; }
 const std::vector<Collider*>& PhysicsManager::getCustomColliders() const { return customColliders; }
+int PhysicsManager::getHeldInstanceIndex() const {
+    if (heldObjectIndex != -1 && heldObjectIndex < physicsObjects.size()) {
+        return physicsObjects[heldObjectIndex].instanceIndex;
+    }
+    return -1;
+}

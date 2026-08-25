@@ -35,6 +35,12 @@ private:
     bool debounce;
     int curDebounce;
 
+    // Variabili per dialghi
+    int currentTreeNodeId;
+    int selectedChoiceIndex;
+
+    float navDebounceTimer;
+
     // Metodo helper interno per l'a capo automatico
     std::string wrapText(const std::string& text, int maxLineLen);
 

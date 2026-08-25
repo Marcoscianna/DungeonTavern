@@ -8,8 +8,10 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <map>
 #include <json.hpp>
 
+#include <glm/glm.hpp>
 #include "glm/fwd.hpp"
 #include "modules/Starter.hpp"
 #include "modules/Scene.hpp"
@@ -19,6 +21,22 @@
 
 struct AnimBlendSegment;
 struct GlobalUniformBufferObject;
+
+enum class InteractionType {
+    LINEAR,     // Il dialogo classico (frase 1 -> frase 2 -> fine)
+    ONE_LINER,  // L'NPC dice una sola frase a caso e si chiude
+    BRANCHING   // Dialogo
+};
+
+struct DialogueChoice {
+    std::string text;
+    int nextNodeId; // L'ID del nodo successivo. -1 significa "Chiudi dialogo"
+};
+
+struct DialogueNode {
+    std::string npcText;
+    std::vector<DialogueChoice> choices;
+};
 
 struct AnimNPCDefinition {
     std::string sceneInstanceId;
@@ -41,7 +59,13 @@ struct TavernNPC {
     glm::vec3 position;
     float interactionRadius;
     std::string prompt;
+    InteractionType type = InteractionType::LINEAR;
+
+    // Per LINEAR e ONE_LINER usiamo un vettore
     std::vector<std::string> dialogues;
+
+    // Per BRANCHING usiamo una mappa di nodi
+    std::map<int, DialogueNode> dialogueTree;
 };
 
 class AnimNPC {

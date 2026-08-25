@@ -1,6 +1,6 @@
 {
 	"models": [
-		{"id": "floor", "VD": "VDposUV", "model": "assets/models/Plane.gltf",  "format":"GLTF"},
+		{"id": "floor", "VD": "VDposUV", "model": "assets/models/Plane.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "tavern_38", "VD": "VDposUV", "model": "assets/models/tavern/tavern_38.gltf",  "format":"GLTF"},
 		{"id": "tavern_170", "VD": "VDposUV", "model": "assets/models/tavern/tavern_170.gltf",  "format":"GLTF"},
 		{"id": "tavern_171", "VD": "VDposUV", "model": "assets/models/tavern/tavern_171.gltf",  "format":"GLTF"},
@@ -49,7 +49,10 @@
 		{"id": "peasant_npc", "VD": "VDanim", "model": "assets/models/npc/peasant/peasant_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "male_npc", "VD": "VDanim", "model": "assets/models/npc/male/male_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "fighter_npc", "VD": "VDanim", "model": "assets/models/npc/fighter/fighter_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
-		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}}
+		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "muro_sotto", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sotto.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "muro_sopra", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sopra.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "muro_centro", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_centro.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -110,7 +113,7 @@
 		{
 			"technique": "BlinnPos",
 			"elements": [
-				{"id": "floor", "model": "floor", "texture": ["tex"], "scale": [111.0, 111.0, 111.0]},
+				{"id": "floor", "model": "floor", "texture": ["tex"],  "translate": [0.0, 0.2, 0.0], "scale": [111.0, 111.0, 111.0]},
 				{"id": "house_1", "model": "house_1", "texture": ["tex_medieval"], "translate": [-20.0, 0.0, 0.0], "eulerAngles": [90.0, 90.0, 0.0]},
 				{"id": "house_2", "model": "house_2", "texture": ["tex_medieval"], "translate": [-20.0, 0.0, -20.0], "eulerAngles": [90.0, 90.0, 0.0]},
 				{"id": "house_3", "model": "house_3", "texture": ["tex_medieval"], "translate": [-20.0, 0.0, -50.0], "eulerAngles": [90.0, 90.0, 0.0]},
@@ -159,9 +162,19 @@
 				{"id": "tavern_svet", "model": "tavern_svet", "texture": ["svet"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavolo_lungo1", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [16.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
 				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [7.0, 7.2, -1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.01, 0.01]},
-				{"id": "tavolo_lungo2", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]},
-				{"id": "vassoio_leggero", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [20.0, 20.0, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true, "mass": 5.0, "bounciness": 0.1, "friction": 0.5},
-				{"id": "vassoio_pesante", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [25.0, 20.0, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true, "mass": 0.5, "bounciness": 0.8, "friction": 0.95}
+				{"id": "tavolo_lungo3", "model": "tavolo_lungo", "texture": ["tex_tavolo_lungo"], "translate": [11.0, 7.2, -8.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01]},
+				{"id": "vassoio", "model": "vassoio", "texture": ["tex_vassoio"], "translate": [16.0, 8.0, -1.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.01, 0.01], "physics": true, "mass": 5.0, "bounciness": 0.1, "friction": 0.5},
+				{"id": "muro_sotto1", "model": "muro_sotto", "texture": ["mat174"], "translate": [0.2, 0.25, 9.2], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.025, 0.012]},
+				{"id": "muro_sotto2", "model": "muro_sotto", "texture": ["mat174"], "translate": [0.2, 0.25, 32.3], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.025, 0.012]},
+				{"id": "muro_sopra1", "model": "muro_sopra", "texture": ["mat182"], "translate": [0.31, 2.3, 4.9], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.025, 0.040]},
+				{"id": "muro_sopra2", "model": "muro_sopra", "texture": ["mat182"], "translate": [0.31, 2.3, 28.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.025, 0.040]},
+				{"id": "muro_retro", "model": "muro_sopra", "texture": ["mat182"], "translate": [17.5, 5.0, 36.8], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.037, 0.028]},
+				{"id": "muro_retro2", "model": "muro_sopra", "texture": ["mat182"], "translate": [22.0, 0.0, 36.8], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.025, 0.023]},
+				{"id": "muro_sinistra", "model": "muro_sopra", "texture": ["mat182"], "translate": [33.7, 5.0, 11.5], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.037, 0.028]},
+				{"id": "muro_fronte", "model": "muro_sopra", "texture": ["mat182"], "translate": [27.4, 5.0, -6.5], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.0139, 0.029]},
+				{"id": "soffitto1", "model": "muro_sopra", "texture": ["mat182"], "translate": [18.0, 11.4, -7.0], "eulerAngles": [0.0, 0.0, 90.0], "scale": [0.002, 0.038, 0.20]},
+				{"id": "muro_centro1", "model": "muro_centro", "texture": ["tvbc"], "translate": [0.6, 2.5, 4.9], "eulerAngles": [180.0, -90.0, 0.0], "scale": [0.11, 0.02, 0.01]},
+				{"id": "muro_centro2", "model": "muro_centro", "texture": ["tvbc"], "translate": [0.6, 2.5, 26.7], "eulerAngles": [180.0, -90.0, 0.0], "scale": [0.115, 0.02, 0.01]}
 			]
 		},
 		{
@@ -185,9 +198,30 @@
 					"translate": [13.8, 0.0, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
+					"dialogueType": "BRANCHING",
 					"prompt": "Premi E per parlare con la guardia sinistra",
 					"interactionRadius": 4.0,
-					"dialogues": ["Ciao viandante.", "Benvenuto alla Taverna!"]
+					"dialogueTree": [
+						{
+							"id": 0,
+							"text": "Fermo! Cosa ci fai in giro a quest'ora?",
+							"choices": [
+								{"text": "Voglio solo bere una birra.", "next": 1},
+								{"text": "Fatti gli affari tuoi.", "next": 2},
+								{"text": "[Vattene]", "next": -1}
+							]
+						},
+						{
+							"id": 1,
+							"text": "D'accordo, ma non creare problemi. Entra.",
+							"choices": []
+						},
+						{
+							"id": 2,
+							"text": "Come osi?! Sparisci dalla mia vista!",
+							"choices": []
+						}
+					]
 				},
 				{
 					"id": "peasant_npc",
@@ -397,7 +431,7 @@
 		},
 		{
 			"type": "AABB",
-			"params": [33.7884, 0.328042, 36.5514, 0.781475, 15.7519, 37.5221],
+			"params": [32.7884, 0.328042, 36.5514, 0.781475, 15.7519, 37.5221],
 			"visible": false
 		},
 		{
@@ -437,7 +471,7 @@
 		},
 		{
 			"type": "AABB",
-			"params": [31.7099, 0.745682, 14.2025, 25.4632, 7.8062, 15.5317],
+			"params": [33.7099, 0.745682, 14.2025, 25.4632, 7.8062, 16.5317],
 			"visible": false
 		},
 		{
@@ -477,7 +511,7 @@
 		},
 		{
 			"type": "AABB",
-			"params": [32.3694, 5.41881, 26.4689, 11.6049, 5.41881, 36.05],
+			"params": [33.3694, 5.41881, 26.4689, 11.6049, 5.41881, 36.05],
 			"visible": false
 		},
 		{
@@ -562,13 +596,13 @@
 		},
 		{
 			"type": "AABB",
-			"params": [32.4618, 0.71047, 24.7662, 29.3408, 2.51061, 25.6975],
+			"params": [33.4618, 0.71047, 24.7662, 29.3408, 2.51061, 25.6975],
 			"visible": false
 		}
 	,
 		{
 			"type": "AABB",
-			"params": [32.2982, 0.877709, 26.2327, 28.4971, 4.6562, 26.8719],
+			"params": [33.2982, 0.877709, 26.2327, 28.4971, 4.6562, 26.8719],
 			"visible": false
 		},
 		{

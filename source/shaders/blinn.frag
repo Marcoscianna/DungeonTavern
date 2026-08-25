@@ -49,33 +49,36 @@ void main() {
     }
 
 // --- CALCOLO OMBRA CON PCF (Soft Shadows) ---
-    vec4 lightSpacePos = gubo.lightVP * vec4(fragPos, 1.0);
-    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
-    projCoords.xy = projCoords.xy * 0.5 + 0.5;
-
     float shadow = 1.0;
+    if(gubo.shadowToggle > 0.0) {
+        vec4 lightSpacePos = gubo.lightVP * vec4(fragPos, 1.0);
+        vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+        projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
-    if(projCoords.z > -1.0 && projCoords.z < 1.0 &&
-       projCoords.x > 0.0 && projCoords.x < 1.0 &&
-       projCoords.y > 0.0 && projCoords.y < 1.0) {
+        shadow = 1.0;
 
-        float bias = max(0.015 * (1.0 - NdotL), 0.005);
+        if(projCoords.z > -1.0 && projCoords.z < 1.0 &&
+           projCoords.x > 0.0 && projCoords.x < 1.0 &&
+           projCoords.y > 0.0 && projCoords.y < 1.0) {
 
-        vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-        float currentShadow = 0.0;
+            float bias = max(0.015 * (1.0 - NdotL), 0.005);
 
-        // PCF: Campioniamo la griglia 3x3
-        for(int x = -1; x <= 1; ++x) {
-            for(int y = -1; y <= 1; ++y) {
-                float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-                if(projCoords.z - bias > pcfDepth) {
-                    currentShadow += 1.0;
+            vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+            float currentShadow = 0.0;
+
+            // PCF: Campioniamo la griglia 3x3
+            for(int x = -1; x <= 1; ++x) {
+                for(int y = -1; y <= 1; ++y) {
+                    float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+                    if(projCoords.z - bias > pcfDepth) {
+                        currentShadow += 1.0;
+                    }
                 }
             }
+            shadow = 1.0 - (currentShadow / 9.0);
         }
-        shadow = 1.0 - (currentShadow / 9.0);
     }
-    shadow = mix(1.0, shadow, gubo.shadowToggle);
+    //shadow = mix(1.0, shadow, gubo.shadowToggle);
     vec3 finalLight = (albedo * NdotL + specular) * gubo.lightColor.rgb * shadow;
 
     // ==========================================

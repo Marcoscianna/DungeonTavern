@@ -10,7 +10,7 @@ DialogueManager::DialogueManager()
       inDialogue(false), dialogueNPC(-1), dialogueIndex(0),
       dialogueTextId(-1), interactionPromptTextId(-1),
       dialogueRevealCount(0.0f), dialogueRevealSpeed(45.0f),
-      debounce(false), curDebounce(0) {}
+      debounce(false), curDebounce(0),currentTreeNodeId(0), selectedChoiceIndex(0), navDebounceTimer(0.0f) {}
 
 bool DialogueManager::isDialogueActive() const {
     return inDialogue;
@@ -79,19 +79,28 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-    // 3. Input Dialogo
+    // 3. Input Dialogo e Navigazione
     if(showInteractionPrompt && glfwGetKey(window, GLFW_KEY_E) && !debounce) {
         debounce = true;
         curDebounce = 12;
 
         if(!inDialogue) {
-            if(activeNPC >= 0 && !npcs[activeNPC].dialogues.empty()) {
+            // Sistema anti-crash intelligente
+            bool canStart = false;
+            if (activeNPC >= 0) {
+                if (npcs[activeNPC].type == InteractionType::BRANCHING && !npcs[activeNPC].dialogueTree.empty()) canStart = true;
+                if (npcs[activeNPC].type != InteractionType::BRANCHING && !npcs[activeNPC].dialogues.empty()) canStart = true;
+            }
+
+            if(canStart) {
                 inDialogue = true;
                 dialogueNPC = activeNPC;
                 dialogueIndex = 0;
+                currentTreeNodeId = 0; // Inizia dalla radice dell'albero di Skyrim
+                selectedChoiceIndex = 0;
                 dialogueRevealCount = 0.0f;
 
-                // Fix telecamera
+                // Fix telecamera orizzontale
                 glm::vec3 dir = npcs[dialogueNPC].position - player.position;
                 float len = glm::length(glm::vec2(dir.x, dir.z));
                 if(len > 0.001f) {
@@ -100,31 +109,60 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                 }
                 player.mouseLookInitialized = false;
 
-                dialogueTextId = txt.print(0.0f, 0.8f, "", dialogueTextId,
-                                           "SS", false, false, false,
-                                           TAL_CENTER, TRH_CENTER, TRV_BOTTOM,
-                                           glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
+                if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
+                    dialogueIndex = rand() % std::max((int)npcs[dialogueNPC].dialogues.size(), 1);
+                }
+
+                dialogueTextId = txt.print(0.0f, 0.6f, "", dialogueTextId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_BOTTOM, glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
             }
         } else {
-            std::string currentFull = wrapText(npcs[dialogueNPC].dialogues[dialogueIndex], maxChars);
-
-            if(dialogueRevealCount < currentFull.length()) {
-                dialogueRevealCount = currentFull.length(); // Salta l'animazione
+            // Logica Avanzamento Dialogo
+            std::string currentFull = "";
+            if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
+                currentFull = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId).npcText;
             } else {
-                ++dialogueIndex;
-                if(dialogueIndex < static_cast<int>(npcs[dialogueNPC].dialogues.size())) {
-                    dialogueRevealCount = 0.0f;
-                } else {
-                    // Fine Dialogo
-                    if(dialogueTextId != -1) {
-                        dialogueTextId = txt.print(0.0f, 0.8f, "", dialogueTextId,
-                                                   "SS", false, false, false,
-                                                   TAL_CENTER, TRH_CENTER, TRV_BOTTOM,
-                                                   glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
-                    }
+                currentFull = npcs[dialogueNPC].dialogues[dialogueIndex];
+            }
+
+            bool isRevealFinished = (dialogueRevealCount >= wrapText(currentFull, maxChars).length());
+
+            if(!isRevealFinished) {
+                // 2a. Salta effetto macchina da scrivere
+                dialogueRevealCount = wrapText(currentFull, maxChars).length();
+            } else {
+                // 2b. Avanza logica
+                if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
                     inDialogue = false;
+                }
+                else if (npcs[dialogueNPC].type == InteractionType::LINEAR) {
+                    ++dialogueIndex;
+                    if(dialogueIndex < static_cast<int>(npcs[dialogueNPC].dialogues.size())) {
+                        dialogueRevealCount = 0.0f;
+                    } else {
+                        inDialogue = false;
+                    }
+                }
+                else if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
+                    const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
+                    if (node.choices.empty()) {
+                        inDialogue = false; // Il nodo non ha risposte: fine.
+                    } else {
+                        // Il giocatore ha scelto un'opzione!
+                        int nextId = node.choices[selectedChoiceIndex].nextNodeId;
+                        if (nextId == -1) {
+                            inDialogue = false; // -1 significa esci
+                        } else {
+                            currentTreeNodeId = nextId;
+                            selectedChoiceIndex = 0;
+                            dialogueRevealCount = 0.0f;
+                        }
+                    }
+                }
+
+                // Chiudi in modo pulito
+                if (!inDialogue) {
+                    if(dialogueTextId != -1) dialogueTextId = txt.print(0.0f, 0.8f, "", dialogueTextId);
                     dialogueNPC = -1;
-                    dialogueIndex = 0;
                     player.mouseLookInitialized = false;
                 }
             }
@@ -134,23 +172,59 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
     if(!glfwGetKey(window, GLFW_KEY_E)) debounce = false;
     if(curDebounce > 0) --curDebounce;
 
-    // 4. Update Grafico Effetto Macchina da Scrivere
-    if(inDialogue && dialogueNPC >= 0) {
-        std::string currentFull = wrapText(npcs[dialogueNPC].dialogues[dialogueIndex], maxChars);
+    // --- NAVIGAZIONE OPZIONI TIPO SKYRIM (W / S) ---
+    if (navDebounceTimer > 0.0f) navDebounceTimer -= deltaT;
+    if (inDialogue && dialogueNPC >= 0 && npcs[dialogueNPC].type == InteractionType::BRANCHING && navDebounceTimer <= 0.0f) {
+        const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
 
-        if (dialogueRevealCount < currentFull.length()) {
+        // Puoi scorrere solo se l'NPC ha finito di parlare e se ci sono opzioni
+        bool isFinished = (dialogueRevealCount >= wrapText(node.npcText, maxChars).length());
+        if (isFinished && !node.choices.empty()) {
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                selectedChoiceIndex = (selectedChoiceIndex > 0) ? selectedChoiceIndex - 1 : node.choices.size() - 1;
+                navDebounceTimer = 0.2f; // Limite velocità cursore
+            }
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                selectedChoiceIndex = (selectedChoiceIndex + 1) % node.choices.size();
+                navDebounceTimer = 0.2f;
+            }
+        }
+    }
+
+    // 4. Update Grafico e Renderizzatore Scelte
+    if(inDialogue && dialogueNPC >= 0) {
+        std::string npcText = "";
+        std::string choicesText = "";
+
+        if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
+            const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
+            npcText = wrapText(node.npcText, maxChars);
+
+            // Fai apparire le opzioni solo quando l'NPC ha completato la battuta
+            if (dialogueRevealCount >= npcText.length() && !node.choices.empty()) {
+                choicesText = "\n\n";
+                for (int i = 0; i < node.choices.size(); ++i) {
+                    if (i == selectedChoiceIndex) choicesText += "> " + node.choices[i].text + " <\n";
+                    else choicesText += "  " + node.choices[i].text + "\n";
+                }
+            }
+        } else {
+            npcText = wrapText(npcs[dialogueNPC].dialogues[dialogueIndex], maxChars);
+        }
+
+        if (dialogueRevealCount < npcText.length()) {
             dialogueRevealCount += dialogueRevealSpeed * deltaT;
-            if(dialogueRevealCount > currentFull.length()) dialogueRevealCount = currentFull.length();
+            if(dialogueRevealCount > npcText.length()) dialogueRevealCount = npcText.length();
         }
 
         int charsToShow = static_cast<int>(dialogueRevealCount);
-        std::string visibleText = currentFull.substr(0, charsToShow);
+        std::string visibleText = npcText.substr(0, charsToShow) + choicesText;
         if(visibleText.empty()) visibleText = " ";
 
-        dialogueTextId = txt.print(0.0f, 0.8f, visibleText, dialogueTextId,
+        dialogueTextId = txt.print(0.0f, 0.6f, visibleText, dialogueTextId,
                                    "SS", false, false, false,
                                    TAL_CENTER, TRH_CENTER, TRV_BOTTOM,
-                                   glm::vec4(1.0f,1.0f,1.0f,1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
+                                   glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.8f), 1.0f, 1.0f);
     }
 }
 

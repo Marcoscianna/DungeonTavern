@@ -97,7 +97,11 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
     }
 
     // 2. Test contro gli oggetti della scena
+    int heldObj = physManager.getHeldInstanceIndex();
+
     for (int i = 0; i < scene.InstanceCount; i++) {
+
+        if (i == heldObj) continue;
 
         if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
             return true;

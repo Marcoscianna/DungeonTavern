@@ -233,7 +233,7 @@ public:
             {"male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}}
         });
 
-        // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
+       // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
         std::unordered_map<std::string, TavernNPC> npcDataFromJson;
         try {
             std::ifstream ifs("assets/scenes/scene.json");
@@ -252,9 +252,35 @@ public:
                                 data.prompt = el.value("prompt", "Premi E per interagire");
                                 data.interactionRadius = el.value("interactionRadius", 10.0f);
 
-                                if (el.contains("dialogues")) {
-                                    for (const auto &d: el["dialogues"]) {
-                                        data.dialogues.push_back(d.template get<std::string>());
+                                // NUOVO PARSER: Legge il tipo e smista i dati
+                                std::string typeStr = el.value("dialogueType", "LINEAR");
+                                if (typeStr == "ONE_LINER") data.type = InteractionType::ONE_LINER;
+                                else if (typeStr == "BRANCHING") data.type = InteractionType::BRANCHING;
+                                else data.type = InteractionType::LINEAR;
+
+                                if (data.type == InteractionType::LINEAR || data.type == InteractionType::ONE_LINER) {
+                                    if (el.contains("dialogues")) {
+                                        for (const auto &d: el["dialogues"]) {
+                                            data.dialogues.push_back(d.template get<std::string>());
+                                        }
+                                    }
+                                } else if (data.type == InteractionType::BRANCHING) {
+                                    if (el.contains("dialogueTree")) {
+                                        for (const auto &nodeJson : el["dialogueTree"]) {
+                                            DialogueNode node;
+                                            int nodeId = nodeJson["id"].template get<int>();
+                                            node.npcText = nodeJson["text"].template get<std::string>();
+
+                                            if (nodeJson.contains("choices")) {
+                                                for (const auto &choiceJson : nodeJson["choices"]) {
+                                                    DialogueChoice choice;
+                                                    choice.text = choiceJson["text"].template get<std::string>();
+                                                    choice.nextNodeId = choiceJson["next"].template get<int>();
+                                                    node.choices.push_back(choice);
+                                                }
+                                            }
+                                            data.dialogueTree[nodeId] = node;
+                                        }
                                     }
                                 }
                                 npcDataFromJson[npcId] = data;
@@ -280,10 +306,15 @@ public:
                 if (it != npcDataFromJson.end()) {
                     npc.prompt = it->second.prompt;
                     npc.interactionRadius = it->second.interactionRadius;
+
+                    // Fondamentale: Copia i dati giusti in base al tipo!
+                    npc.type = it->second.type;
                     npc.dialogues = it->second.dialogues;
+                    npc.dialogueTree = it->second.dialogueTree;
                 } else {
                     npc.prompt = "Premi E per interagire";
                     npc.interactionRadius = 10.0f;
+                    npc.type = InteractionType::LINEAR;
                     npc.dialogues.push_back("Benvenuto nella taverna.");
                 }
                 tavernNPCs.push_back(npc);
@@ -294,11 +325,15 @@ public:
             tavernNPCs = {
                 {
                     "door_guard_r", glm::vec3(9.0f, 0.0f, -8.0f), 10.0f, "Premi E per interagire",
-                    {"Benvenuto nella taverna.", "Puoi riposare qui."}
+                    InteractionType::LINEAR,
+                    {"Benvenuto nella taverna.", "Puoi riposare qui."},
+                    {}
                 },
                 {
                     "door_guard_l", glm::vec3(13.8f, 0.0f, -8.0f), 10.0f, "Premi E per interagire",
-                    {"La porta è chiusa per stanotte.", "Non disturbare i clienti."}
+                    InteractionType::LINEAR,
+                    {"La porta è chiusa per stanotte.", "Non disturbare i clienti."},
+                    {}
                 }
             };
         }
@@ -314,8 +349,8 @@ public:
     }
 
     void pipelinesAndDescriptorSetsInit() override {
-        //texture depth 4096x4096
-        RPshadow.init(this, 4096, 4096, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        //texture depth 2048x2048
+        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 

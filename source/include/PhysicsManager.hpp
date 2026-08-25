@@ -53,6 +53,8 @@ public:
 
     Collider* getFloorCollider() const;
     const std::vector<Collider*>& getCustomColliders() const;
+
+    int getHeldInstanceIndex() const;
 };
 
 #endif // PHYSICS_MANAGER_HPP
