@@ -10,7 +10,7 @@ DialogueManager::DialogueManager()
       inDialogue(false), dialogueNPC(-1), dialogueIndex(0),
       dialogueTextId(-1), interactionPromptTextId(-1),
       dialogueRevealCount(0.0f), dialogueRevealSpeed(45.0f),
-      debounce(false), curDebounce(0),currentTreeNodeId(0), selectedChoiceIndex(0), navDebounceTimer(0.0f) {}
+      debounce(false), curDebounce(0),currentTreeNodeId(0), selectedChoiceIndex(0) {}
 
 bool DialogueManager::isDialogueActive() const {
     return inDialogue;
@@ -79,41 +79,47 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-    // 3. Input Dialogo e Navigazione
-    if(showInteractionPrompt && glfwGetKey(window, GLFW_KEY_E) && !debounce) {
+   // 3. Input Dialogo e Navigazione
+    bool ePressed = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+    bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
+
+    if(showInteractionPrompt && (ePressed || enterPressed) && !debounce) {
         debounce = true;
         curDebounce = 12;
 
         if(!inDialogue) {
-            // Sistema anti-crash intelligente
-            bool canStart = false;
-            if (activeNPC >= 0) {
-                if (npcs[activeNPC].type == InteractionType::BRANCHING && !npcs[activeNPC].dialogueTree.empty()) canStart = true;
-                if (npcs[activeNPC].type != InteractionType::BRANCHING && !npcs[activeNPC].dialogues.empty()) canStart = true;
-            }
-
-            if(canStart) {
-                inDialogue = true;
-                dialogueNPC = activeNPC;
-                dialogueIndex = 0;
-                currentTreeNodeId = 0; // Inizia dalla radice dell'albero di Skyrim
-                selectedChoiceIndex = 0;
-                dialogueRevealCount = 0.0f;
-
-                // Fix telecamera orizzontale
-                glm::vec3 dir = npcs[dialogueNPC].position - player.position;
-                float len = glm::length(glm::vec2(dir.x, dir.z));
-                if(len > 0.001f) {
-                    const float RAD2DEG = 180.0f / 3.14159265358979323846f;
-                    player.yaw = atan2(dir.z, dir.x) * RAD2DEG;
-                }
-                player.mouseLookInitialized = false;
-
-                if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
-                    dialogueIndex = rand() % std::max((int)npcs[dialogueNPC].dialogues.size(), 1);
+            // Inizio dialogo
+            if (ePressed) {
+                bool canStart = false;
+                if (activeNPC >= 0) {
+                    if (npcs[activeNPC].type == InteractionType::BRANCHING && !npcs[activeNPC].dialogueTree.empty()) canStart = true;
+                    if (npcs[activeNPC].type != InteractionType::BRANCHING && !npcs[activeNPC].dialogues.empty()) canStart = true;
                 }
 
-                dialogueTextId = txt.print(0.0f, 0.6f, "", dialogueTextId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_BOTTOM, glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
+                if(canStart) {
+                    inDialogue = true;
+                    dialogueNPC = activeNPC;
+                    dialogueIndex = 0;
+                    currentTreeNodeId = 0;
+                    selectedChoiceIndex = 0;
+                    dialogueRevealCount = 0.0f;
+
+                    glm::vec3 dir = npcs[dialogueNPC].position - player.position;
+                    float len = glm::length(glm::vec2(dir.x, dir.z));
+                    if(len > 0.001f) {
+                        const float RAD2DEG = 180.0f / 3.14159265358979323846f;
+                        player.yaw = atan2(dir.z, dir.x) * RAD2DEG;
+                    }
+                    player.mouseLookInitialized = false;
+
+                    if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
+                        dialogueIndex = rand() % std::max((int)npcs[dialogueNPC].dialogues.size(), 1);
+                    }
+
+                    dialogueTextId = txt.print(0.0f, 0.6f, "", dialogueTextId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_BOTTOM, glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
+                }
+            } else {
+                debounce = false;
             }
         } else {
             // Logica Avanzamento Dialogo
@@ -131,37 +137,52 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                 dialogueRevealCount = wrapText(currentFull, maxChars).length();
             } else {
                 // 2b. Avanza logica
+                bool dialogueEnded = false;
+
                 if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
-                    inDialogue = false;
+                    if (ePressed || enterPressed) dialogueEnded = true;
+                    else debounce = false;
                 }
                 else if (npcs[dialogueNPC].type == InteractionType::LINEAR) {
-                    ++dialogueIndex;
-                    if(dialogueIndex < static_cast<int>(npcs[dialogueNPC].dialogues.size())) {
-                        dialogueRevealCount = 0.0f;
+                    if (ePressed || enterPressed) {
+                        ++dialogueIndex;
+                        if(dialogueIndex < static_cast<int>(npcs[dialogueNPC].dialogues.size())) {
+                            dialogueRevealCount = 0.0f;
+                        } else {
+                            dialogueEnded = true;
+                        }
                     } else {
-                        inDialogue = false;
+                        debounce = false;
                     }
                 }
                 else if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
                     const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
                     if (node.choices.empty()) {
-                        inDialogue = false; // Il nodo non ha risposte: fine.
+                        // Se non ci sono più opzioni, E o Invio chiudono
+                        if (ePressed || enterPressed) dialogueEnded = true;
+                        else debounce = false;
                     } else {
-                        // Il giocatore ha scelto un'opzione!
-                        int nextId = node.choices[selectedChoiceIndex].nextNodeId;
-                        if (nextId == -1) {
-                            inDialogue = false; // -1 significa esci
+                        // Se ci sono più opzioni, si vengono scelte dall'invio
+                        if (enterPressed) {
+                            int nextId = node.choices[selectedChoiceIndex].nextNodeId;
+                            if (nextId == -1) {
+                                dialogueEnded = true;
+                            } else {
+                                currentTreeNodeId = nextId;
+                                selectedChoiceIndex = 0;
+                                dialogueRevealCount = 0.0f;
+                            }
                         } else {
-                            currentTreeNodeId = nextId;
-                            selectedChoiceIndex = 0;
-                            dialogueRevealCount = 0.0f;
+                            // Se preme E ignoriamo l'input
+                            debounce = false;
                         }
                     }
                 }
 
-                // Chiudi in modo pulito
-                if (!inDialogue) {
+                // Chiudi in modo pulito se il dialogo è terminato
+                if (dialogueEnded) {
                     if(dialogueTextId != -1) dialogueTextId = txt.print(0.0f, 0.8f, "", dialogueTextId);
+                    inDialogue = false;
                     dialogueNPC = -1;
                     player.mouseLookInitialized = false;
                 }
@@ -169,27 +190,37 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-    if(!glfwGetKey(window, GLFW_KEY_E)) debounce = false;
+    // Reset del debounce solo se non stiamo premendo nessuno dei due tasti
+    if(!ePressed && !enterPressed) debounce = false;
     if(curDebounce > 0) --curDebounce;
 
-    // --- NAVIGAZIONE OPZIONI TIPO SKYRIM (W / S) ---
-    if (navDebounceTimer > 0.0f) navDebounceTimer -= deltaT;
-    if (inDialogue && dialogueNPC >= 0 && npcs[dialogueNPC].type == InteractionType::BRANCHING && navDebounceTimer <= 0.0f) {
+    // Navigazioni nelle scelte (W / S)
+    static bool upPressedLastFrame = false;
+    static bool downPressedLastFrame = false;
+
+    bool upPressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
+    bool downPressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
+
+    if (inDialogue && dialogueNPC >= 0 && npcs[dialogueNPC].type == InteractionType::BRANCHING) {
         const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
 
         // Puoi scorrere solo se l'NPC ha finito di parlare e se ci sono opzioni
         bool isFinished = (dialogueRevealCount >= wrapText(node.npcText, maxChars).length());
+
         if (isFinished && !node.choices.empty()) {
-            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            // Scorri Su o Giù se non stiamo già premendo il tasto nell'ultimo frame
+            if (upPressed && !upPressedLastFrame) {
                 selectedChoiceIndex = (selectedChoiceIndex > 0) ? selectedChoiceIndex - 1 : node.choices.size() - 1;
-                navDebounceTimer = 0.2f; // Limite velocità cursore
             }
-            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            if (downPressed && !downPressedLastFrame) {
                 selectedChoiceIndex = (selectedChoiceIndex + 1) % node.choices.size();
-                navDebounceTimer = 0.2f;
             }
         }
     }
+
+    // Aggiorniamo lo stato per il prossimo frame
+    upPressedLastFrame = upPressed;
+    downPressedLastFrame = downPressed;
 
     // 4. Update Grafico e Renderizzatore Scelte
     if(inDialogue && dialogueNPC >= 0) {

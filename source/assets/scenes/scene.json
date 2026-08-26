@@ -33,6 +33,10 @@
 		{"id": "tavern_temn_goriz", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_goriz.gltf",  "format":"GLTF"},
 		{"id": "tavern_temn_vert", "VD": "VDposUV", "model": "assets/models/tavern/tavern_temn_vert.gltf",  "format":"GLTF"},
 		{"id": "tavolo_lungo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_lungo.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "panca_lunga", "VD": "VDposUV", "model": "assets/models/tavern/elements/panca_lunga.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "panca_corta", "VD": "VDposUV", "model": "assets/models/tavern/elements/panca_corta.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "tavolo_corto", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_corto.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "tavolo_quadrato", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_quadrato.gltf",  "format":"GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "house_1", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Bldg_01.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "house_2", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Bldg_02.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "house_3", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Bldg_03.mgcg",  "format":"MGCG", "collider": {"type":"FitAABB", "visible": false}},
@@ -52,7 +56,9 @@
 		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "muro_sotto", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sotto.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "muro_sopra", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sopra.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
-		{"id": "muro_centro", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_centro.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}}
+		{"id": "muro_centro", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_centro.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "tavolo_rotondo", "VD": "VDposUV", "model": "assets/models/tavern/elements/tavolo_rotondo.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "porta", "VD": "VDposUV", "model": "assets/models/tavern/elements/porta.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -172,7 +178,7 @@
 				{"id": "muro_retro2", "model": "muro_sopra", "texture": ["mat182"], "translate": [22.0, 0.0, 36.8], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.025, 0.023]},
 				{"id": "muro_sinistra", "model": "muro_sopra", "texture": ["mat182"], "translate": [33.7, 5.0, 11.5], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.037, 0.028]},
 				{"id": "muro_fronte", "model": "muro_sopra", "texture": ["mat182"], "translate": [27.4, 5.0, -6.5], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.0139, 0.029]},
-				{"id": "soffitto1", "model": "muro_sopra", "texture": ["mat182"], "translate": [18.0, 11.4, -7.0], "eulerAngles": [0.0, 0.0, 90.0], "scale": [0.002, 0.038, 0.20]},
+				{"id": "soffitto1", "model": "muro_sopra", "texture": ["mat182"], "translate": [18.0, 11.6, -7.0], "eulerAngles": [0.0, 0.0, 90.0], "scale": [0.01, 0.038, 0.20]},
 				{"id": "muro_centro1", "model": "muro_centro", "texture": ["tvbc"], "translate": [0.6, 2.5, 4.9], "eulerAngles": [180.0, -90.0, 0.0], "scale": [0.11, 0.02, 0.01]},
 				{"id": "muro_centro2", "model": "muro_centro", "texture": ["tvbc"], "translate": [0.6, 2.5, 26.7], "eulerAngles": [180.0, -90.0, 0.0], "scale": [0.115, 0.02, 0.01]}
 			]
