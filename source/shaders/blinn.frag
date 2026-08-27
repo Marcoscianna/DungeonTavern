@@ -13,7 +13,6 @@ layout(location = 2) in vec3 fragNorm;
 layout(location = 0) out vec4 outColor;
 layout(binding = 1, set = 1) uniform sampler2D albedoMap;
 
-// UBO Globale
 layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
     vec3 lightDir;
     vec4 lightColor;
@@ -24,7 +23,6 @@ layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
     float shadowToggle;
 } gubo;
 
-// La mappa delle ombre generata nel Pass 0
 layout(binding = 1, set = 0) uniform sampler2D shadowMap;
 
 void main() {
@@ -93,7 +91,7 @@ void main() {
         float yDistance = abs(gubo.pLights[i].position.y - fragPos.y);
         float verticalCutoff = clamp(1.0 - (yDistance / 3.0), 0.0, 1.0);
 
-        float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance));
+        float attenuation = 1.0 / (6.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
         attenuation *= verticalCutoff;
 
         float NdotL_pt = max(dot(N, L_pt), 0.0);

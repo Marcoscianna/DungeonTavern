@@ -218,7 +218,8 @@
 				{"id": "porta2", "model": "porta", "texture": ["tex_porta"], "translate": [26.8, 1.8, 26.5], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.014, 0.014]},
 				{"id": "porta3", "model": "porta", "texture": ["tex_porta"], "translate": [22.7, 1.8, 26.5], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.014, 0.014]},
 				{"id": "porta4", "model": "porta", "texture": ["tex_porta"], "translate": [31.3, 7.4, 28.5], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.014, 0.014]},
-				{"id": "porta5", "model": "porta", "texture": ["tex_porta"], "translate": [23.7, 7.4, 28.5], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.014, 0.014]}
+				{"id": "porta5", "model": "porta", "texture": ["tex_porta"], "translate": [23.7, 7.4, 28.5], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.014, 0.014]},
+				{"id": "tavern_svecha", "model": "tavern_svecha", "texture": ["svecha"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
 			]
 		},
 		{
@@ -227,8 +228,8 @@
 				{
 					"id": "door_guard_r",
 					"model": "guard_npc",
-					"texture": ["tex_guard_diffuse"],
-					"translate": [9.0, 0.4, -8.0],
+					"texture": ["tex_guard_diffuse", "tex_guard_normal", "tex_guard_specular"],
+					"translate": [9.0, 0.3, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per parlare con la guardia destra",
@@ -238,8 +239,8 @@
 				{
 					"id": "door_guard_l",
 					"model": "guard_npc",
-					"texture": ["tex_guard_diffuse"],
-					"translate": [13.8, 0.0, -8.0],
+					"texture": ["tex_guard_diffuse", "tex_guard_normal", "tex_guard_specular"],
+					"translate": [13.8, 0.3, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"dialogueType": "BRANCHING",
@@ -270,7 +271,7 @@
 				{
 					"id": "peasant_npc",
 					"model": "peasant_npc",
-					"texture": ["tex_peasant_diffuse"],
+					"texture": ["tex_peasant_diffuse", "tex_peasant_normal", "tex_peasant_specular"],
 					"translate": [7.8, 1.0, 21.5],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
@@ -281,7 +282,7 @@
 				{
 					"id": "male_npc",
 					"model": "male_npc",
-					"texture": ["tex_male_diffuse"],
+					"texture": ["tex_male_diffuse", "tex_male_normal", "tex_male_specular"],
 					"translate": [13.0, 0.3, 16.0],
 					"eulerAngles": [90.0, 0.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
@@ -292,7 +293,7 @@
 				{
 					"id": "fighter_npc",
 					"model": "fighter_npc",
-					"texture": ["tex_fighter_diffuse"],
+					"texture": ["tex_fighter_diffuse", "tex_fighter_normal", "tex_fighter_specular"],
 					"translate": [5.0, 0.3, -3.0],
 					"eulerAngles": [90.0, 90.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
@@ -305,9 +306,8 @@
 		{
 			"technique": "EmissiveTech",
 			"elements": [
-				{"id": "tavern_fire", "model": "tavern_fire", "texture": ["fire_e"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
-				{"id": "tavern_svecha", "model": "tavern_svecha", "texture": ["svecha"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
-			]
+				{"id": "tavern_fire", "model": "tavern_fire", "texture": ["fire_bc","fire_e"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
+				]
 		}
 	],
 	"lights": [

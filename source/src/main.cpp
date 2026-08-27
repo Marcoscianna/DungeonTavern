@@ -41,7 +41,7 @@ struct VertexAnim {
 class DungeonTavern : public BaseProject {
 protected:
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLlocal, DSLglobal;
+    DescriptorSetLayout DSLlocal, DSLglobal, DSLemissive;
 
     // Animazioni
     DescriptorSetLayout DSLanim;
@@ -119,12 +119,11 @@ public:
     void localInit() override {
         // 1. Crea il Layout per l'UBO Animato
         DSLanim.init(this, {
-                         {
-                             0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT,
-                             sizeof(AnimUniformBufferObject), 1
-                         },
-                         {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}
-                     });
+                                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(AnimUniformBufferObject), 1},
+                                 {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}, // Indice 0: Diffuse
+                                 {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}, // Indice 1: Normal
+                                 {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1}  // Indice 2: Specular
+                             });
 
         DSLlocal.init(this, {
                           {
@@ -141,6 +140,12 @@ public:
                            },
                            {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}
                        });
+
+        DSLemissive.init(this, {
+                                  {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(UniformBufferObject), 1},
+                                  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+                                  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
+                              });
 
         VD.init(this, {
                     {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
@@ -174,17 +179,20 @@ public:
                {&DSLglobal, &DSLlocal});
 
         Panim.init(this, &VDanim,
-                   "shaders/skinning.vert.spv",
-                   "shaders/blinn.frag.spv",
-                   {&DSLglobal, &DSLanim});
+                           "shaders/skinning.vert.spv",
+                           "shaders/anim_blinn.frag.spv",
+                           {&DSLglobal, &DSLanim});
 
         Pemissive.init(this, &VD, "shaders/static.vert.spv",
-                       "shaders/emissive.frag.spv",
-                       {&DSLglobal, &DSLlocal});
+                               "shaders/emissive.frag.spv",
+                               {&DSLglobal, &DSLemissive});
+        Pemissive.setCullMode(VK_CULL_MODE_NONE);
 
         Pshadow.init(this, &VD, "shaders/shadow.vert.spv", "shaders/shadow.frag.spv", {&DSLglobal, &DSLlocal});
+        Pshadow.setCullMode(VK_CULL_MODE_NONE);
         PanimShadow.init(this, &VDanim, "shaders/shadow_anim.vert.spv", "shaders/shadow.frag.spv",
                          {&DSLglobal, &DSLanim});
+        PanimShadow.setCullMode(VK_CULL_MODE_NONE);
 
 
         DPSZs.uniformBlocksInPool = 300;
@@ -201,13 +209,13 @@ public:
                         {.P = &P, .texDefs = {{}, {{true, 0, {}}}}}
                     }, 1, &VD);
         PRs[1].init("AnimTech", {
-                        {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}}}},
-                        {.P = &Panim, .texDefs = {{}, {{true, 0, {}}}}}
-                    }, 1, &VDanim);
+                                {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}},
+                                {.P = &Panim, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}}
+                            }, 3, &VDanim);
         PRs[2].init("EmissiveTech", {
-                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
-                        {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}}}}
-                    }, 1, &VD);
+                                {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                                {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}} // <-- Ora richiede binding 0 e binding 1
+                            }, 2, &VD);
 
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -394,6 +402,7 @@ public:
         DSLlocal.cleanup();
         DSLglobal.cleanup();
         DSLanim.cleanup();
+        DSLemissive.cleanup();
 
         Pshadow.destroy();
         PanimShadow.destroy();
