@@ -119,11 +119,18 @@ public:
     void localInit() override {
         // 1. Crea il Layout per l'UBO Animato
         DSLanim.init(this, {
-                                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(AnimUniformBufferObject), 1},
-                                 {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}, // Indice 0: Diffuse
-                                 {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}, // Indice 1: Normal
-                                 {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1}  // Indice 2: Specular
-                             });
+                         {
+                             0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT,
+                             sizeof(AnimUniformBufferObject), 1
+                         },
+                         {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+                         // Indice 0: Diffuse
+                         {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1},
+                         // Indice 1: Normal
+                         {
+                             3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1
+                         } // Indice 2: Specular
+                     });
 
         DSLlocal.init(this, {
                           {
@@ -142,10 +149,13 @@ public:
                        });
 
         DSLemissive.init(this, {
-                                  {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(UniformBufferObject), 1},
-                                  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-                                  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
-                              });
+                             {
+                                 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT,
+                                 sizeof(UniformBufferObject), 1
+                             },
+                             {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+                             {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
+                         });
 
         VD.init(this, {
                     {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
@@ -179,13 +189,13 @@ public:
                {&DSLglobal, &DSLlocal});
 
         Panim.init(this, &VDanim,
-                           "shaders/skinning.vert.spv",
-                           "shaders/anim_blinn.frag.spv",
-                           {&DSLglobal, &DSLanim});
+                   "shaders/skinning.vert.spv",
+                   "shaders/anim_blinn.frag.spv",
+                   {&DSLglobal, &DSLanim});
 
         Pemissive.init(this, &VD, "shaders/static.vert.spv",
-                               "shaders/emissive.frag.spv",
-                               {&DSLglobal, &DSLemissive});
+                       "shaders/emissive.frag.spv",
+                       {&DSLglobal, &DSLemissive});
         Pemissive.setCullMode(VK_CULL_MODE_NONE);
 
         Pshadow.init(this, &VD, "shaders/shadow.vert.spv", "shaders/shadow.frag.spv", {&DSLglobal, &DSLlocal});
@@ -209,13 +219,13 @@ public:
                         {.P = &P, .texDefs = {{}, {{true, 0, {}}}}}
                     }, 1, &VD);
         PRs[1].init("AnimTech", {
-                                {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}},
-                                {.P = &Panim, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}}
-                            }, 3, &VDanim);
+                        {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}},
+                        {.P = &Panim, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}}
+                    }, 3, &VDanim);
         PRs[2].init("EmissiveTech", {
-                                {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
-                                {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}} // <-- Ora richiede binding 0 e binding 1
-                            }, 2, &VD);
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}}
+                    }, 2, &VD);
 
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -234,14 +244,36 @@ public:
         // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
         // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
         npcAnimManager.init({
-            {"door_guard_r", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"door_guard_l", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"peasant_npc", "assets/models/npc/peasant/peasant_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}}
+            {
+                "door_guard_r", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "door_guard_l", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "peasant_npc", "assets/models/npc/peasant/peasant_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "male_npc2", "assets/models/npc/male/male2.gltf", "maleCombined", 0, glm::mat4(1.0f),
+                {
+                    {0, 31, 1.0f, 0}, // Segmento 0 (Prima animazione, da frame 0 a 31)
+                    {31, 121, 1.0f, 0} // Segmento 1 (Seconda animazione, da frame 31 a 121)
+                }
+            }
         });
 
-       // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
+        // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
         std::unordered_map<std::string, TavernNPC> npcDataFromJson;
         try {
             std::ifstream ifs("assets/scenes/scene.json");
@@ -260,7 +292,18 @@ public:
                                 data.prompt = el.value("prompt", "Premi E per interagire");
                                 data.interactionRadius = el.value("interactionRadius", 10.0f);
 
-                                // NUOVO PARSER: Legge il tipo e smista i dati
+                                data.speed = el.value("speed", 1.0f);
+                                if (el.contains("waypoints")) {
+                                    for (const auto& wp : el["waypoints"]) {
+                                        data.waypoints.push_back(glm::vec3(
+                                            wp[0].template get<float>(),
+                                            wp[1].template get<float>(),
+                                            wp[2].template get<float>()
+                                        ));
+                                    }
+                                }
+
+                                //Legge il tipo e smista i dati
                                 std::string typeStr = el.value("dialogueType", "LINEAR");
                                 if (typeStr == "ONE_LINER") data.type = InteractionType::ONE_LINER;
                                 else if (typeStr == "BRANCHING") data.type = InteractionType::BRANCHING;
@@ -274,13 +317,13 @@ public:
                                     }
                                 } else if (data.type == InteractionType::BRANCHING) {
                                     if (el.contains("dialogueTree")) {
-                                        for (const auto &nodeJson : el["dialogueTree"]) {
+                                        for (const auto &nodeJson: el["dialogueTree"]) {
                                             DialogueNode node;
                                             int nodeId = nodeJson["id"].template get<int>();
                                             node.npcText = nodeJson["text"].template get<std::string>();
 
                                             if (nodeJson.contains("choices")) {
-                                                for (const auto &choiceJson : nodeJson["choices"]) {
+                                                for (const auto &choiceJson: nodeJson["choices"]) {
                                                     DialogueChoice choice;
                                                     choice.text = choiceJson["text"].template get<std::string>();
                                                     choice.nextNodeId = choiceJson["next"].template get<int>();
@@ -314,11 +357,11 @@ public:
                 if (it != npcDataFromJson.end()) {
                     npc.prompt = it->second.prompt;
                     npc.interactionRadius = it->second.interactionRadius;
-
-                    // Fondamentale: Copia i dati giusti in base al tipo!
                     npc.type = it->second.type;
                     npc.dialogues = it->second.dialogues;
                     npc.dialogueTree = it->second.dialogueTree;
+                    npc.speed = it->second.speed;
+                    npc.waypoints = it->second.waypoints;
                 } else {
                     npc.prompt = "Premi E per interagire";
                     npc.interactionRadius = 10.0f;
@@ -326,6 +369,22 @@ public:
                     npc.dialogues.push_back("Benvenuto nella taverna.");
                 }
                 tavernNPCs.push_back(npc);
+            }
+        }
+
+        for (auto& npc : tavernNPCs) {
+            auto itInst = SC.InstanceIds.find(npc.name);
+            if (itInst != SC.InstanceIds.end()) {
+                Instance* inst = SC.I[itInst->second];
+                // Estrae la scala calcolando la lunghezza dei vettori matrice
+                npc.scale = glm::vec3(glm::length(glm::vec3(inst->Wm[0])),
+                                      glm::length(glm::vec3(inst->Wm[1])),
+                                      glm::length(glm::vec3(inst->Wm[2])));
+            }
+
+            AnimNPC* animNpc = npcAnimManager.find(npc.name);
+            if (animNpc) {
+                npc.numAnimations = animNpc->blender.segments.size();
             }
         }
 
@@ -358,7 +417,8 @@ public:
 
     void pipelinesAndDescriptorSetsInit() override {
         //texture depth 2048x2048
-        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this),
+                      RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 
@@ -368,12 +428,14 @@ public:
         Panim.create(&RP);
         Pemissive.create(&RP);
 
-        DSglobal.init(this, &DSLglobal, { RPshadow.attachments[0].getViewAndSampler() });
+        DSglobal.init(this, &DSLglobal, {RPshadow.attachments[0].getViewAndSampler()});
 
         // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
-        for(int t = 0; t < 3; t++) {     // Per le 3 tecniche (Blinn, Anim, Emissive)
-            for(int p = 0; p < 2; p++) { // Per i 2 Passaggi (Shadow, Color)
+        for (int t = 0; t < 3; t++) {
+            // Per le 3 tecniche (Blinn, Anim, Emissive)
+            for (int p = 0; p < 2; p++) {
+                // Per i 2 Passaggi (Shadow, Color)
                 // Inseriamo la shadow map nel Set 0 (che avevamo lasciato vuoto)
                 PRs[t].PT[p].texDefs[0].push_back(shadowTexDef);
             }
@@ -459,6 +521,83 @@ public:
         // =========================================================
 
         dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
+
+        int talkingNPC = dialogueManager.getDialogueNPC();
+
+        for (size_t i = 0; i < tavernNPCs.size(); ++i) {
+            auto& npc = tavernNPCs[i];
+            bool updateMatrix = false;
+
+            if (i == talkingNPC) {
+                // --- L'NPC STA PARLANDO CON IL GIOCATORE ---
+                npc.hasInteracted = true;
+
+                // Scegli animazione: Se ne ha > 1 usa l'indice 1, altrimenti 0
+                int animToPlay = (npc.numAnimations > 1) ? 1 : 0;
+                if (npc.numAnimations > 0 && npc.currentAnim != animToPlay) {
+                    npcAnimManager.play(npc.name, animToPlay, 0.2f);
+                    npc.currentAnim = animToPlay;
+                }
+
+                // Si ruota per guardare il giocatore in faccia
+                glm::vec3 dir = player.position - npc.position;
+                dir.y = 0.0f;
+                if (glm::length(dir) > 0.001f) {
+                    npc.currentYaw = atan2(dir.x, dir.z);
+                }
+                updateMatrix = true;
+
+            } else {
+                // --- L'NPC E' LIBERO ---
+
+                // Tutti gli NPC liberi devono usare l'animazione 0 (Walking o Idle)
+                if (npc.numAnimations > 0 && npc.currentAnim != 0) {
+                    npcAnimManager.play(npc.name, 0, 3.2f);
+                    npc.currentAnim = 0;
+                }
+
+                if (!npc.waypoints.empty()) {
+                    // Ha un percorso: cammina!
+                    npc.hasInteracted = true;
+                    glm::vec3 target = npc.waypoints[npc.currentWaypoint];
+                    glm::vec3 dir = target - npc.position;
+
+                    // Ora calcola la distanza reale in 3D
+                    float dist = glm::length(dir);
+
+                    // Alziamo la tolleranza a 0.2f per assicurarci che "tocchi" il punto senza oltrepassarlo
+                    if (dist < 0.2f) {
+                        // Raggiunto il waypoint, passa al successivo
+                        npc.currentWaypoint = (npc.currentWaypoint + 1) % npc.waypoints.size();
+                    } else {
+                        // Calcola la direzione 3D e muovi l'NPC
+                        glm::vec3 moveDir = glm::normalize(dir);
+                        npc.position += moveDir * npc.speed * deltaT;
+
+                        // Ruota l'NPC, basandosi SOLO su X e Z per non farlo inclinare col busto verso l'alto o verso il basso
+                        npc.currentYaw = atan2(moveDir.x, moveDir.z);
+                    }
+                    updateMatrix = true;
+
+                } else if (npc.hasInteracted) {
+                    updateMatrix = true;
+                }
+            }
+
+            // --- RICOSTRUZIONE DELLA MATRICE ---
+            // Aggiorniamo la trasformazione dell'NPC per fargli applicare spostamenti e rotazioni
+            if (updateMatrix) {
+                auto it = SC.InstanceIds.find(npc.name);
+                if (it != SC.InstanceIds.end()) {
+                    Instance* inst = SC.I[it->second];
+                    inst->Wm = glm::translate(glm::mat4(1.0f), npc.position) *
+                               glm::rotate(glm::mat4(1.0f), npc.currentYaw, glm::vec3(0.0f, 1.0f, 0.0f)) *
+                               glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                               glm::scale(glm::mat4(1.0f), npc.scale);
+                }
+            }
+        }
+
         lightManager.update(deltaT, window);
 
         // Il giocatore può muoversi solo se NON sta parlando

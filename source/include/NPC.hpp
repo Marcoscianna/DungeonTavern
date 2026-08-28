@@ -60,12 +60,18 @@ struct TavernNPC {
     float interactionRadius;
     std::string prompt;
     InteractionType type = InteractionType::LINEAR;
-
-    // Per LINEAR e ONE_LINER usiamo un vettore
     std::vector<std::string> dialogues;
-
-    // Per BRANCHING usiamo una mappa di nodi
     std::map<int, DialogueNode> dialogueTree;
+
+    // --- NUOVI CAMPI PER MOVIMENTO E STATO ---
+    std::vector<glm::vec3> waypoints;
+    int currentWaypoint = 0;
+    float speed = 1.0f;
+    float currentYaw = 0.0f;
+    glm::vec3 scale = glm::vec3(0.018f);
+    int currentAnim = -1;
+    int numAnimations = 0;
+    bool hasInteracted = false; // Indica se l'NPC ha calcolato almeno una rotazione
 };
 
 class AnimNPC {

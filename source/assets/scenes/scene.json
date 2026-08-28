@@ -52,6 +52,7 @@
 		}},
 		{"id": "peasant_npc", "VD": "VDanim", "model": "assets/models/npc/peasant/peasant_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "male_npc", "VD": "VDanim", "model": "assets/models/npc/male/male_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "male_npc2", "VD": "VDanim", "model": "assets/models/npc/male/male2.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "fighter_npc", "VD": "VDanim", "model": "assets/models/npc/fighter/fighter_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "muro_sotto", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sotto.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
@@ -289,6 +290,31 @@
 					"prompt": "Premi E per interagire con il paesano",
 					"interactionRadius": 4.0,
 					"dialogues": ["Questa taverna è il posto migliore per rilassarsi dopo una lunga giornata di lavoro.", "Vuoi un bicchiere di vino?"]
+				},
+				{
+					"id": "male_npc2",
+					"model": "male_npc2",
+					"texture": ["tex_male_diffuse", "tex_male_normal", "tex_male_specular"],
+					"translate": [13.0, 0.3, 10.0],
+					"eulerAngles": [90.0, 0.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per interagire con il paesano",
+					"interactionRadius": 4.0,
+					"speed": 1.7,
+					"dialogues": [
+						"Questa taverna è il posto migliore per rilassarsi.",
+						"Vuoi un bicchiere di vino?"
+					],
+					"waypoints": [
+						[13.0, 0.3, 10.0],
+						[12.9399, 0.3, 12.5194],
+						[27.3126, 0.3, 19.8883],
+						[14.8137, 0.3, 13.752],
+						[7.71665, 0.3, 12.4271],
+						[5.71974, 0.3, 22.7749],
+						[8.18079, 0.3, 13.3265]
+
+					]
 				},
 				{
 					"id": "fighter_npc",
