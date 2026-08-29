@@ -54,5 +54,7 @@ public:
 
     // Pulizia
     void cleanup(TextMaker& txt);
+
+    int getDialogueNPC() const;
 };
 #endif //SKELETONTOCHANGE_DIALOGUEMANAGER_HPP

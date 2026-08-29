@@ -40,7 +40,7 @@ struct VertexAnim {
 // MAIN !
 class DungeonTavern : public BaseProject {
 protected:
-    // Descriptor Layouts [what will be passed to the shaders]
+    // Descriptor Layouts
     DescriptorSetLayout DSLlocal, DSLglobal, DSLemissive;
 
     // Animazioni
@@ -53,6 +53,9 @@ protected:
     RenderPass RP;
     Pipeline P;
     Pipeline Pemissive;
+    Pipeline Pwood;
+    Pipeline Pstone;
+    Pipeline Pmetal;
 
     // Ombre
     RenderPass RPshadow;
@@ -119,11 +122,18 @@ public:
     void localInit() override {
         // 1. Crea il Layout per l'UBO Animato
         DSLanim.init(this, {
-                                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(AnimUniformBufferObject), 1},
-                                 {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}, // Indice 0: Diffuse
-                                 {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}, // Indice 1: Normal
-                                 {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1}  // Indice 2: Specular
-                             });
+                         {
+                             0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT,
+                             sizeof(AnimUniformBufferObject), 1
+                         },
+                         {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+                         // Indice 0: Diffuse
+                         {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1},
+                         // Indice 1: Normal
+                         {
+                             3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1
+                         } // Indice 2: Specular
+                     });
 
         DSLlocal.init(this, {
                           {
@@ -142,10 +152,13 @@ public:
                        });
 
         DSLemissive.init(this, {
-                                  {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(UniformBufferObject), 1},
-                                  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-                                  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
-                              });
+                             {
+                                 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT,
+                                 sizeof(UniformBufferObject), 1
+                             },
+                             {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+                             {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
+                         });
 
         VD.init(this, {
                     {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
@@ -179,14 +192,18 @@ public:
                {&DSLglobal, &DSLlocal});
 
         Panim.init(this, &VDanim,
-                           "shaders/skinning.vert.spv",
-                           "shaders/anim_blinn.frag.spv",
-                           {&DSLglobal, &DSLanim});
+                   "shaders/skinning.vert.spv",
+                   "shaders/anim_blinn.frag.spv",
+                   {&DSLglobal, &DSLanim});
 
         Pemissive.init(this, &VD, "shaders/static.vert.spv",
-                               "shaders/emissive.frag.spv",
-                               {&DSLglobal, &DSLemissive});
+                       "shaders/emissive.frag.spv",
+                       {&DSLglobal, &DSLemissive});
         Pemissive.setCullMode(VK_CULL_MODE_NONE);
+
+        Pwood.init(this, &VD, "shaders/static.vert.spv", "shaders/wood.frag.spv", {&DSLglobal, &DSLlocal});
+        Pstone.init(this, &VD, "shaders/static.vert.spv", "shaders/stone.frag.spv", {&DSLglobal, &DSLlocal});
+        Pmetal.init(this, &VD, "shaders/static.vert.spv", "shaders/metal.frag.spv", {&DSLglobal, &DSLlocal});
 
         Pshadow.init(this, &VD, "shaders/shadow.vert.spv", "shaders/shadow.frag.spv", {&DSLglobal, &DSLlocal});
         Pshadow.setCullMode(VK_CULL_MODE_NONE);
@@ -203,19 +220,31 @@ public:
         VDRs[0].init("VDposUV", &VD);
         VDRs[1].init("VDanim", &VDanim);
 
-        PRs.resize(3);
+        PRs.resize(6);
         PRs[0].init("BlinnPos", {
                         {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
                         {.P = &P, .texDefs = {{}, {{true, 0, {}}}}}
                     }, 1, &VD);
         PRs[1].init("AnimTech", {
-                                {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}},
-                                {.P = &Panim, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}}
-                            }, 3, &VDanim);
+                        {.P = &PanimShadow, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}},
+                        {.P = &Panim, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}, {true, 2, {}}}}}
+                    }, 3, &VDanim);
         PRs[2].init("EmissiveTech", {
-                                {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
-                                {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}} // <-- Ora richiede binding 0 e binding 1
-                            }, 2, &VD);
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}}
+                    }, 2, &VD);
+        PRs[3].init("WoodTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pwood, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
+        PRs[4].init("StoneTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pstone, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
+        PRs[5].init("MetalTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pmetal, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
 
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -234,14 +263,36 @@ public:
         // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
         // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
         npcAnimManager.init({
-            {"door_guard_r", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"door_guard_l", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"peasant_npc", "assets/models/npc/peasant/peasant_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}},
-            {"male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f), {{0, 255, 1.0f, 0}}}
+            {
+                "door_guard_r", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "door_guard_l", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "peasant_npc", "assets/models/npc/peasant/peasant_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
+            {
+                "male_npc2", "assets/models/npc/male/male2.gltf", "maleCombined", 0, glm::mat4(1.0f),
+                {
+                    {0, 31, 1.0f, 0}, // Segmento 0 (Prima animazione, da frame 0 a 31)
+                    {31, 121, 1.0f, 0} // Segmento 1 (Seconda animazione, da frame 31 a 121)
+                }
+            }
         });
 
-       // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
+        // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
         std::unordered_map<std::string, TavernNPC> npcDataFromJson;
         try {
             std::ifstream ifs("assets/scenes/scene.json");
@@ -260,7 +311,23 @@ public:
                                 data.prompt = el.value("prompt", "Premi E per interagire");
                                 data.interactionRadius = el.value("interactionRadius", 10.0f);
 
-                                // NUOVO PARSER: Legge il tipo e smista i dati
+                                data.speed = el.value("speed", 1.0f);
+                                if (el.contains("waypoints")) {
+                                    for (const auto& wp : el["waypoints"]) {
+                                        data.waypoints.push_back(glm::vec3(
+                                            wp[0].template get<float>(),
+                                            wp[1].template get<float>(),
+                                            wp[2].template get<float>()
+                                        ));
+                                    }
+                                }
+                                if (el.contains("waitTimes")) {
+                                    for (const auto& wt : el["waitTimes"]) {
+                                        data.waitTimes.push_back(wt.template get<float>());
+                                    }
+                                }
+
+                                //Legge il tipo e smista i dati
                                 std::string typeStr = el.value("dialogueType", "LINEAR");
                                 if (typeStr == "ONE_LINER") data.type = InteractionType::ONE_LINER;
                                 else if (typeStr == "BRANCHING") data.type = InteractionType::BRANCHING;
@@ -274,13 +341,13 @@ public:
                                     }
                                 } else if (data.type == InteractionType::BRANCHING) {
                                     if (el.contains("dialogueTree")) {
-                                        for (const auto &nodeJson : el["dialogueTree"]) {
+                                        for (const auto &nodeJson: el["dialogueTree"]) {
                                             DialogueNode node;
                                             int nodeId = nodeJson["id"].template get<int>();
                                             node.npcText = nodeJson["text"].template get<std::string>();
 
                                             if (nodeJson.contains("choices")) {
-                                                for (const auto &choiceJson : nodeJson["choices"]) {
+                                                for (const auto &choiceJson: nodeJson["choices"]) {
                                                     DialogueChoice choice;
                                                     choice.text = choiceJson["text"].template get<std::string>();
                                                     choice.nextNodeId = choiceJson["next"].template get<int>();
@@ -314,11 +381,12 @@ public:
                 if (it != npcDataFromJson.end()) {
                     npc.prompt = it->second.prompt;
                     npc.interactionRadius = it->second.interactionRadius;
-
-                    // Fondamentale: Copia i dati giusti in base al tipo!
                     npc.type = it->second.type;
                     npc.dialogues = it->second.dialogues;
                     npc.dialogueTree = it->second.dialogueTree;
+                    npc.speed = it->second.speed;
+                    npc.waypoints = it->second.waypoints;
+                    npc.waitTimes = it->second.waitTimes;
                 } else {
                     npc.prompt = "Premi E per interagire";
                     npc.interactionRadius = 10.0f;
@@ -326,6 +394,22 @@ public:
                     npc.dialogues.push_back("Benvenuto nella taverna.");
                 }
                 tavernNPCs.push_back(npc);
+            }
+        }
+
+        for (auto& npc : tavernNPCs) {
+            auto itInst = SC.InstanceIds.find(npc.name);
+            if (itInst != SC.InstanceIds.end()) {
+                Instance* inst = SC.I[itInst->second];
+                // Estrae la scala calcolando la lunghezza dei vettori matrice
+                npc.scale = glm::vec3(glm::length(glm::vec3(inst->Wm[0])),
+                                      glm::length(glm::vec3(inst->Wm[1])),
+                                      glm::length(glm::vec3(inst->Wm[2])));
+            }
+
+            AnimNPC* animNpc = npcAnimManager.find(npc.name);
+            if (animNpc) {
+                npc.numAnimations = animNpc->blender.segments.size();
             }
         }
 
@@ -358,7 +442,8 @@ public:
 
     void pipelinesAndDescriptorSetsInit() override {
         //texture depth 2048x2048
-        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this),
+                      RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 
@@ -367,14 +452,19 @@ public:
         P.create(&RP);
         Panim.create(&RP);
         Pemissive.create(&RP);
+        Pwood.create(&RP);
+        Pstone.create(&RP);
+        Pmetal.create(&RP);
 
-        DSglobal.init(this, &DSLglobal, { RPshadow.attachments[0].getViewAndSampler() });
+        DSglobal.init(this, &DSLglobal, {RPshadow.attachments[0].getViewAndSampler()});
 
         // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
-        for(int t = 0; t < 3; t++) {     // Per le 3 tecniche (Blinn, Anim, Emissive)
-            for(int p = 0; p < 2; p++) { // Per i 2 Passaggi (Shadow, Color)
-                // Inseriamo la shadow map nel Set 0 (che avevamo lasciato vuoto)
+        // Per le 6 tecniche
+        for (int t = 0; t < 6; t++) {
+            // Per i 2 Passaggi (Shadow, Color)
+            for (int p = 0; p < 2; p++) {
+                // Inseriamo la shadow map nel Set 0
                 PRs[t].PT[p].texDefs[0].push_back(shadowTexDef);
             }
         }
@@ -389,6 +479,9 @@ public:
         P.cleanup();
         Panim.cleanup();
         Pemissive.cleanup();
+        Pwood.cleanup();
+        Pstone.cleanup();
+        Pmetal.cleanup();
         RP.cleanup();
         RPshadow.cleanup();
 
@@ -409,6 +502,9 @@ public:
         P.destroy();
         Panim.destroy();
         Pemissive.destroy();
+        Pwood.destroy();
+        Pstone.destroy();
+        Pmetal.destroy();
 
         npcAnimManager.cleanup();
         dialogueManager.cleanup(txt);
@@ -459,6 +555,14 @@ public:
         // =========================================================
 
         dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
+
+        int talkingNPC = dialogueManager.getDialogueNPC();
+
+        for (size_t i = 0; i < tavernNPCs.size(); ++i) {
+            bool isTalking = (i == talkingNPC);
+            tavernNPCs[i].update(deltaT, isTalking, player.position, npcAnimManager, SC);
+        }
+
         lightManager.update(deltaT, window);
 
         // Il giocatore può muoversi solo se NON sta parlando
@@ -512,34 +616,28 @@ public:
 
         UniformBufferObject ubo{};
 
-        // --- AGGIORNA GLI OGGETTI STATICI (Tecnica 0) ---
-        for (int i = 0; i < SC.TI[0].InstanceCount; i++) {
-            ubo.mMat = SC.TI[0].I[i].Wm;
+        // --- AGGIORNA TUTTI I MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5) ---
+        // 0 = BlinnPos, 2 = Emissive, 3 = Wood, 4 = Stone, 5 = Metal
+        // (Saltiamo l'indice 1 perché è AnimTech, gestito dagli NPC a parte)
+        int staticTechniques[] = {0, 2, 3, 4, 5};
 
-            // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
-            ubo.mvpMat = gubo.lightVP * ubo.mMat;
-            SC.TI[0].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[0].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+        for (int t : staticTechniques) {
+            // Controlla per sicurezza che la tecnica esista e abbia elementi
+            if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
+                for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
+                    ubo.mMat = SC.TI[t].I[i].Wm;
 
-            // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
-            ubo.mvpMat = ViewPrj * ubo.mMat;
-            SC.TI[0].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[0].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
-        }
+                    // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
+                    ubo.mvpMat = gubo.lightVP * ubo.mMat;
+                    SC.TI[t].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
+                    SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
 
-        // --- AGGIORNA GLI OGGETTI LUMINOSI (Tecnica 2) ---
-        for (int i = 0; i < SC.TI[2].InstanceCount; i++) {
-            ubo.mMat = SC.TI[2].I[i].Wm;
-
-            // PASS 0 (Ombre)
-            ubo.mvpMat = gubo.lightVP * ubo.mMat;
-            SC.TI[2].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[2].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
-
-            // PASS 1 (Colore)
-            ubo.mvpMat = ViewPrj * ubo.mMat;
-            SC.TI[2].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[2].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
+                    // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
+                    ubo.mvpMat = ViewPrj * ubo.mMat;
+                    SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
+                    SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
+                }
+            }
         }
 
         // Aggiornamento finale dei modelli animati

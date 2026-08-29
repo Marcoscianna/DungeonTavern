@@ -263,3 +263,7 @@ void DialogueManager::cleanup(TextMaker& txt) {
     if(dialogueTextId != -1) txt.removeText(dialogueTextId);
     if(interactionPromptTextId != -1) txt.removeText(interactionPromptTextId);
 }
+
+int DialogueManager::getDialogueNPC() const {
+    return inDialogue ? dialogueNPC : -1;
+}
