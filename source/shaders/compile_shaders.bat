@@ -7,4 +7,7 @@ glslc blinn.frag -o blinn.frag.spv
 glslc shadow.frag -o shadow.frag.spv
 glslc anim_blinn.frag -o anim_blinn.frag.spv
 glslc emissive.frag -o emissive.frag.spv
+glslc stone.frag -o stone.frag.spv
+glslc wood.frag -o wood.frag.spv
+glslc metal.frag -o metal.frag.spv
 pause

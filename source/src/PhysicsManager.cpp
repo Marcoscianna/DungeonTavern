@@ -96,6 +96,8 @@ void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float 
 }
 
 void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, const Player& player, bool canInteract, TextMaker& txt) {
+    // Limite deltaT per evitare problemi di fisica con frame rate bassi
+    if (deltaT > 0.05f) deltaT = 0.05f;
     bool ePressed = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
     bool tPressed = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
     PhysicsUIState targetUIState = PhysicsUIState::NONE;
@@ -264,6 +266,9 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
         // Asse Y (Gravità e Rimbalzo a terra)
         po.velocity.y -= gravity * deltaT;
+        // Limite massimo di velocità verso il basso per evitare che l'oggetto cada troppo velocemente
+        if (po.velocity.y < -25.0f) po.velocity.y = -25.0f;
+
         newPos.y += po.velocity.y * deltaT;
         inst->Wm[3][1] = newPos.y;
 
