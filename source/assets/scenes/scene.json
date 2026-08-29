@@ -67,7 +67,11 @@
 		{"id": "vegetation16", "VD": "VDposUV", "model": "assets/models/vegetation/vegetation.016.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "road", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Road_01.mgcg",  "format":"MGCG"},
 		{"id": "road_turn", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Road_02.mgcg",  "format":"MGCG"},
-		{"id": "skydome", "VD": "VDposUV", "model": "assets/models/skydome.gltf",  "format":"GLTF"}
+		{"id": "skydome", "VD": "VDposUV", "model": "assets/models/skydome.gltf",  "format":"GLTF"},
+		{"id": "well", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Props_01.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "street_lamp", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Light.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
+		{"id": "floor_square", "VD": "VDposUV", "model": "assets/models/dungeon/floor_Mesh.7127.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
+		{"id":  "barrel", "VD": "VDposUV", "model": "assets/models/dungeon/barrel.001_Mesh.4453.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -156,6 +160,308 @@
 				{"id": "tavern_material", "model": "tavern_material", "texture": ["material"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_svet", "model": "tavern_svet", "texture": ["svet"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_svecha", "model": "tavern_svecha", "texture": ["svecha"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
+				{"id": "well", "model": "well", "texture": ["tex_medieval"], "translate": [12.5, 0.3, -27.8], "eulerAngles": [90.0, 0.0, 0.0], "scale": [2.0, 2.0, 2.0]},
+				{"id": "barrel", "model": "barrel", "texture": ["tex_dungeon"], "translate": [16.5, 1.8, -36.8], "eulerAngles": [0.0, 0.0, 0.0], "scale": [3.0, 3.0, 3.0]},
+				{"id": "barrel2", "model": "barrel", "texture": ["tex_dungeon"], "translate": [18.5, 1.8, -34.8], "eulerAngles": [0.0, 0.0, 0.0], "scale": [3.0, 3.0, 3.0]},
+				{"id": "barrel3", "model": "barrel", "texture": ["tex_dungeon"], "translate": [10.5, 1.8, -32.8], "eulerAngles": [0.0, 0.0, 0.0], "scale": [3.0, 3.0, 3.0]},
+				{"id": "street_lamp", "model": "street_lamp", "texture": ["tex_medieval"], "translate": [23.0, 0.3, -27.8], "eulerAngles": [90.0, 90.0, 0.0], "scale": [2.0, 2.0, 2.0]},
+				{"id": "street_lamp2", "model": "street_lamp", "texture": ["tex_medieval"], "translate": [1.0, 0.3, -27.8], "eulerAngles": [90.0, 90.0, 0.0], "scale": [2.0, 2.0, 2.0]},
+				{
+					"id": "floor_piazza_2",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -39.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_3",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -39.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_4",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -39.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_5",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [4.9, 0.3, -35.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_6",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -35.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_7",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -35.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_8",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -35.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_9",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [20.1, 0.3, -35.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_10",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [1.1, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_11",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [4.9, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_12",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_13",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_14",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_15",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [20.1, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_16",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [23.9, 0.3, -31.6],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_18",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [1.1, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_19",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [4.9, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_20",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_21",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_22",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_23",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [20.1, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_24",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [23.9, 0.3, -27.8],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_26",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [1.1, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_27",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [4.9, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_28",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_29",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_30",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_31",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [20.1, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_32",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [23.9, 0.3, -24.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_33",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [4.9, 0.3, -20.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_34",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -20.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_35",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -20.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_36",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -20.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_37",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [20.1, 0.3, -20.2],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_38",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [8.7, 0.3, -16.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_39",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [12.5, 0.3, -16.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "floor_piazza_40",
+					"model": "floor_square",
+					"texture": ["tex_dungeon"],
+					"translate": [16.3, 0.3, -16.4],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
 				{
 					"id": "tree_1",
 					"model": "vegetation6",
@@ -8797,291 +9103,395 @@
 					"scale": [12.54, 14.36, 12.54]
 				},
 				{
-					"id": "road_seg_1",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [18.0, 0.3, -30.0],
-					"eulerAngles": [90.0, 180.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_2",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [18.0, 0.3, -38.0],
-					"eulerAngles": [90.0, 180.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_3",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [18.0, 0.3, -46.0],
-					"eulerAngles": [90.0, 180.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_4",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [18.0, 0.3, -54.0],
-					"eulerAngles": [90.0, 180.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_turn_5",
-					"model": "road_turn",
-					"texture": ["tex_medieval"],
-					"translate": [18.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_6",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [10.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_7",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [2.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_8",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-6.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_9",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-14.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_10",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-22.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_11",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-30.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_turn_12",
-					"model": "road_turn",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -62.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_13",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -54.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_14",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -46.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_15",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -38.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_16",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -30.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_17",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -22.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_turn_18",
-					"model": "road_turn",
-					"texture": ["tex_medieval"],
-					"translate": [-38.0, 0.3, -14.0],
-					"eulerAngles": [90.0, 180.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_19",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-30.0, 0.3, -14.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_20",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-22.0, 0.3, -14.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "road_seg_21",
-					"model": "road",
-					"texture": ["tex_medieval"],
-					"translate": [-14.0, 0.3, -14.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
 					"id": "village_building_1",
-					"model": "house_6",
+					"model": "house_5",
 					"texture": ["tex_medieval"],
-					"translate": [-14.0, 0.0, 2.64],
-					"eulerAngles": [90.0, 180.0, 0.0],
+					"translate": [-2.1, 0.0, -46.14],
+					"eulerAngles": [90.0, 289.8, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_2",
-					"model": "tent_3",
-					"texture": ["tex_medieval_tent_03"],
-					"translate": [-6.0, 0.0, -75.45],
-					"eulerAngles": [90.0, 0.0, 0.0],
+					"model": "house_3",
+					"texture": ["tex_medieval"],
+					"translate": [-53.74, 0.0, -69.11],
+					"eulerAngles": [90.0, 293.0, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_3",
-					"model": "house_7",
+					"model": "house_2",
 					"texture": ["tex_medieval"],
-					"translate": [-22.0, 0.0, -30.44],
-					"eulerAngles": [90.0, 0.0, 0.0],
+					"translate": [-29.46, 0.0, -47.64],
+					"eulerAngles": [90.0, 279.8, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_4",
-					"model": "tent_1",
-					"texture": ["tex_medieval_tent_01"],
-					"translate": [-50.52, 0.0, -38.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [33.77, 0.0, -22.11],
+					"eulerAngles": [90.0, 133.6, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_5",
-					"model": "house_7",
-					"texture": ["tex_medieval"],
-					"translate": [-6.0, 0.0, -47.51],
-					"eulerAngles": [90.0, 180.0, 0.0],
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [73.61, 0.0, -35.28],
+					"eulerAngles": [90.0, 94.6, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_6",
-					"model": "house_6",
-					"texture": ["tex_medieval"],
-					"translate": [-51.87, 0.0, -22.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [51.39, 0.0, -80.94],
+					"eulerAngles": [90.0, 41.6, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_7",
-					"model": "tent_3",
-					"texture": ["tex_medieval_tent_03"],
-					"translate": [10.0, 0.0, -74.75],
-					"eulerAngles": [90.0, 0.0, 0.0],
+					"model": "house_2",
+					"texture": ["tex_medieval"],
+					"translate": [-23.35, 0.0, 23.33],
+					"eulerAngles": [90.0, 211.2, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_8",
-					"model": "tent_2",
-					"texture": ["tex_medieval_tent_02"],
-					"translate": [-30.0, 0.0, 1.06],
-					"eulerAngles": [90.0, 180.0, 0.0],
+					"model": "house_7",
+					"texture": ["tex_medieval"],
+					"translate": [67.27, 0.0, -89.85],
+					"eulerAngles": [90.0, 46.4, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_9",
-					"model": "tent_3",
-					"texture": ["tex_medieval_tent_03"],
-					"translate": [31.77, 0.0, -38.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
+					"model": "house_7",
+					"texture": ["tex_medieval"],
+					"translate": [-55.02, 0.0, -3.29],
+					"eulerAngles": [90.0, 242.3, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_10",
-					"model": "house_7",
+					"model": "house_5",
 					"texture": ["tex_medieval"],
-					"translate": [34.58, 0.0, -54.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
+					"translate": [34.53, 0.0, -77.21],
+					"eulerAngles": [90.0, 27.7, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_11",
-					"model": "house_7",
+					"model": "house_5",
 					"texture": ["tex_medieval"],
-					"translate": [-22.0, 0.0, -78.74],
-					"eulerAngles": [90.0, 0.0, 0.0],
+					"translate": [-34.1, 0.0, 3.82],
+					"eulerAngles": [90.0, 228.3, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_12",
-					"model": "tent_1",
-					"texture": ["tex_medieval_tent_01"],
-					"translate": [-38.0, 0.0, -75.54],
-					"eulerAngles": [90.0, 0.0, 0.0],
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [-3.84, 0.0, -18.19],
+					"eulerAngles": [90.0, 220.8, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_13",
-					"model": "house_1",
-					"texture": ["tex_medieval"],
-					"translate": [-25.82, 0.0, -46.0],
-					"eulerAngles": [90.0, 270.0, 0.0],
+					"model": "tent_1",
+					"texture": ["tex_medieval_tent_01"],
+					"translate": [-11.75, 0.0, -73.9],
+					"eulerAngles": [90.0, 321.7, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_14",
-					"model": "house_4",
+					"model": "house_1",
 					"texture": ["tex_medieval"],
-					"translate": [2.88, 0.0, -38.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
+					"translate": [-39.78, 0.0, -89.04],
+					"eulerAngles": [90.0, 311.8, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				},
 				{
 					"id": "village_building_15",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [8.31, 0.0, -65.24],
+					"eulerAngles": [90.0, 345.2, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_16",
 					"model": "house_5",
 					"texture": ["tex_medieval"],
-					"translate": [-54.46, 0.0, -54.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
+					"translate": [41.23, 0.0, -96.01],
+					"eulerAngles": [90.0, 25.1, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_17",
+					"model": "house_3",
+					"texture": ["tex_medieval"],
+					"translate": [84.72, 0.0, -58.56],
+					"eulerAngles": [90.0, 75.1, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_18",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [19.47, 0.0, -105.02],
+					"eulerAngles": [90.0, 3.9, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_19",
+					"model": "house_6",
+					"texture": ["tex_medieval"],
+					"translate": [47.3, 0.0, -43.61],
+					"eulerAngles": [90.0, 83.6, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_20",
+					"model": "house_7",
+					"texture": ["tex_medieval"],
+					"translate": [62.3, 0.0, 19.76],
+					"eulerAngles": [90.0, 141.6, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_21",
+					"model": "tent_1",
+					"texture": ["tex_medieval_tent_01"],
+					"translate": [65.34, 0.0, -11.8],
+					"eulerAngles": [90.0, 119.3, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_22",
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [3.45, 0.0, -108.39],
+					"eulerAngles": [90.0, 350.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_23",
+					"model": "house_1",
+					"texture": ["tex_medieval"],
+					"translate": [52.0, 0.0, -24.78],
+					"eulerAngles": [90.0, 112.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_24",
+					"model": "house_7",
+					"texture": ["tex_medieval"],
+					"translate": [77.14, 0.0, 0.86],
+					"eulerAngles": [90.0, 123.3, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_25",
+					"model": "house_6",
+					"texture": ["tex_medieval"],
+					"translate": [-58.81, 0.0, -22.16],
+					"eulerAngles": [90.0, 256.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_26",
+					"model": "house_5",
+					"texture": ["tex_medieval"],
+					"translate": [-12.52, 0.0, -102.35],
+					"eulerAngles": [90.0, 336.2, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_27",
+					"model": "house_1",
+					"texture": ["tex_medieval"],
+					"translate": [-29.08, 0.0, -19.81],
+					"eulerAngles": [90.0, 245.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_28",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [54.15, 0.0, 1.31],
+					"eulerAngles": [90.0, 136.5, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_29",
+					"model": "house_5",
+					"texture": ["tex_medieval"],
+					"translate": [16.8, 0.0, -53.17],
+					"eulerAngles": [90.0, 3.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_30",
+					"model": "house_4",
+					"texture": ["tex_medieval"],
+					"translate": [59.39, 0.0, -58.18],
+					"eulerAngles": [90.0, 67.7, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_31",
+					"model": "tent_1",
+					"texture": ["tex_medieval_tent_01"],
+					"translate": [-55.57, 0.0, -40.98],
+					"eulerAngles": [90.0, 270.8, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_32",
+					"model": "tent_1",
+					"texture": ["tex_medieval_tent_01"],
+					"translate": [30.71, 0.0, -51.31],
+					"eulerAngles": [90.0, 54.2, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_33",
+					"model": "house_1",
+					"texture": ["tex_medieval"],
+					"translate": [87.87, 0.0, -18.82],
+					"eulerAngles": [90.0, 106.2, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_34",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [-12.73, 0.0, 9.39],
+					"eulerAngles": [90.0, 209.3, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_35",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [16.7, 0.0, -121.6],
+					"eulerAngles": [90.0, 1.2, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_36",
+					"model": "house_4",
+					"texture": ["tex_medieval"],
+					"translate": [-33.4, 0.0, -65.86],
+					"eulerAngles": [90.0, 298.1, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_37",
+					"model": "tent_1",
+					"texture": ["tex_medieval_tent_01"],
+					"translate": [94.12, 0.0, -40.91],
+					"eulerAngles": [90.0, 89.3, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_38",
+					"model": "house_2",
+					"texture": ["tex_medieval"],
+					"translate": [10.91, 0.0, -82.31],
+					"eulerAngles": [90.0, 354.5, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_39",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [49.9, 0.0, 32.9],
+					"eulerAngles": [90.0, 154.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_40",
+					"model": "house_2",
+					"texture": ["tex_medieval"],
+					"translate": [34.35, 0.0, -117.57],
+					"eulerAngles": [90.0, 14.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_41",
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [80.51, 0.0, -78.37],
+					"eulerAngles": [90.0, 59.6, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_42",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [-43.6, 0.0, -30.1],
+					"eulerAngles": [90.0, 260.4, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_43",
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [-16.61, 0.0, -33.27],
+					"eulerAngles": [90.0, 258.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_44",
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [52.51, 0.0, -108.94],
+					"eulerAngles": [90.0, 28.6, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_45",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [-11.02, 0.0, 37.09],
+					"eulerAngles": [90.0, 198.7, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_46",
+					"model": "tent_3",
+					"texture": ["tex_medieval_tent_03"],
+					"translate": [-21.21, 0.0, -87.68],
+					"eulerAngles": [90.0, 322.8, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_47",
+					"model": "house_7",
+					"texture": ["tex_medieval"],
+					"translate": [-31.51, 0.0, -106.26],
+					"eulerAngles": [90.0, 324.9, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_48",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [-18.26, 0.0, -5.65],
+					"eulerAngles": [90.0, 224.1, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "village_building_49",
+					"model": "tent_2",
+					"texture": ["tex_medieval_tent_02"],
+					"translate": [-16.03, 0.0, -58.39],
+					"eulerAngles": [90.0, 300.7, 0.0],
 					"scale": [1.0, 1.0, 1.0]
 				}
 
