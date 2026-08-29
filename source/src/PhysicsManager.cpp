@@ -244,10 +244,27 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
                 return true;
             }
 
-            // 2. Controllo Istanze
+            // 2. Controllo Istanze (Ottimizzato con Broad-Phase)
+            glm::vec3 posA = glm::vec3(inst->Wm[3]);
+
             for (int j = 0; j < scene.InstanceCount; j++) {
                 if (j == po.instanceIndex) continue;
-                if (scene.I[j]->C && inst->C->collidesWith(*(scene.I[j]->C))) return true;
+
+                Instance* otherInst = scene.I[j];
+                if (otherInst->C) {
+                    // Calcolo rapido della distanza al quadrato
+                    glm::vec3 posB = glm::vec3(otherInst->Wm[3]);
+                    float dx = posA.x - posB.x;
+                    float dy = posA.y - posB.y;
+                    float dz = posA.z - posB.z;
+                    float distSq = dx*dx + dy*dy + dz*dz;
+
+                    // Soglia di 25.0f
+                    if (distSq > 25.0f) continue;
+
+                    // test accurato solo per gli oggetti vicini
+                    if (inst->C->collidesWith(*(otherInst->C))) return true;
+                }
             }
 
             // 3. Controllo Muri Invisibili JSON

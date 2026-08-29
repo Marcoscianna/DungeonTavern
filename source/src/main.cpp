@@ -629,7 +629,7 @@ public:
 
                     // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
                     ubo.mvpMat = gubo.lightVP * ubo.mMat;
-                    SC.TI[t].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
+                    //SC.TI[t].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
                     SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
 
                     // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
