@@ -19,6 +19,7 @@
 #include "LightManager.hpp"
 #include "modules/Animations.hpp"
 
+class AnimatedNPCRig;
 struct AnimBlendSegment;
 struct GlobalUniformBufferObject;
 
@@ -63,15 +64,20 @@ struct TavernNPC {
     std::vector<std::string> dialogues;
     std::map<int, DialogueNode> dialogueTree;
 
-    // --- NUOVI CAMPI PER MOVIMENTO E STATO ---
     std::vector<glm::vec3> waypoints;
+    std::vector<float> waitTimes;
     int currentWaypoint = 0;
     float speed = 1.0f;
     float currentYaw = 0.0f;
     glm::vec3 scale = glm::vec3(0.018f);
     int currentAnim = -1;
     int numAnimations = 0;
-    bool hasInteracted = false; // Indica se l'NPC ha calcolato almeno una rotazione
+    bool hasInteracted = false;
+
+    float currentWaitTimer = 0.0f;
+    bool isWaiting = false;
+
+    void update(float deltaT, bool isTalking, const glm::vec3& playerPos, AnimatedNPCRig& animManager, Scene& SC);
 };
 
 class AnimNPC {

@@ -40,7 +40,7 @@ struct VertexAnim {
 // MAIN !
 class DungeonTavern : public BaseProject {
 protected:
-    // Descriptor Layouts [what will be passed to the shaders]
+    // Descriptor Layouts
     DescriptorSetLayout DSLlocal, DSLglobal, DSLemissive;
 
     // Animazioni
@@ -53,6 +53,9 @@ protected:
     RenderPass RP;
     Pipeline P;
     Pipeline Pemissive;
+    Pipeline Pwood;
+    Pipeline Pstone;
+    Pipeline Pmetal;
 
     // Ombre
     RenderPass RPshadow;
@@ -198,6 +201,10 @@ public:
                        {&DSLglobal, &DSLemissive});
         Pemissive.setCullMode(VK_CULL_MODE_NONE);
 
+        Pwood.init(this, &VD, "shaders/static.vert.spv", "shaders/wood.frag.spv", {&DSLglobal, &DSLlocal});
+        Pstone.init(this, &VD, "shaders/static.vert.spv", "shaders/stone.frag.spv", {&DSLglobal, &DSLlocal});
+        Pmetal.init(this, &VD, "shaders/static.vert.spv", "shaders/metal.frag.spv", {&DSLglobal, &DSLlocal});
+
         Pshadow.init(this, &VD, "shaders/shadow.vert.spv", "shaders/shadow.frag.spv", {&DSLglobal, &DSLlocal});
         Pshadow.setCullMode(VK_CULL_MODE_NONE);
         PanimShadow.init(this, &VDanim, "shaders/shadow_anim.vert.spv", "shaders/shadow.frag.spv",
@@ -213,7 +220,7 @@ public:
         VDRs[0].init("VDposUV", &VD);
         VDRs[1].init("VDanim", &VDanim);
 
-        PRs.resize(3);
+        PRs.resize(6);
         PRs[0].init("BlinnPos", {
                         {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
                         {.P = &P, .texDefs = {{}, {{true, 0, {}}}}}
@@ -226,6 +233,18 @@ public:
                         {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
                         {.P = &Pemissive, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}}
                     }, 2, &VD);
+        PRs[3].init("WoodTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pwood, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
+        PRs[4].init("StoneTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pstone, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
+        PRs[5].init("MetalTech", {
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Pmetal, .texDefs = {{}, {{true, 0, {}}}}}
+                    }, 1, &VD);
 
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -302,6 +321,11 @@ public:
                                         ));
                                     }
                                 }
+                                if (el.contains("waitTimes")) {
+                                    for (const auto& wt : el["waitTimes"]) {
+                                        data.waitTimes.push_back(wt.template get<float>());
+                                    }
+                                }
 
                                 //Legge il tipo e smista i dati
                                 std::string typeStr = el.value("dialogueType", "LINEAR");
@@ -362,6 +386,7 @@ public:
                     npc.dialogueTree = it->second.dialogueTree;
                     npc.speed = it->second.speed;
                     npc.waypoints = it->second.waypoints;
+                    npc.waitTimes = it->second.waitTimes;
                 } else {
                     npc.prompt = "Premi E per interagire";
                     npc.interactionRadius = 10.0f;
@@ -427,16 +452,19 @@ public:
         P.create(&RP);
         Panim.create(&RP);
         Pemissive.create(&RP);
+        Pwood.create(&RP);
+        Pstone.create(&RP);
+        Pmetal.create(&RP);
 
         DSglobal.init(this, &DSLglobal, {RPshadow.attachments[0].getViewAndSampler()});
 
         // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
-        for (int t = 0; t < 3; t++) {
-            // Per le 3 tecniche (Blinn, Anim, Emissive)
+        // Per le 6 tecniche
+        for (int t = 0; t < 6; t++) {
+            // Per i 2 Passaggi (Shadow, Color)
             for (int p = 0; p < 2; p++) {
-                // Per i 2 Passaggi (Shadow, Color)
-                // Inseriamo la shadow map nel Set 0 (che avevamo lasciato vuoto)
+                // Inseriamo la shadow map nel Set 0
                 PRs[t].PT[p].texDefs[0].push_back(shadowTexDef);
             }
         }
@@ -451,6 +479,9 @@ public:
         P.cleanup();
         Panim.cleanup();
         Pemissive.cleanup();
+        Pwood.cleanup();
+        Pstone.cleanup();
+        Pmetal.cleanup();
         RP.cleanup();
         RPshadow.cleanup();
 
@@ -471,6 +502,9 @@ public:
         P.destroy();
         Panim.destroy();
         Pemissive.destroy();
+        Pwood.destroy();
+        Pstone.destroy();
+        Pmetal.destroy();
 
         npcAnimManager.cleanup();
         dialogueManager.cleanup(txt);
@@ -525,77 +559,8 @@ public:
         int talkingNPC = dialogueManager.getDialogueNPC();
 
         for (size_t i = 0; i < tavernNPCs.size(); ++i) {
-            auto& npc = tavernNPCs[i];
-            bool updateMatrix = false;
-
-            if (i == talkingNPC) {
-                // --- L'NPC STA PARLANDO CON IL GIOCATORE ---
-                npc.hasInteracted = true;
-
-                // Scegli animazione: Se ne ha > 1 usa l'indice 1, altrimenti 0
-                int animToPlay = (npc.numAnimations > 1) ? 1 : 0;
-                if (npc.numAnimations > 0 && npc.currentAnim != animToPlay) {
-                    npcAnimManager.play(npc.name, animToPlay, 0.2f);
-                    npc.currentAnim = animToPlay;
-                }
-
-                // Si ruota per guardare il giocatore in faccia
-                glm::vec3 dir = player.position - npc.position;
-                dir.y = 0.0f;
-                if (glm::length(dir) > 0.001f) {
-                    npc.currentYaw = atan2(dir.x, dir.z);
-                }
-                updateMatrix = true;
-
-            } else {
-                // --- L'NPC E' LIBERO ---
-
-                // Tutti gli NPC liberi devono usare l'animazione 0 (Walking o Idle)
-                if (npc.numAnimations > 0 && npc.currentAnim != 0) {
-                    npcAnimManager.play(npc.name, 0, 3.2f);
-                    npc.currentAnim = 0;
-                }
-
-                if (!npc.waypoints.empty()) {
-                    // Ha un percorso: cammina!
-                    npc.hasInteracted = true;
-                    glm::vec3 target = npc.waypoints[npc.currentWaypoint];
-                    glm::vec3 dir = target - npc.position;
-
-                    // Ora calcola la distanza reale in 3D
-                    float dist = glm::length(dir);
-
-                    // Alziamo la tolleranza a 0.2f per assicurarci che "tocchi" il punto senza oltrepassarlo
-                    if (dist < 0.2f) {
-                        // Raggiunto il waypoint, passa al successivo
-                        npc.currentWaypoint = (npc.currentWaypoint + 1) % npc.waypoints.size();
-                    } else {
-                        // Calcola la direzione 3D e muovi l'NPC
-                        glm::vec3 moveDir = glm::normalize(dir);
-                        npc.position += moveDir * npc.speed * deltaT;
-
-                        // Ruota l'NPC, basandosi SOLO su X e Z per non farlo inclinare col busto verso l'alto o verso il basso
-                        npc.currentYaw = atan2(moveDir.x, moveDir.z);
-                    }
-                    updateMatrix = true;
-
-                } else if (npc.hasInteracted) {
-                    updateMatrix = true;
-                }
-            }
-
-            // --- RICOSTRUZIONE DELLA MATRICE ---
-            // Aggiorniamo la trasformazione dell'NPC per fargli applicare spostamenti e rotazioni
-            if (updateMatrix) {
-                auto it = SC.InstanceIds.find(npc.name);
-                if (it != SC.InstanceIds.end()) {
-                    Instance* inst = SC.I[it->second];
-                    inst->Wm = glm::translate(glm::mat4(1.0f), npc.position) *
-                               glm::rotate(glm::mat4(1.0f), npc.currentYaw, glm::vec3(0.0f, 1.0f, 0.0f)) *
-                               glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-                               glm::scale(glm::mat4(1.0f), npc.scale);
-                }
-            }
+            bool isTalking = (i == talkingNPC);
+            tavernNPCs[i].update(deltaT, isTalking, player.position, npcAnimManager, SC);
         }
 
         lightManager.update(deltaT, window);
@@ -651,34 +616,28 @@ public:
 
         UniformBufferObject ubo{};
 
-        // --- AGGIORNA GLI OGGETTI STATICI (Tecnica 0) ---
-        for (int i = 0; i < SC.TI[0].InstanceCount; i++) {
-            ubo.mMat = SC.TI[0].I[i].Wm;
+        // --- AGGIORNA TUTTI I MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5) ---
+        // 0 = BlinnPos, 2 = Emissive, 3 = Wood, 4 = Stone, 5 = Metal
+        // (Saltiamo l'indice 1 perché è AnimTech, gestito dagli NPC a parte)
+        int staticTechniques[] = {0, 2, 3, 4, 5};
 
-            // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
-            ubo.mvpMat = gubo.lightVP * ubo.mMat;
-            SC.TI[0].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[0].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+        for (int t : staticTechniques) {
+            // Controlla per sicurezza che la tecnica esista e abbia elementi
+            if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
+                for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
+                    ubo.mMat = SC.TI[t].I[i].Wm;
 
-            // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
-            ubo.mvpMat = ViewPrj * ubo.mMat;
-            SC.TI[0].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[0].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
-        }
+                    // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
+                    ubo.mvpMat = gubo.lightVP * ubo.mMat;
+                    SC.TI[t].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
+                    SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
 
-        // --- AGGIORNA GLI OGGETTI LUMINOSI (Tecnica 2) ---
-        for (int i = 0; i < SC.TI[2].InstanceCount; i++) {
-            ubo.mMat = SC.TI[2].I[i].Wm;
-
-            // PASS 0 (Ombre)
-            ubo.mvpMat = gubo.lightVP * ubo.mMat;
-            SC.TI[2].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[2].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
-
-            // PASS 1 (Colore)
-            ubo.mvpMat = ViewPrj * ubo.mMat;
-            SC.TI[2].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
-            SC.TI[2].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
+                    // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
+                    ubo.mvpMat = ViewPrj * ubo.mMat;
+                    SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
+                    SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
+                }
+            }
         }
 
         // Aggiornamento finale dei modelli animati
