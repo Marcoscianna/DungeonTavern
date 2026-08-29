@@ -135,6 +135,24 @@ public:
         }
     }
 
+    // Inserisci in LightManager.hpp
+    float getTimeOfDay() const { return timeOfDay; }
+
+    // Restituisce l'ID dell'istanza dello Skydome da mostrare in base all'ora attuale
+    std::string getCurrentSkydomeInstanceId() const {
+        if (timeOfDay >= 6.0f && timeOfDay < 17.0f) {
+            return "skydome_day";
+        } else if (timeOfDay >= 17.0f && timeOfDay < 20.0f) {
+            return "skydome_sunset";
+        } else if (timeOfDay >= 20.0f && timeOfDay < 23.0f) {
+            return "skydome_night";
+        } else if (timeOfDay >= 23.0f || timeOfDay < 4.0f) {
+            return "skydome_night2";
+        } else { // Tra 4.0 e 6.0 (Alba / Prima mattina)
+            return "skydome_night3";
+        }
+    }
+
     glm::vec4 getSkyColor() { return currentSkyColor; }
     bool isTimeAccelerated() { return timeSpeed > 1.0f; }
 };

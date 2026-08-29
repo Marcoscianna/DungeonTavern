@@ -31,7 +31,7 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float ra
     playerVelocityY = 0.0f;
     FOVy = glm::radians(45.0f);
     nearPlane = 0.1f;
-    farPlane = 100.0f;
+    farPlane = 500.0f;
     lastMouseX = 0.0;
     lastMouseY = 0.0;
     mouseLookInitialized = false;

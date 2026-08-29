@@ -579,18 +579,10 @@ public:
         SC.updateColliderVisualizer(currentImage, ViewPrj);
 
         // =========================================================
-        // SIMULAZIONE CICLO GIORNO / NOTTE PARAMETRICO
+        // AGGIORNAMENTO DINAMICO COLORE DEL CIELO (CLEAR VALUE)
         // =========================================================
-
         glm::vec4 sky = lightManager.getSkyColor();
         RP.properties[0].clearValue = {sky.r, sky.g, sky.b, 1.0f};
-
-        static float skyUpdateTimer = 0.0f;
-        skyUpdateTimer += deltaT;
-        if (lightManager.isTimeAccelerated() || skyUpdateTimer > 1.0f) {
-            submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
-            skyUpdateTimer = 0.0f;
-        }
 
         // =========================================================
         // CALCOLO DELLA TELECAMERA DEL SOLE (SHADOW MAPPING)
@@ -617,22 +609,41 @@ public:
         UniformBufferObject ubo{};
 
         // --- AGGIORNA TUTTI I MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5) ---
-        // 0 = BlinnPos, 2 = Emissive, 3 = Wood, 4 = Stone, 5 = Metal
-        // (Saltiamo l'indice 1 perché è AnimTech, gestito dagli NPC a parte)
         int staticTechniques[] = {0, 2, 3, 4, 5};
 
+        // ID dello Skydome attivo fornito dal LightManager
+        std::string activeSkyId = lightManager.getCurrentSkydomeInstanceId();
+
         for (int t : staticTechniques) {
-            // Controlla per sicurezza che la tecnica esista e abbia elementi
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
                 for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
+
+                    if (SC.TI[t].I[i].id != nullptr) {
+                        std::string instId = *(SC.TI[t].I[i].id);
+
+                        // Se l'istanza corrente fa parte degli skydome
+                        if (instId.find("skydome") != std::string::npos || instId.find("sky") != std::string::npos) {
+
+                            // Verifica se è esattamente l'istanza attiva del giorno/notte
+                            if (instId == activeSkyId) {
+                                // Centrato sulla posizione del giocatore + ROTAZIONE DI 180 GRADI sull'asse Y
+                                SC.TI[t].I[i].Wm = glm::translate(glm::mat4(1.0f), player.position) *
+                                                  glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                                                  glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
+                            } else {
+                                // Nasconde gli skydome inattivi
+                                SC.TI[t].I[i].Wm = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
+                            }
+                        }
+                    }
+
                     ubo.mMat = SC.TI[t].I[i].Wm;
 
-                    // PASS 0 (Ombre): Matrice MVP dal punto di vista del Sole
+                    // PASS 0 (Ombre)
                     ubo.mvpMat = gubo.lightVP * ubo.mMat;
-                    //SC.TI[t].I[i].DS[0][0]->map((int) currentImage, &gubo, 0);
                     SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
 
-                    // PASS 1 (Colore): Matrice MVP dal punto di vista del Giocatore
+                    // PASS 1 (Colore)
                     ubo.mvpMat = ViewPrj * ubo.mMat;
                     SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
                     SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
@@ -671,8 +682,7 @@ public:
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (!pPressed) {
                 std::cout << "{\n";
-                std::cout << "   \"position\": [" << player.position.x << ", " << player.position.y << ", " << player.
-                        position.z << "],\n";
+                std::cout << "   \"position\": [" << player.position.x << ", " << player.position.y << ", " << player.position.z << "],\n";
                 std::cout << "   \"color\": [1.0, 0.6, 0.2],\n";
                 std::cout << "   \"intensity\": 15.0\n";
                 std::cout << "},\n";

@@ -66,7 +66,8 @@
 		{"id": "vegetation6", "VD": "VDposUV", "model": "assets/models/vegetation/vegetation.006.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "vegetation16", "VD": "VDposUV", "model": "assets/models/vegetation/vegetation.016.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "road", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Road_01.mgcg",  "format":"MGCG"},
-		{"id": "road_turn", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Road_02.mgcg",  "format":"MGCG"}
+		{"id": "road_turn", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Road_02.mgcg",  "format":"MGCG"},
+		{"id": "skydome", "VD": "VDposUV", "model": "assets/models/skydome.gltf",  "format":"GLTF"}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -129,7 +130,12 @@
 		{"id": "tex_fighter2_glossiness", "texture": "assets/textures/npc/Ch39_1001_Glossiness.png", "format": "C"},
 		{"id": "tex_white", "texture": "assets/textures/white.png", "format": "C"},
 		{"id": "tex_dungeon", "texture": "assets/textures/dungeon/Textures_Dungeon.png", "format": "C"},
-		{"id": "tex_vegetation", "texture": "assets/textures/vegetation/Textures_Vegetation.png", "format": "C"}
+		{"id": "tex_vegetation", "texture": "assets/textures/vegetation/Textures_Vegetation.png", "format": "C"},
+		{"id": "tex_day", "texture": "assets/textures/skybox/day.jpg", "format": "C"},
+		{"id": "tex_night", "texture": "assets/textures/skybox/night.jpg", "format": "C"},
+		{"id": "tex_night2", "texture": "assets/textures/skybox/night2.jpg", "format": "C"},
+		{"id": "tex_night3", "texture": "assets/textures/skybox/night3.jpg", "format": "C"},
+		{"id": "tex_sunset", "texture": "assets/textures/skybox/sunset.jpg", "format": "C"}
 	],
 	"instances": [
 		{
@@ -9192,7 +9198,54 @@
 		{
 			"technique": "EmissiveTech",
 			"elements": [
-				{"id": "tavern_fire", "model": "tavern_fire", "texture": ["fire_bc","fire_e"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
+				{
+					"id": "tavern_fire",
+					"model": "tavern_fire",
+					"texture": ["fire_bc", "fire_e"],
+					"translate": [1.0, 5.5, 1.0],
+					"eulerAngles": [-90.0, -90.0, 0.0],
+					"scale": [0.05, 0.05, 0.05]
+				},
+				{
+					"id": "skydome_day",
+					"model": "skydome",
+					"texture": ["tex_day", "tex_day"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_sunset",
+					"model": "skydome",
+					"texture": ["tex_sunset", "tex_sunset"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_night",
+					"model": "skydome",
+					"texture": ["tex_night", "tex_night"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_night2",
+					"model": "skydome",
+					"texture": ["tex_night2", "tex_night2"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_night3",
+					"model": "skydome",
+					"texture": ["tex_night3", "tex_night3"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				}
 			]
 		},
 		{
