@@ -115,6 +115,9 @@ std::vector<TavernNPC> TavernNPC::loadNPCsFromJson(const std::string& filepath, 
                     if (tech["technique"].template get<std::string>() == "AnimTech") {
                         for (const auto &el: tech["elements"]) {
                             std::string npcId = el["id"].template get<std::string>();
+
+                            if (npcId == "player") continue;
+
                             TavernNPC data;
                             data.name = npcId;
 
@@ -212,6 +215,7 @@ std::vector<TavernNPC> TavernNPC::loadNPCsFromJson(const std::string& filepath, 
             const auto &inst = SC.TI[1].I[i];
             TavernNPC npc;
             npc.name = *(inst.id);
+            if (name == "player") continue;
             npc.position = glm::vec3(inst.Wm[3][0], inst.Wm[3][1], inst.Wm[3][2]);
 
             auto it = npcDataFromJson.find(npc.name);
