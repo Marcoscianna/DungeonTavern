@@ -40,7 +40,7 @@ private:
     float gravity;
 
     int heldObjectIndex;
-    bool ePressedLastFrame;
+    bool qPressedLastFrame;
     bool tPressedLastFrame;
     PhysicsUIState uiState;
 
@@ -55,6 +55,8 @@ public:
     const std::vector<Collider*>& getCustomColliders() const;
 
     int getHeldInstanceIndex() const;
+
+    void throwObject(Scene& scene, const std::string& instanceName, glm::vec3 startPos, glm::vec3 velocity);
 };
 
 #endif // PHYSICS_MANAGER_HPP

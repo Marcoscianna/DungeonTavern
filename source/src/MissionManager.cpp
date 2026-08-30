@@ -8,8 +8,8 @@
 MissionManager::MissionManager() : currentMissionIndex(-1), totalItemsForCurrent(0), counterTextId(-1) {}
 
 void MissionManager::addCollectionMission(int reqState, const std::string& keyword, const std::string& destId,
-                                          int nextState, const std::string& text, float rTol, float hTol) {
-    missions.push_back({reqState, keyword, destId, nextState, text, rTol, hTol});
+                                          int nextState, const std::string& text, const std::string& succText, float rTol, float hTol) {
+    missions.push_back({reqState, keyword, destId, nextState, text, succText, rTol, hTol});
 }
 
 void MissionManager::checkAndInitMission(int currentStoryProgress, Scene& SC) {
@@ -40,7 +40,18 @@ void MissionManager::checkAndInitMission(int currentStoryProgress, Scene& SC) {
     }
 }
 
-void MissionManager::update(DialogueManager& dialogueManager, Scene& SC, const PhysicsManager& physicsManager, TextMaker& txt) {
+void MissionManager::update(float deltaT, DialogueManager& dialogueManager, Scene& SC, const PhysicsManager& physicsManager, TextMaker& txt) {
+    // --- GESTIONE TIMER SUCCESSO ---
+    if (successTimer > 0.0f) {
+        successTimer -= deltaT;
+        successTextId = txt.print(0.9f, -0.8f, currentSuccessText, successTextId, "SS", false, false, false, TAL_RIGHT, TRH_RIGHT, TRV_TOP, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        if (successTimer <= 0.0f && successTextId != -1) {
+            txt.removeText(successTextId);
+            successTextId = -1;
+        }
+    }
+    // -------------------------------
+
     int progress = dialogueManager.getStoryProgress();
 
     // Inizializza o aggiorna la missione in corso
@@ -77,16 +88,14 @@ void MissionManager::update(DialogueManager& dialogueManager, Scene& SC, const P
         std::string counterStr = mission.uiText + ": " + std::to_string(itemsOnTarget) + "/" + std::to_string(totalItemsForCurrent);
         counterTextId = txt.print(0.9f, -0.9f, counterStr, counterTextId, "SS", false, false, false, TAL_RIGHT, TRH_RIGHT, TRV_TOP, glm::vec4(1.0f, 0.8f, 0.0f, 1.0f), glm::vec4(0), glm::vec4(0,0,0,0.8f), 1.0f, 1.0f);
 
-        // 4. Check Completezza
         if (itemsOnTarget >= totalItemsForCurrent && totalItemsForCurrent > 0) {
-            // Fai scattare la storia allo step successivo!
             dialogueManager.setStoryProgress(mission.nextStoryState);
 
-            // Pulisci
-            if (counterTextId != -1) {
-                txt.removeText(counterTextId);
-                counterTextId = -1;
-            }
+            // Innesca il testo di successo
+            currentSuccessText = mission.successText;
+            successTimer = 10.0f; // Mostra il testo per 10 secondi
+
+            if (counterTextId != -1) { txt.removeText(counterTextId); counterTextId = -1; }
             currentMissionIndex = -1;
             currentItemIndices.clear();
         }

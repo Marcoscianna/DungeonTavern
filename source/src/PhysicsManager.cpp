@@ -13,7 +13,7 @@ PhysicsManager::PhysicsManager() {
     gravity = 15.0f;
     floorCollider = nullptr;
     heldObjectIndex = -1;
-    ePressedLastFrame = false;
+    qPressedLastFrame = false;
     tPressedLastFrame = false;
     uiState = PhysicsUIState::NONE;
 }
@@ -98,7 +98,7 @@ void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float 
 void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, const Player& player, bool canInteract, TextMaker& txt) {
     // Limite deltaT per evitare problemi di fisica con frame rate bassi
     if (deltaT > 0.05f) deltaT = 0.05f;
-    bool ePressed = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+    bool qPressed = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS;
     bool tPressed = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
     PhysicsUIState targetUIState = PhysicsUIState::NONE;
 
@@ -107,7 +107,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
         if (heldObjectIndex != -1) {
             targetUIState = PhysicsUIState::HOLD;
 
-            if (ePressed && !ePressedLastFrame) {
+            if (qPressed && !qPressedLastFrame) {
                 physicsObjects[heldObjectIndex].isHeld = false;
                 physicsObjects[heldObjectIndex].velocity = glm::vec3(0.0f);
                 heldObjectIndex = -1;
@@ -160,7 +160,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
             if (hitIndex != -1) {
                 targetUIState = PhysicsUIState::GRAB;
-                if (ePressed && !ePressedLastFrame) {
+                if (qPressed && !qPressedLastFrame) {
                     heldObjectIndex = hitIndex;
                     physicsObjects[heldObjectIndex].isHeld = true;
                     physicsObjects[heldObjectIndex].velocity = glm::vec3(0.0f);
@@ -177,21 +177,21 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
     if (targetUIState != uiState) {
         txt.removeText(99);
         if (targetUIState == PhysicsUIState::GRAB) {
-            txt.print(0.0f, 0.7f, "Premi E per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
+            txt.print(0.0f, 0.7f, "Premi Q per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
         } else if (targetUIState == PhysicsUIState::HOLD) {
-            txt.print(0.0f, 0.7f, "E per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
+            txt.print(0.0f, 0.7f, "Q per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
         }
         uiState = targetUIState;
     } else if (targetUIState != PhysicsUIState::NONE && !textExists) {
         // Se il manager dei dialoghi cancella lo schermo, il Physics ripristina la sua scritta in sicurezza
         if (targetUIState == PhysicsUIState::GRAB) {
-            txt.print(0.0f, 0.7f, "Premi E per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
+            txt.print(0.0f, 0.7f, "Premi Q per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
         } else if (targetUIState == PhysicsUIState::HOLD) {
-            txt.print(0.0f, 0.7f, "E per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
+            txt.print(0.0f, 0.7f, "Q per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
         }
     }
 
-    ePressedLastFrame = ePressed;
+    qPressedLastFrame = qPressed;
     tPressedLastFrame = tPressed;
 
     // --- 2. RISOLUZIONE FISICA ---
@@ -354,4 +354,19 @@ int PhysicsManager::getHeldInstanceIndex() const {
         return physicsObjects[heldObjectIndex].instanceIndex;
     }
     return -1;
+}
+
+void PhysicsManager::throwObject(Scene& scene, const std::string& instanceName, glm::vec3 startPos, glm::vec3 velocity) {
+    auto it = scene.InstanceIds.find(instanceName);
+    if (it != scene.InstanceIds.end()) {
+        for (auto& po : physicsObjects) {
+            if (po.instanceIndex == it->second) {
+                // Posiziona l'oggetto e applica la forza
+                scene.I[po.instanceIndex]->Wm[3] = glm::vec4(startPos, 1.0f);
+                po.velocity = velocity;
+                po.angularVelocity = glm::vec3(15.0f, 5.0f, 10.0f);
+                break;
+            }
+        }
+    }
 }

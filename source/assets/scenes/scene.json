@@ -23,7 +23,8 @@
 		{"id": "tavern_222", "VD": "VDposUV", "model": "assets/models/tavern/tavern_222.gltf",  "format":"GLTF"},
 		{"id": "tavern_225", "VD": "VDposUV", "model": "assets/models/tavern/tavern_225.gltf",  "format":"GLTF"},
 		{"id": "tavern_bytilka", "VD": "VDposUV", "model": "assets/models/tavern/tavern_bytilka.gltf",  "format":"GLTF"},
-		{"id": "boccale", "VD": "VDposUV", "model": "assets/models/tavern/elements/boccale.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": true}},
+		{"id": "boccale", "VD": "VDposUV", "model": "assets/models/tavern/elements/boccale.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": false}},
+		{"id": "piatto", "VD": "VDposUV", "model": "assets/models/tavern/elements/piatto.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": true}},
 		{"id": "tavern_fire", "VD": "VDposUV", "model": "assets/models/tavern/tavern_fire.gltf",  "format":"GLTF"},
 		{"id": "tavern_flag_me", "VD": "VDposUV", "model": "assets/models/tavern/tavern_flag_me.gltf",  "format":"GLTF"},
 		{"id": "tavern_flag_wolf", "VD": "VDposUV", "model": "assets/models/tavern/tavern_flag_wolf.gltf",  "format":"GLTF"},
@@ -152,11 +153,14 @@
 		{
 			"technique": "BlinnPos",
 			"elements": [
+				{"id": "boccale_start", "model": "boccale", "texture": ["tex_food"], "translate": [11.5, 3.0, 13.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "boccale_1", "model": "boccale", "texture": ["tex_food"], "translate": [7.0, 1.2, 0.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "boccale_2", "model": "boccale", "texture": ["tex_food"], "translate": [10.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "boccale_3", "model": "boccale", "texture": ["tex_food"], "translate": [13.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "boccale_4", "model": "boccale", "texture": ["tex_food"], "translate": [15.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "boccale_5", "model": "boccale", "texture": ["tex_food"], "translate": [18.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "piatto_1", "model": "piatto", "texture": ["tex_food"], "translate": [8.0, 1.2, 5.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
+				{"id": "piatto_2", "model": "piatto", "texture": ["tex_food"], "translate": [20.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
 				{"id": "tavern_38", "model": "tavern_38", "texture": ["mat38"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_172", "model": "tavern_172", "texture": ["mat172"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_189", "model": "tavern_189", "texture": ["mat189"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
@@ -9529,9 +9533,27 @@
 					"translate": [9.0, 0.3, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per parlare con la guardia destra",
-					"interactionRadius": 4.0,
-					"dialogues": ["Ciao viandante.", "Benvenuto alla Taverna!"]
+					"dialogueType": "BRANCHING",
+					"interactionRadius": 3.0,
+					"dialogueTree": [
+						{
+							"id": 0,
+							"text": "Fermo! Dove credi di andare? Hai fatto un disastro stanotte. Vai a parlare con l'oste al bancone e sistema il tuo casino prima di uscire!",
+							"choices": [{"text": "D'accordo...", "next": -1, "setStory": 1}]
+						}
+					],
+					"storyStates": [
+						{
+							"requiredProgress": 1,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["L'oste ti sta aspettando.", "Pulisci il tuo casino!"]
+						},
+						{
+							"requiredProgress": 6,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Finalmente, niente più disordine", "Vedi di non farlo più!"]
+						}
+					]
 				},
 				{
 					"id": "door_guard_l",
@@ -9542,7 +9564,7 @@
 					"scale": [0.018, 0.018, 0.018],
 					"dialogueType": "BRANCHING",
 					"prompt": "Premi E per parlare con la guardia sinistra",
-					"interactionRadius": 4.0,
+					"interactionRadius": 3.0,
 					"dialogueTree": [
 						{
 							"id": 0,
@@ -9573,7 +9595,7 @@
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per interagire con la paesana",
-					"interactionRadius": 4.0,
+					"interactionRadius": 3.0,
 					"dialogueType": "ONE_LINER",
 					"dialogues": ["Non ho tempo per te, parla col combattente prima!"],
 					"storyStates": [
@@ -9596,12 +9618,62 @@
 					"id": "male_npc",
 					"model": "male_npc",
 					"texture": ["tex_male_diffuse", "tex_male_normal", "tex_male_specular"],
-					"translate": [13.0, 0.3, 16.0],
-					"eulerAngles": [90.0, 0.0, 0.0],
+					"translate": [13.0, 0.3, 20.0],
+					"eulerAngles": [90.0, 90.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per interagire con il paesano",
-					"interactionRadius": 4.0,
-					"dialogues": ["Questa taverna è il posto migliore per rilassarsi dopo una lunga giornata di lavoro.", "Vuoi un bicchiere di vino?"]
+					"dialogueType": "ONE_LINER",
+					"interactionRadius": 2.5,
+					"dialogues": ["Che mal di testa..."],
+					"storyStates": [
+						{
+							"requiredProgress": 1,
+							"dialogueType": "BRANCHING",
+							"dialogueTree": [
+								{
+									"id": 0,
+									"text": "Ah, ti sei svegliato finalmente. Hai distrutto mezza taverna. Inizia a raccogliere i boccali sparsi in giro e portali sul tavolo quadrato in cucina qui a destra. Muoviti!",
+									"choices": [{"text": "Ci penso io.", "next": -1, "setStory": 2}]
+								}
+							]
+						},
+						{
+							"requiredProgress": 2,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Non hai ancora finito con i boccali!"]
+						},
+						{
+							"requiredProgress": 3,
+							"dialogueType": "BRANCHING",
+							"dialogueTree": [
+								{
+									"id": 0,
+									"text": "Ottimo lavoro con i boccali. Ora raccogli i piatti e portali sullo stesso tavolo.",
+									"choices": [{"text": "Vado.", "next": -1, "setStory": 4}]
+								}
+							]
+						},
+						{
+							"requiredProgress": 4,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Mancano ancora dei piatti da sistemare."]
+						},
+						{
+							"requiredProgress": 5,
+							"dialogueType": "BRANCHING",
+							"dialogueTree": [
+								{
+									"id": 0,
+									"text": "Hai pulito tutto. Il tuo debito e' ripagato. Fuori dalla mia taverna!",
+									"choices": [{"text": "Addio.", "next": -1, "setStory": 6}]
+								}
+							]
+						},
+						{
+							"requiredProgress": 6,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Non farti piu' vedere da queste parti."]
+						}
+					]
 				},
 				{
 					"id": "male_npc2",

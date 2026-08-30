@@ -264,7 +264,7 @@ public:
 
         // Inizializzazione moduli di base
         txt.init(this, (int) windowWidth, (int) windowHeight);
-        player.init(glm::vec3(11.5f, 3.0f, 16.0f), 90.0f, 0.0f, 0.5f);
+        player.init(glm::vec3(11.5f, 3.0f, 13.0f), 90.0f, 10.0f, 0.5f);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // =====================================================================
@@ -317,11 +317,8 @@ public:
         // CONFIGURAZIONE MISSIONI
         // =====================================================================
 
-        // Missione Boccali: Parte a story=1, cerca i "boccale", si consegnano su "tavolo_quadrato1", imposta story=2
-        missionManager.addCollectionMission(1, "boccale", "tavolo_quadrato1", 2, "Trova i boccali", 3.0f, 5.0f);
-
-        // Missione Piatti: Parte a story=4, cerca i "piatto", si consegnano su "tavolo_quadrato1", imposta story=5
-        missionManager.addCollectionMission(4, "piatto", "tavolo_quadrato1", 5, "Trova i piatti", 3.0f, 5.0f);
+        missionManager.addCollectionMission(2, "boccale", "tavolo_quadrato1", 3, "Trova i boccali", "Hai raccolto tutti i boccali!", 10.0f, 10.0f);
+        missionManager.addCollectionMission(4, "piatto", "tavolo_quadrato1", 5, "Trova i piatti", "Hai raccolto tutti i piatti!", 10.0f, 10.0f);
 
         // =====================================================================
         // CONFIGURAZIONE TRIGGER
@@ -452,12 +449,45 @@ public:
         // =========================================================
         // 1. UPDATE GAME LOGIC (Dialoghi, Input, Collisioni)
         // =========================================================
-        glm::vec3 oldPlayerPos = player.position;
 
         dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
 
+        // --- LANCIO INIZIALE DEL BOCCALE ---
+        static bool primoFrame = true;
+        if (primoFrame) {
+            // Lancia "boccale_start" dalla faccia del player verso avanti
+            glm::vec3 throwPos = player.position + player.getForwardVector() * 1.0f;
+            throwPos.y += 0.5f;
+            physicsManager.throwObject(SC, "boccale_start", throwPos, player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
+            primoFrame = false;
+        }
+
+        glm::vec3 oldPlayerPos = player.position;
+
+        // Il giocatore può muoversi solo se NON sta parlando
+        if (!dialogueManager.isDialogueActive()) {
+            player.processInput(window, deltaT, SC, physicsManager);
+        }
+
         // UPDATE MISSIONI
-        missionManager.update(dialogueManager, SC, physicsManager, txt);
+        missionManager.update(deltaT, dialogueManager, SC, physicsManager, txt);
+
+        // --- GESTIONE OBIETTIVI UI ---
+        static int objTextId = -1;
+        std::string objStr = "";
+        int prog = dialogueManager.getStoryProgress();
+
+        if (prog == 0 || prog >= 6) objStr = "Obiettivo: Esci dalla taverna";
+        else if (prog == 1) objStr = "Obiettivo: Parla con l'oste";
+        else if (prog == 3) objStr = "Obiettivo: Torna dall'oste (Boccali)";
+        else if (prog == 5) objStr = "Obiettivo: Torna dall'oste (Piatti)";
+
+        if (!objStr.empty()) {
+            objTextId = txt.print(-0.95f, -0.9f, objStr, objTextId, "SS", false, false, false, TAL_LEFT, TRH_LEFT, TRV_TOP, glm::vec4(1.0f));
+        } else if (objTextId != -1) {
+            txt.removeText(objTextId);
+            objTextId = -1;
+        }
 
         int talkingNPC = dialogueManager.getDialogueNPC();
 
@@ -468,21 +498,15 @@ public:
 
         lightManager.update(deltaT, window);
 
-        // Il giocatore può muoversi solo se NON sta parlando
-        if (!dialogueManager.isDialogueActive()) {
-            player.processInput(window, deltaT, SC, physicsManager);
-        }
-
-        if (dialogueManager.getStoryProgress() < 1 && !dialogueManager.isDialogueActive()) {
-
-            // Controlla la collisione tra il giocatore e il trigger
+        if (prog < 6) {
             if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
 
-                // Lo facciamo scattare solo se non è già stato attivato
-                if (!triggerPortaAttivato) {
-                    dialogueManager.forceStartDialogue("door_guard_l", tavernNPCs, txt, player);
+                if (!triggerPortaAttivato && !dialogueManager.isDialogueActive()) {
+                    // Cerca sempre la guardia di destra
+                    dialogueManager.forceStartDialogue("door_guard_r", tavernNPCs, txt, player);
                     triggerPortaAttivato = true;
                 }
+
                 player.position = oldPlayerPos;
             } else {
                 triggerPortaAttivato = false;
