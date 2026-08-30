@@ -14,14 +14,16 @@ void main() {
     vec4 albedo = texture(albedoMap, fragUV);
     vec4 emission = texture(emissiveMap, fragUV);
 
-    float brightAlbedo = max(albedo.r, max(albedo.g, albedo.b));
-    float brightEmission = max(emission.r, max(emission.g, emission.b));
-
-    if (brightAlbedo < 0.1 || brightEmission < 0.1 || albedo.a < 0.1) {
+    if (albedo.a < 0.1) {
         discard;
     }
 
-    vec3 finalColor = emission.rgb * 2.5;
+    // 1. Sommiamo il colore base all'emissione (senza moltiplicatori esagerati)
+    vec3 hdrColor = albedo.rgb + (emission.rgb * 1.5);
 
-    outColor = vec4(finalColor, 1.0);
+    // 2. Mappatura dell'esposizione: preserva la saturazione dei rossi/arancioni
+    float exposure = 1.0;
+    vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+
+    outColor = vec4(mapped, 1.0);
 }

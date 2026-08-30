@@ -51,11 +51,7 @@ protected:
     // Vertex formants, Pipelines and Render passes
     VertexDescriptor VD;
     RenderPass RP;
-    Pipeline P;
-    Pipeline Pemissive;
-    Pipeline Pwood;
-    Pipeline Pstone;
-    Pipeline Pmetal;
+    Pipeline P, Pemissive, Pwood, Pstone, Pmetal, Psky;
 
     // Ombre
     RenderPass RPshadow;
@@ -201,6 +197,10 @@ public:
                        {&DSLglobal, &DSLemissive});
         Pemissive.setCullMode(VK_CULL_MODE_NONE);
 
+        Psky.init(this, &VD, "shaders/static.vert.spv",
+               "shaders/sky.frag.spv",
+               {&DSLglobal, &DSLemissive});
+
         Pwood.init(this, &VD, "shaders/static.vert.spv", "shaders/wood.frag.spv", {&DSLglobal, &DSLlocal});
         Pstone.init(this, &VD, "shaders/static.vert.spv", "shaders/stone.frag.spv", {&DSLglobal, &DSLlocal});
         Pmetal.init(this, &VD, "shaders/static.vert.spv", "shaders/metal.frag.spv", {&DSLglobal, &DSLlocal});
@@ -220,7 +220,7 @@ public:
         VDRs[0].init("VDposUV", &VD);
         VDRs[1].init("VDanim", &VDanim);
 
-        PRs.resize(6);
+        PRs.resize(7);
         PRs[0].init("BlinnPos", {
                         {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
                         {.P = &P, .texDefs = {{}, {{true, 0, {}}}}}
@@ -245,6 +245,10 @@ public:
                         {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
                         {.P = &Pmetal, .texDefs = {{}, {{true, 0, {}}}}}
                     }, 1, &VD);
+        PRs[6].init("SkyTech", {
+                                {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                                {.P = &Psky, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}}
+                            }, 2, &VD);
 
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -286,8 +290,9 @@ public:
             {
                 "male_npc2", "assets/models/npc/male/male2.gltf", "maleCombined", 0, glm::mat4(1.0f),
                 {
-                    {0, 31, 1.0f, 0}, // Segmento 0 (Prima animazione, da frame 0 a 31)
-                    {31, 121, 1.0f, 0} // Segmento 1 (Seconda animazione, da frame 31 a 121)
+                    {0, 29, 1.0f, 0}, // Segmento 0 (Prima animazione, da frame 0 a 31)
+                    {31, 120, 1.0f, 0}, // Segmento 1 (Seconda animazione, da frame 31 a 121)
+                    {122, 300, 1.0f, 0} // Segmento 2 (Terza animazione, da frame 121 a 300)
                 }
             },
             {
@@ -459,13 +464,14 @@ public:
         Pwood.create(&RP);
         Pstone.create(&RP);
         Pmetal.create(&RP);
+        Psky.create(&RP);
 
         DSglobal.init(this, &DSLglobal, {RPshadow.attachments[0].getViewAndSampler()});
 
         // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
         // Per le 6 tecniche
-        for (int t = 0; t < 6; t++) {
+        for (int t = 0; t < 7; t++) {
             // Per i 2 Passaggi (Shadow, Color)
             for (int p = 0; p < 2; p++) {
                 // Inseriamo la shadow map nel Set 0
@@ -486,6 +492,7 @@ public:
         Pwood.cleanup();
         Pstone.cleanup();
         Pmetal.cleanup();
+        Psky.cleanup();
         RP.cleanup();
         RPshadow.cleanup();
 
@@ -509,7 +516,7 @@ public:
         Pwood.destroy();
         Pstone.destroy();
         Pmetal.destroy();
-
+        Psky.destroy();
         npcAnimManager.cleanup();
         dialogueManager.cleanup(txt);
 
@@ -612,8 +619,8 @@ public:
 
         UniformBufferObject ubo{};
 
-        // --- AGGIORNA TUTTI I MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5) ---
-        int staticTechniques[] = {0, 2, 3, 4, 5};
+        // --- AGGIORNA TUTTI I MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5, 6) ---
+        int staticTechniques[] = {0, 2, 3, 4, 5, 6};
 
         // ID dello Skydome attivo fornito dal LightManager
         std::string activeSkyId = lightManager.getCurrentSkydomeInstanceId();

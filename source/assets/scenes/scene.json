@@ -9625,46 +9625,6 @@
 					"translate": [1.0, 5.5, 1.0],
 					"eulerAngles": [-90.0, -90.0, 0.0],
 					"scale": [0.05, 0.05, 0.05]
-				},
-				{
-					"id": "skydome_day",
-					"model": "skydome",
-					"texture": ["tex_day", "tex_day"],
-					"translate": [0.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "skydome_sunset",
-					"model": "skydome",
-					"texture": ["tex_sunset", "tex_sunset"],
-					"translate": [0.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "skydome_night",
-					"model": "skydome",
-					"texture": ["tex_night", "tex_night"],
-					"translate": [0.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "skydome_night2",
-					"model": "skydome",
-					"texture": ["tex_night2", "tex_night2"],
-					"translate": [0.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
-				},
-				{
-					"id": "skydome_night3",
-					"model": "skydome",
-					"texture": ["tex_night3", "tex_night3"],
-					"translate": [0.0, 0.0, 0.0],
-					"eulerAngles": [0.0, 0.0, 0.0],
-					"scale": [1.0, 1.0, 1.0]
 				}
 			]
 		},
@@ -9745,6 +9705,51 @@
 			"elements": [
 				{"id": "tavern_185", "model": "tavern_185", "texture": ["mat185"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_188", "model": "tavern_188", "texture": ["mat188"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]}
+			]
+		},
+		{
+			"technique": "SkyTech",
+			"elements": [
+				{
+					"id": "skydome_day",
+					"model": "skydome",
+					"texture": ["tex_day", "tex_day"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_sunset",
+					"model": "skydome",
+					"texture": ["tex_sunset", "tex_sunset"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_night",
+					"model": "skydome",
+					"texture": ["tex_night", "tex_night"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_night2",
+					"model": "skydome",
+					"texture": ["tex_night2", "tex_night2"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				},
+				{
+					"id": "skydome_night3",
+					"model": "skydome",
+					"texture": ["tex_night3", "tex_night3"],
+					"translate": [0.0, 0.0, 0.0],
+					"eulerAngles": [0.0, 0.0, 0.0],
+					"scale": [1.0, 1.0, 1.0]
+				}
 			]
 		}
 	],
