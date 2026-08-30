@@ -23,6 +23,7 @@
 		{"id": "tavern_222", "VD": "VDposUV", "model": "assets/models/tavern/tavern_222.gltf",  "format":"GLTF"},
 		{"id": "tavern_225", "VD": "VDposUV", "model": "assets/models/tavern/tavern_225.gltf",  "format":"GLTF"},
 		{"id": "tavern_bytilka", "VD": "VDposUV", "model": "assets/models/tavern/tavern_bytilka.gltf",  "format":"GLTF"},
+		{"id": "boccale", "VD": "VDposUV", "model": "assets/models/tavern/elements/boccale.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": true}},
 		{"id": "tavern_fire", "VD": "VDposUV", "model": "assets/models/tavern/tavern_fire.gltf",  "format":"GLTF"},
 		{"id": "tavern_flag_me", "VD": "VDposUV", "model": "assets/models/tavern/tavern_flag_me.gltf",  "format":"GLTF"},
 		{"id": "tavern_flag_wolf", "VD": "VDposUV", "model": "assets/models/tavern/tavern_flag_wolf.gltf",  "format":"GLTF"},
@@ -114,6 +115,7 @@
 		{"id": "bytilka", "texture": "assets/textures/tavern/bytilka.png", "format": "C"},
 		{"id": "tgbc", "texture": "assets/textures/tavern/temn_goriz_baseColor.png", "format": "C"},
 		{"id": "tvbc", "texture": "assets/textures/tavern/temn_vert_baseColor.png", "format": "C"},
+		{"id": "tex_food", "texture": "assets/textures/tavern/elements/Textures_Food.png", "format": "C"},
 		{"id": "tex_tavolo_lungo", "texture": "assets/textures/tavern/elements/tavolo_lungo_text.png", "format": "C"},
 		{"id": "tex_tavolo_corto", "texture": "assets/textures/tavern/elements/tavolo_corto.png", "format": "C"},
 		{"id": "tex_tavolo_quadrato", "texture": "assets/textures/tavern/elements/tavolo_quadrato.png", "format": "C"},
@@ -150,6 +152,11 @@
 		{
 			"technique": "BlinnPos",
 			"elements": [
+				{"id": "boccale_1", "model": "boccale", "texture": ["tex_food"], "translate": [7.0, 1.2, 0.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_2", "model": "boccale", "texture": ["tex_food"], "translate": [10.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_3", "model": "boccale", "texture": ["tex_food"], "translate": [13.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_4", "model": "boccale", "texture": ["tex_food"], "translate": [15.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_5", "model": "boccale", "texture": ["tex_food"], "translate": [18.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "tavern_38", "model": "tavern_38", "texture": ["mat38"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_172", "model": "tavern_172", "texture": ["mat172"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_189", "model": "tavern_189", "texture": ["mat189"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},

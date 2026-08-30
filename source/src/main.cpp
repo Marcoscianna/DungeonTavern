@@ -16,6 +16,7 @@
 #include "DialogueManager.hpp"
 #include "LightManager.hpp"
 #include "PhysicsManager.hpp"
+#include "MissionManager.hpp"
 
 struct UniformBufferObject {
     alignas(16) glm::mat4 mvpMat;
@@ -95,6 +96,12 @@ protected:
     // 3. Manager dei Dialoghi: Gestisce stato, UI e interazioni
     DialogueManager dialogueManager;
 
+    // 4. Manager delle Missioni
+    MissionManager missionManager;
+
+    // 5. Collider per il trigger della porta
+    Collider triggerPorta;
+    bool triggerPortaAttivato = false;
 public:
     DungeonTavern() : Ar(4.0f / 3.0f) {
     } // Costruttore molto più pulito ora
@@ -257,7 +264,7 @@ public:
 
         // Inizializzazione moduli di base
         txt.init(this, (int) windowWidth, (int) windowHeight);
-        player.init(glm::vec3(11.5f, 3.0f, -16.0f), 90.0f, 0.0f, 0.5f);
+        player.init(glm::vec3(11.5f, 3.0f, 16.0f), 90.0f, 0.0f, 0.5f);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // =====================================================================
@@ -302,9 +309,26 @@ public:
             },
         });
         tavernNPCs = TavernNPC::loadNPCsFromJson("assets/scenes/scene.json", SC, npcAnimManager);
-        physicsManager.init(SC, "assets/scenes/scene.json", 0.2f);
+        physicsManager.init(SC, "assets/scenes/scene.json", 0.3f);
         lightManager.init(12.0f);
         lightManager.loadLightsFromJson("assets/scenes/scene.json");
+
+        // =====================================================================
+        // CONFIGURAZIONE MISSIONI
+        // =====================================================================
+
+        // Missione Boccali: Parte a story=1, cerca i "boccale", si consegnano su "tavolo_quadrato1", imposta story=2
+        missionManager.addCollectionMission(1, "boccale", "tavolo_quadrato1", 2, "Trova i boccali", 3.0f, 5.0f);
+
+        // Missione Piatti: Parte a story=4, cerca i "piatto", si consegnano su "tavolo_quadrato1", imposta story=5
+        missionManager.addCollectionMission(4, "piatto", "tavolo_quadrato1", 5, "Trova i piatti", 3.0f, 5.0f);
+
+        // =====================================================================
+        // CONFIGURAZIONE TRIGGER
+        // =====================================================================
+        triggerPorta.initAABB(12.5643, -0.363361, -6.37082, 9.56568, 4.13063, -6.6541);
+        triggerPorta.setWorldMatrix(glm::mat4(1.0f));
+        SC.ColShow.show(&triggerPorta);
 
         // NON TOGLIERE: Trucco anti-crash per il buffer vuoto del TextMaker
         txt.print(-100.0f, -100.0f, " ");
@@ -382,6 +406,7 @@ public:
         Psky.destroy();
         npcAnimManager.cleanup();
         dialogueManager.cleanup(txt);
+        missionManager.cleanup(txt);
 
         RP.destroy();
         RPshadow.destroy();
@@ -427,8 +452,12 @@ public:
         // =========================================================
         // 1. UPDATE GAME LOGIC (Dialoghi, Input, Collisioni)
         // =========================================================
+        glm::vec3 oldPlayerPos = player.position;
 
         dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
+
+        // UPDATE MISSIONI
+        missionManager.update(dialogueManager, SC, physicsManager, txt);
 
         int talkingNPC = dialogueManager.getDialogueNPC();
 
@@ -442,6 +471,22 @@ public:
         // Il giocatore può muoversi solo se NON sta parlando
         if (!dialogueManager.isDialogueActive()) {
             player.processInput(window, deltaT, SC, physicsManager);
+        }
+
+        if (dialogueManager.getStoryProgress() < 1 && !dialogueManager.isDialogueActive()) {
+
+            // Controlla la collisione tra il giocatore e il trigger
+            if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
+
+                // Lo facciamo scattare solo se non è già stato attivato
+                if (!triggerPortaAttivato) {
+                    dialogueManager.forceStartDialogue("door_guard_l", tavernNPCs, txt, player);
+                    triggerPortaAttivato = true;
+                }
+                player.position = oldPlayerPos;
+            } else {
+                triggerPortaAttivato = false;
+            }
         }
 
         // =========================================================

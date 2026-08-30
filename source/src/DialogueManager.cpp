@@ -83,7 +83,7 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
     bool ePressed = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
     bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
 
-    if(showInteractionPrompt && (ePressed || enterPressed) && !debounce) {
+    if((showInteractionPrompt || inDialogue) && (ePressed || enterPressed) && !debounce) {
         debounce = true;
         curDebounce = 12;
 
@@ -275,4 +275,66 @@ void DialogueManager::cleanup(TextMaker& txt) {
 
 int DialogueManager::getDialogueNPC() const {
     return inDialogue ? dialogueNPC : -1;
+}
+
+void DialogueManager::forceStartDialogue(const std::string& npcName, const std::vector<TavernNPC>& npcs, TextMaker& txt, Player& player) {
+    if (inDialogue) return; // Non interrompere un dialogo già attivo
+
+    int targetNpcIndex = -1;
+    for (size_t i = 0; i < npcs.size(); ++i) {
+        if (npcs[i].name == npcName) {
+            targetNpcIndex = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (targetNpcIndex == -1) return; // NPC non trovato
+
+    // Configurazione del dialogo corretto in base al progresso della storia
+    InteractionType tempType = npcs[targetNpcIndex].type;
+    const std::vector<std::string>* tempDialogues = &npcs[targetNpcIndex].dialogues;
+    const std::map<int, DialogueNode>* tempTree = &npcs[targetNpcIndex].dialogueTree;
+
+    int highestProgress = -1;
+    for (const auto& st : npcs[targetNpcIndex].storyStates) {
+        if (st.requiredProgress <= globalStoryProgress && st.requiredProgress > highestProgress) {
+            highestProgress = st.requiredProgress;
+            tempType = st.type;
+            tempDialogues = &st.dialogues;
+            tempTree = &st.dialogueTree;
+        }
+    }
+
+    bool canStart = false;
+    if (tempType == InteractionType::BRANCHING && !tempTree->empty()) canStart = true;
+    if (tempType != InteractionType::BRANCHING && !tempDialogues->empty()) canStart = true;
+
+    if (canStart) {
+        inDialogue = true;
+        dialogueNPC = targetNpcIndex;
+
+        activeType = tempType;
+        activeDialogues = tempDialogues;
+        activeTree = tempTree;
+
+        dialogueIndex = 0;
+        currentTreeNodeId = 0;
+        selectedChoiceIndex = 0;
+        dialogueRevealCount = 0.0f;
+
+        // Rivolgi automaticamente il giocatore verso l'NPC
+        glm::vec3 dir = npcs[dialogueNPC].position - player.position;
+        float len = glm::length(glm::vec2(dir.x, dir.z));
+        if(len > 0.001f) {
+            const float RAD2DEG = 180.0f / 3.14159265358979323846f;
+            player.yaw = atan2(dir.z, dir.x) * RAD2DEG;
+        }
+        player.mouseLookInitialized = false;
+
+        if (activeType == InteractionType::ONE_LINER) {
+            dialogueIndex = rand() % std::max((int)activeDialogues->size(), 1);
+        }
+
+        dialogueTextId = txt.print(0.0f, 0.6f, "", dialogueTextId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_BOTTOM, glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
+    }
 }

@@ -235,16 +235,14 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
         }
 
         auto checkCollision = [&]() -> bool {
+            if (!inst->C) return false;
             inst->C->setWorldMatrix(inst->Wm);
 
-            float objectY = inst->Wm[3][1];
-            float halfHeight = glm::length(glm::vec3(inst->Wm[1])) * 0.5f;
-
-            if (objectY - halfHeight <= 0.0f) {
+            if (floorCollider != nullptr && inst->C->collidesWith(*floorCollider)) {
                 return true;
             }
 
-            // 2. Controllo Istanze (Ottimizzato con Broad-Phase)
+            // 2. Controllo Istanze
             glm::vec3 posA = glm::vec3(inst->Wm[3]);
 
             for (int j = 0; j < scene.InstanceCount; j++) {
@@ -252,17 +250,15 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
                 Instance* otherInst = scene.I[j];
                 if (otherInst->C) {
-                    // Calcolo rapido della distanza al quadrato
+
                     glm::vec3 posB = glm::vec3(otherInst->Wm[3]);
                     float dx = posA.x - posB.x;
                     float dy = posA.y - posB.y;
                     float dz = posA.z - posB.z;
                     float distSq = dx*dx + dy*dy + dz*dz;
 
-                    // Soglia di 25.0f
                     if (distSq > 25.0f) continue;
 
-                    // test accurato solo per gli oggetti vicini
                     if (inst->C->collidesWith(*(otherInst->C))) return true;
                 }
             }

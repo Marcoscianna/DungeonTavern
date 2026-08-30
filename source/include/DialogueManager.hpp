@@ -64,5 +64,8 @@ public:
     void cleanup(TextMaker& txt);
 
     int getDialogueNPC() const;
+    int getStoryProgress() const { return globalStoryProgress; }
+    void setStoryProgress(int progress) { globalStoryProgress = progress; }
+    void forceStartDialogue(const std::string& npcName, const std::vector<TavernNPC>& npcs, TextMaker& txt, Player& player);
 };
 #endif //SKELETONTOCHANGE_DIALOGUEMANAGER_HPP
