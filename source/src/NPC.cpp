@@ -215,7 +215,7 @@ std::vector<TavernNPC> TavernNPC::loadNPCsFromJson(const std::string& filepath, 
             const auto &inst = SC.TI[1].I[i];
             TavernNPC npc;
             npc.name = *(inst.id);
-            if (name == "player") continue;
+            if (npc.name == "player") continue;
             npc.position = glm::vec3(inst.Wm[3][0], inst.Wm[3][1], inst.Wm[3][2]);
 
             auto it = npcDataFromJson.find(npc.name);
