@@ -135,7 +135,6 @@ public:
         }
     }
 
-    // Inserisci in LightManager.hpp
     float getTimeOfDay() const { return timeOfDay; }
 
     // Restituisce l'ID dell'istanza dello Skydome da mostrare in base all'ora attuale

@@ -10,4 +10,5 @@ glslc emissive.frag -o emissive.frag.spv
 glslc stone.frag -o stone.frag.spv
 glslc wood.frag -o wood.frag.spv
 glslc metal.frag -o metal.frag.spv
+glslc sky.frag -o sky.frag.spv
 pause
