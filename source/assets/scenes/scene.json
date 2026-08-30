@@ -50,6 +50,7 @@
 		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/npc/guard/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": false,
 			"children": [{"type":"AABB", "params": [-60.0,-40.0,0.0,60.0,40.0,-220.0]}]
 		}},
+		{"id": "player", "VD": "VDanim", "model": "assets/models/npc/guard/guard_npc.gltf", "format": "GLTF"},
 		{"id": "peasant_npc", "VD": "VDanim", "model": "assets/models/npc/peasant/peasant_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "male_npc", "VD": "VDanim", "model": "assets/models/npc/male/male_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "male_npc2", "VD": "VDanim", "model": "assets/models/npc/male/male2.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
@@ -9501,6 +9502,15 @@
 		{
 			"technique": "AnimTech",
 			"elements": [
+				{
+					"id": "player",
+					"model": "player",
+					"texture": ["tex_guard_diffuse", "tex_guard_normal", "tex_guard_specular"],
+					"translate": [11.5, 3.0, -16.0],
+					"eulerAngles": [90.0, 0.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"type": "player"
+				},
 				{
 					"id": "door_guard_r",
 					"model": "guard_npc",

@@ -293,7 +293,11 @@ public:
                     {31, 120, 1.0f, 0}, // Segmento 1 (Seconda animazione, da frame 31 a 121)
                     {122, 300, 1.0f, 0} // Segmento 2 (Terza animazione, da frame 121 a 300)
                 }
-            }
+            },
+            {
+                "player", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
         });
         tavernNPCs = TavernNPC::loadNPCsFromJson("assets/scenes/scene.json", SC, npcAnimManager);
         physicsManager.init(SC, "assets/scenes/scene.json", 0.2f);
@@ -519,6 +523,41 @@ public:
             }
         }
 
+        // =========================================================
+        // UPDATE SKIN PLAYER (Posizione + Animazione)
+        // =========================================================
+
+        // 1. Aggiorna la World Matrix del modello applicando rotazione correttiva e scala
+        // 1. Visibilità della skin
+        auto itPlayer = SC.InstanceIds.find("player");
+        if (itPlayer != SC.InstanceIds.end()) {
+            if (player.isFixedCamera()) {
+                SC.I[itPlayer->second]->Wm = player.getWorldMatrix();
+            } else {
+                SC.I[itPlayer->second]->Wm = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
+            }
+        }
+
+        // 2. Disabilita interazione fisica durante le telecamere fisse
+        bool canInteract = !dialogueManager.isDialogueActive() && !player.isFixedCamera();
+        physicsManager.update(window, deltaT, SC, player, canInteract, txt);
+
+        // 2. Determina se il giocatore si sta muovendo
+        bool isMoving = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
+                        (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ||
+                        (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ||
+                        (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+
+        // 3. Riproduci l'animazione corretta tramite animManager
+        // (0 = Camminata/Movimento, 1 = Idle/Fermo, oppure invertili in base al tuo rig)
+        static int playerCurrentAnim = -1;
+        int targetAnim = isMoving ? 0 : 1;
+
+        if (playerCurrentAnim != targetAnim) {
+            npcAnimManager.play("player", targetAnim, 0.2f);
+            playerCurrentAnim = targetAnim;
+        }
+
         // Aggiornamento finale dei modelli animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);
 
@@ -526,7 +565,7 @@ public:
         // UPDATE PHYSICS (Gravità per oggetti dinamici)
         // =========================================================
 
-        bool canInteract = !dialogueManager.isDialogueActive();
+        canInteract = !dialogueManager.isDialogueActive();
         physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
         // Aggiornamento FPS

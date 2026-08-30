@@ -273,7 +273,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
             }
 
             // 4. Test contro la faccia del Giocatore
-            if (player.getCollider() && inst->C->collidesWith(*(player.getCollider()))) return true; 
+            if (player.playerCollider && inst->C->collidesWith(*(player.playerCollider))) return true;
 
             return false;
         };

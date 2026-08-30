@@ -28,6 +28,8 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float ra
     rotSpeed = 0.1f;
     flyMode = false;
     mPressedLastFrame = false;
+    cameraMode = 0;
+    cPressedLastFrame = false;
     playerVelocityY = 0.0f;
     FOVy = glm::radians(45.0f);
     nearPlane = 0.1f;
@@ -100,7 +102,6 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
     int heldObj = physManager.getHeldInstanceIndex();
 
     for (int i = 0; i < scene.InstanceCount; i++) {
-
         if (i == heldObj) continue;
 
         if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
@@ -117,46 +118,67 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
 }
 
 void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager) {
-    updateMouseLook(window);
+    // --- DEFINIZIONE LIMITI RETTANGOLO TAVERNA (Piano XZ) ---
+    const float minX = 1.11968f;
+    const float maxX = 19.5197f;
+    const float minZ = -5.76789f;
+    const float maxZ = 21.0792f;
 
-    //Limitatore di deltaTime per evitare movimenti troppo grandi in caso di frame rate basso
+    // Controlla se la posizione del player ricade nel rettangolo
+    bool isInTavernRoom = (position.x >= minX && position.x <= maxX) &&
+                          (position.z >= minZ && position.z <= maxZ);
+
+    // --- TOGGLE TELECAMERA FISSA (TASTO C: 0 -> 1 -> 2 -> 0) ---
+    bool cPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;
+    if (cPressed && !cPressedLastFrame) {
+        if (isInTavernRoom || isFixedCamera()) {
+            cameraMode = (cameraMode + 1) % 3; // Cicla tra 0, 1 e 2
+        }
+    }
+    cPressedLastFrame = cPressed;
+
+    // Se siamo in prima persona (mode 0), aggiorna l'orientamento con il mouse
+    if (cameraMode == 0) {
+        updateMouseLook(window);
+    }
+
+    // Limitatore di deltaTime per evitare salti in caso di cali di frame rate
     if (deltaTime > 0.1f) {
         deltaTime = 0.1f;
     }
 
-    // --- TOGGLE FLY MODE ---
+    // --- TOGGLE FLY MODE (TASTO M) ---
     bool mPressed = glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS;
     if (mPressed && !mPressedLastFrame) {
         flyMode = !flyMode;
-        if (flyMode) playerVelocityY = 0.0f; // Azzera la gravità quando inizi a volare
+        if (flyMode) playerVelocityY = 0.0f; // Azzera la gravità
     }
     mPressedLastFrame = mPressed;
 
-    float velocity = moveSpeed * deltaTime * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 2.0f : 1.0f); // Shift per volare/correre 2x più veloce
+    float velocity = moveSpeed * deltaTime * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 2.0f : 1.0f);
     glm::vec3 forward = getForwardVector();
     glm::vec3 forwardFlat = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
     glm::vec3 rightFlat = getRightVector();
 
-    // --- LOGICA FLY MODE (Nessuna gravità, niente collisioni) ---
+    // --- LOGICA FLY MODE ---
     if (flyMode) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) position += forward * velocity;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) position -= forward * velocity;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) position -= rightFlat * velocity;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) position += rightFlat * velocity;
-        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) position.y += velocity*2;
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) position.y += velocity * 2.0f;
 
         playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
         return;
     }
 
-    // 1. Raccogli l'input orizzontale (WASD)
+    // 1. Input orizzontale (WASD)
     glm::vec3 desiredMove(0.0f);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) desiredMove += forwardFlat;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) desiredMove -= forwardFlat;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) desiredMove -= rightFlat;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) desiredMove += rightFlat;
 
-    // Normalizza la direzione e moltiplicala per la velocità per evitare la super-velocità in diagonale
     if (glm::length(desiredMove) > 0.01f) {
         desiredMove = glm::normalize(desiredMove) * velocity;
     }
@@ -166,19 +188,16 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
 
     // SUB-STEPPING
     float moveLength = glm::length(desiredMove);
-    int numSteps = (int)(moveLength / 0.1f) + 1;
-    glm::vec3 stepMove = desiredMove / (float)numSteps;
+    int numSteps = static_cast<int>(moveLength / 0.1f) + 1;
+    glm::vec3 stepMove = desiredMove / static_cast<float>(numSteps);
 
-    // mini-passi in sequenza
     for (int i = 0; i < numSteps; i++) {
-
         // Asse X
         glm::vec3 testX = resolvedPos;
         testX.x += stepMove.x;
         if (!checkCollisionAt(testX, scene, physManager)) {
             resolvedPos.x = testX.x;
         } else {
-            // Tenta di salire il gradino
             glm::vec3 stepUpX = testX; stepUpX.y += stepHeight;
             if (!checkCollisionAt(stepUpX, scene, physManager)) {
                 resolvedPos.x = testX.x;
@@ -192,7 +211,6 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         if (!checkCollisionAt(testZ, scene, physManager)) {
             resolvedPos.z = testZ.z;
         } else {
-            // Tenta di salire il gradino
             glm::vec3 stepUpZ = testZ; stepUpZ.y += stepHeight;
             if (!checkCollisionAt(stepUpZ, scene, physManager)) {
                 resolvedPos.z = testZ.z;
@@ -201,44 +219,61 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         }
     }
 
-    // --- 4. Risoluzione Asse Y (Gravità e Salto Reale) ---
-    playerVelocityY -= 40.0f * deltaTime; // Applica la forza di gravità
+    // Gravità e salto
+    playerVelocityY -= 40.0f * deltaTime;
 
     glm::vec3 testY = resolvedPos;
-    testY.y += playerVelocityY * deltaTime; // Calcola dove cadremo
+    testY.y += playerVelocityY * deltaTime;
 
     if (!checkCollisionAt(testY, scene, physManager)) {
-        resolvedPos.y = testY.y; // Cadi (o sali in aria se stiamo saltando)
+        resolvedPos.y = testY.y;
     } else {
         if (playerVelocityY < 0.0f) {
-            // Abbiamo toccato terra! (Siamo in piedi su un pavimento o un gradino)
             playerVelocityY = 0.0f;
-
-            // Possiamo saltare SOLO se siamo a terra
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-                playerVelocityY = 12.0f; // Forza del salto verso l'alto
+                playerVelocityY = 12.0f;
             }
         } else {
-            // Abbiamo sbattuto la testa saltando
             playerVelocityY = 0.0f;
         }
     }
 
-    // Applica e muovi il collider
+    // Aggiorna posizione finale e collider
     position = resolvedPos;
-    playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position)); //
+    playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
 }
 
 glm::mat4 Player::getViewMatrix() const {
+    if (cameraMode == 1) {
+        return glm::lookAt(fixedCamPos1, fixedCamTarget1, glm::vec3(0.0f, 1.0f, 0.0f));
+    } else if (cameraMode == 2) {
+        return glm::lookAt(fixedCamPos2, fixedCamTarget2, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    // Default: Prima Persona
     return glm::lookAt(position, position + getForwardVector(), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 glm::mat4 Player::getProjectionMatrix(float aspectRatio) const {
     glm::mat4 Prj = glm::perspective(FOVy, aspectRatio, nearPlane, farPlane);
-    Prj[1][1] *= -1;
+    Prj[1][1] *= -1; // Inversione asse Y per Vulkan
     return Prj;
 }
 
 glm::mat4 Player::getViewProjectionMatrix(float aspectRatio) const {
     return getProjectionMatrix(aspectRatio) * getViewMatrix();
+}
+
+glm::mat4 Player::getWorldMatrix() const {
+    glm::mat4 customWorld = glm::translate(glm::mat4(1.0f), position);
+
+    // 1. Orientamento del giocatore
+    customWorld = glm::rotate(customWorld, glm::radians(-yaw - 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // 2. Raddrizza il modello Mixamo (da sdraiato a in piedi)
+    customWorld = glm::rotate(customWorld, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // 3. Applica la scala corretta (0.018)
+    customWorld = glm::scale(customWorld, glm::vec3(0.018f));
+
+    return customWorld;
 }
