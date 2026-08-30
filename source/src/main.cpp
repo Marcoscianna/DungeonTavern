@@ -261,10 +261,9 @@ public:
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // =====================================================================
-        // CONFIGURAZIONE NPC (Logica e Grafica)
+        // CONFIGURAZIONE MANAGER
         // =====================================================================
 
-        // --- 1. SETUP GRAFICO: Registra i modelli 3D nel manager delle animazioni ---
         npcAnimManager.init({
             {
                 "door_guard_r", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
@@ -464,8 +463,8 @@ public:
         gubo.shadowToggle = shadowsEnabled ? 1.0f : 0.0f;
         lightManager.applyToGUBO(gubo);
 
-        glm::mat4 lightProj = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, 1.0f, 100.0f);
-        lightProj[1][1] *= -1; // Inversione asse Y per Vulkan
+        glm::mat4 lightProj = glm::ortho(-50.0f, 50.0f, -150.0f, 150.0f, -50.0f, 100.0f);
+        lightProj[1][1] *= -1;
 
         // Scegliamo un punto fisso al centro della taverna
         glm::vec3 tavernCenter = glm::vec3(11.0f, 0.0f, -25.0f);
