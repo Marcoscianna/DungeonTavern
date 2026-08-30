@@ -314,6 +314,10 @@ public:
                         if (tech["technique"].template get<std::string>() == "AnimTech") {
                             for (const auto &el: tech["elements"]) {
                                 std::string npcId = el["id"].template get<std::string>();
+
+                                // SALTA IL PLAYER: evita di registrarlo come NPC interattivo
+                                if (npcId == "player") continue;
+
                                 TavernNPC data;
                                 data.name = npcId;
 
@@ -336,7 +340,7 @@ public:
                                     }
                                 }
 
-                                //Legge il tipo e smista i dati
+                                // Legge il tipo e smista i dati
                                 std::string typeStr = el.value("dialogueType", "LINEAR");
                                 if (typeStr == "ONE_LINER") data.type = InteractionType::ONE_LINER;
                                 else if (typeStr == "BRANCHING") data.type = InteractionType::BRANCHING;
@@ -382,8 +386,13 @@ public:
         if (SC.TI != nullptr && SC.TechniqueInstanceCount > 1 && SC.TI[1].I != nullptr) {
             for (int i = 0; i < SC.TI[1].InstanceCount; ++i) {
                 const auto &inst = SC.TI[1].I[i];
+                std::string instName = *(inst.id);
+
+                // SALTA IL PLAYER: non deve entrare nella lista degli NPC interattivi
+                if (instName == "player") continue;
+
                 TavernNPC npc;
-                npc.name = *(inst.id);
+                npc.name = instName;
                 npc.position = glm::vec3(inst.Wm[3][0], inst.Wm[3][1], inst.Wm[3][2]);
 
                 auto it = npcDataFromJson.find(npc.name);
@@ -667,12 +676,19 @@ public:
         // =========================================================
 
         // 1. Aggiorna la World Matrix del modello applicando rotazione correttiva e scala
+        // 1. Visibilità della skin
         auto itPlayer = SC.InstanceIds.find("player");
         if (itPlayer != SC.InstanceIds.end()) {
-            SC.I[itPlayer->second]->Wm = player.getWorldMatrix() *
-                                          glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-                                          glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
+            if (player.isFixedCamera()) {
+                SC.I[itPlayer->second]->Wm = player.getWorldMatrix();
+            } else {
+                SC.I[itPlayer->second]->Wm = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
+            }
         }
+
+        // 2. Disabilita interazione fisica durante le telecamere fisse
+        bool canInteract = !dialogueManager.isDialogueActive() && !player.isFixedCamera();
+        physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
         // 2. Determina se il giocatore si sta muovendo
         bool isMoving = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
@@ -697,7 +713,7 @@ public:
         // UPDATE PHYSICS (Gravità per oggetti dinamici)
         // =========================================================
 
-        bool canInteract = !dialogueManager.isDialogueActive();
+        canInteract = !dialogueManager.isDialogueActive();
         physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
         // Aggiornamento FPS
