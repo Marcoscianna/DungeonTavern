@@ -10,7 +10,7 @@ DialogueManager::DialogueManager()
       inDialogue(false), dialogueNPC(-1), dialogueIndex(0),
       dialogueTextId(-1), interactionPromptTextId(-1),
       dialogueRevealCount(0.0f), dialogueRevealSpeed(45.0f),
-      debounce(false), curDebounce(0),currentTreeNodeId(0), selectedChoiceIndex(0) {}
+      debounce(false), curDebounce(0),currentTreeNodeId(0), selectedChoiceIndex(0), globalStoryProgress(0) {}
 
 bool DialogueManager::isDialogueActive() const {
     return inDialogue;
@@ -79,7 +79,7 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-   // 3. Input Dialogo e Navigazione
+    // 3. Input Dialogo e Navigazione
     bool ePressed = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
     bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
 
@@ -88,17 +88,37 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         curDebounce = 12;
 
         if(!inDialogue) {
-            // Inizio dialogo
             if (ePressed) {
+                // LOGICA RISOLUZIONE STORIA: Scegliamo quale dialogo caricare
+                InteractionType tempType = npcs[activeNPC].type;
+                const std::vector<std::string>* tempDialogues = &npcs[activeNPC].dialogues;
+                const std::map<int, DialogueNode>* tempTree = &npcs[activeNPC].dialogueTree;
+
+                int highestProgress = -1;
+                for (const auto& st : npcs[activeNPC].storyStates) {
+                    if (st.requiredProgress <= globalStoryProgress && st.requiredProgress > highestProgress) {
+                        highestProgress = st.requiredProgress;
+                        tempType = st.type;
+                        tempDialogues = &st.dialogues;
+                        tempTree = &st.dialogueTree;
+                    }
+                }
+
                 bool canStart = false;
                 if (activeNPC >= 0) {
-                    if (npcs[activeNPC].type == InteractionType::BRANCHING && !npcs[activeNPC].dialogueTree.empty()) canStart = true;
-                    if (npcs[activeNPC].type != InteractionType::BRANCHING && !npcs[activeNPC].dialogues.empty()) canStart = true;
+                    if (tempType == InteractionType::BRANCHING && !tempTree->empty()) canStart = true;
+                    if (tempType != InteractionType::BRANCHING && !tempDialogues->empty()) canStart = true;
                 }
 
                 if(canStart) {
                     inDialogue = true;
                     dialogueNPC = activeNPC;
+
+                    // Salviamo i puntatori al dialogo selezionato per questo NPC
+                    activeType = tempType;
+                    activeDialogues = tempDialogues;
+                    activeTree = tempTree;
+
                     dialogueIndex = 0;
                     currentTreeNodeId = 0;
                     selectedChoiceIndex = 0;
@@ -112,8 +132,8 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                     }
                     player.mouseLookInitialized = false;
 
-                    if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
-                        dialogueIndex = rand() % std::max((int)npcs[dialogueNPC].dialogues.size(), 1);
+                    if (activeType == InteractionType::ONE_LINER) {
+                        dialogueIndex = rand() % std::max((int)activeDialogues->size(), 1);
                     }
 
                     dialogueTextId = txt.print(0.0f, 0.6f, "", dialogueTextId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_BOTTOM, glm::vec4(1.0f), glm::vec4(0.0f), glm::vec4(0.0f,0.0f,0.0f,0.6f), 1.0f, 1.0f);
@@ -124,29 +144,24 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         } else {
             // Logica Avanzamento Dialogo
             std::string currentFull = "";
-            if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
-                currentFull = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId).npcText;
-            } else {
-                currentFull = npcs[dialogueNPC].dialogues[dialogueIndex];
-            }
+            if (activeType == InteractionType::BRANCHING) currentFull = activeTree->at(currentTreeNodeId).npcText;
+            else currentFull = activeDialogues->at(dialogueIndex);
 
             bool isRevealFinished = (dialogueRevealCount >= wrapText(currentFull, maxChars).length());
 
             if(!isRevealFinished) {
-                // 2a. Salta effetto macchina da scrivere
                 dialogueRevealCount = wrapText(currentFull, maxChars).length();
             } else {
-                // 2b. Avanza logica
                 bool dialogueEnded = false;
 
-                if (npcs[dialogueNPC].type == InteractionType::ONE_LINER) {
+                if (activeType == InteractionType::ONE_LINER) {
                     if (ePressed || enterPressed) dialogueEnded = true;
                     else debounce = false;
                 }
-                else if (npcs[dialogueNPC].type == InteractionType::LINEAR) {
+                else if (activeType == InteractionType::LINEAR) {
                     if (ePressed || enterPressed) {
                         ++dialogueIndex;
-                        if(dialogueIndex < static_cast<int>(npcs[dialogueNPC].dialogues.size())) {
+                        if(dialogueIndex < static_cast<int>(activeDialogues->size())) {
                             dialogueRevealCount = 0.0f;
                         } else {
                             dialogueEnded = true;
@@ -155,15 +170,18 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                         debounce = false;
                     }
                 }
-                else if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
-                    const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
+                else if (activeType == InteractionType::BRANCHING) {
+                    const auto& node = activeTree->at(currentTreeNodeId);
                     if (node.choices.empty()) {
-                        // Se non ci sono più opzioni, E o Invio chiudono
                         if (ePressed || enterPressed) dialogueEnded = true;
                         else debounce = false;
                     } else {
-                        // Se ci sono più opzioni, si vengono scelte dall'invio
                         if (enterPressed) {
+                            int setStory = node.choices[selectedChoiceIndex].setStoryProgress;
+                            if (setStory != -1) {
+                                globalStoryProgress = setStory;
+                            }
+
                             int nextId = node.choices[selectedChoiceIndex].nextNodeId;
                             if (nextId == -1) {
                                 dialogueEnded = true;
@@ -173,13 +191,11 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                                 dialogueRevealCount = 0.0f;
                             }
                         } else {
-                            // Se preme E ignoriamo l'input
                             debounce = false;
                         }
                     }
                 }
 
-                // Chiudi in modo pulito se il dialogo è terminato
                 if (dialogueEnded) {
                     if(dialogueTextId != -1) dialogueTextId = txt.print(0.0f, 0.8f, "", dialogueTextId);
                     inDialogue = false;
@@ -190,7 +206,6 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-    // Reset del debounce solo se non stiamo premendo nessuno dei due tasti
     if(!ePressed && !enterPressed) debounce = false;
     if(curDebounce > 0) --curDebounce;
 
@@ -201,14 +216,11 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
     bool upPressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
     bool downPressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
 
-    if (inDialogue && dialogueNPC >= 0 && npcs[dialogueNPC].type == InteractionType::BRANCHING) {
-        const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
-
-        // Puoi scorrere solo se l'NPC ha finito di parlare e se ci sono opzioni
+    if (inDialogue && dialogueNPC >= 0 && activeType == InteractionType::BRANCHING) {
+        const auto& node = activeTree->at(currentTreeNodeId);
         bool isFinished = (dialogueRevealCount >= wrapText(node.npcText, maxChars).length());
 
         if (isFinished && !node.choices.empty()) {
-            // Scorri Su o Giù se non stiamo già premendo il tasto nell'ultimo frame
             if (upPressed && !upPressedLastFrame) {
                 selectedChoiceIndex = (selectedChoiceIndex > 0) ? selectedChoiceIndex - 1 : node.choices.size() - 1;
             }
@@ -217,21 +229,18 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
             }
         }
     }
-
-    // Aggiorniamo lo stato per il prossimo frame
     upPressedLastFrame = upPressed;
     downPressedLastFrame = downPressed;
 
-    // 4. Update Grafico e Renderizzatore Scelte
+    // 4. Update Grafico
     if(inDialogue && dialogueNPC >= 0) {
         std::string npcText = "";
         std::string choicesText = "";
 
-        if (npcs[dialogueNPC].type == InteractionType::BRANCHING) {
-            const auto& node = npcs[dialogueNPC].dialogueTree.at(currentTreeNodeId);
+        if (activeType == InteractionType::BRANCHING) {
+            const auto& node = activeTree->at(currentTreeNodeId);
             npcText = wrapText(node.npcText, maxChars);
 
-            // Fai apparire le opzioni solo quando l'NPC ha completato la battuta
             if (dialogueRevealCount >= npcText.length() && !node.choices.empty()) {
                 choicesText = "\n\n";
                 for (int i = 0; i < node.choices.size(); ++i) {
@@ -240,7 +249,7 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                 }
             }
         } else {
-            npcText = wrapText(npcs[dialogueNPC].dialogues[dialogueIndex], maxChars);
+            npcText = wrapText(activeDialogues->at(dialogueIndex), maxChars);
         }
 
         if (dialogueRevealCount < npcText.length()) {

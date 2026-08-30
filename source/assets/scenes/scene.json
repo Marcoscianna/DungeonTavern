@@ -9553,7 +9553,23 @@
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per interagire con la paesana",
 					"interactionRadius": 4.0,
-					"dialogues": ["Uff...", "Cosa vuoi?"]
+					"dialogueType": "ONE_LINER",
+					"dialogues": ["Non ho tempo per te, parla col combattente prima!"],
+					"storyStates": [
+						{
+							"requiredProgress": 1,
+							"dialogueType": "BRANCHING",
+							"dialogueTree": [
+								{
+									"id": 0,
+									"text": "Oh, vedo che hai parlato col combattente. Cosa ti serve?",
+									"choices": [
+										{"text": "Niente, grazie.", "next": -1}
+									]
+								}
+							]
+						}
+					]
 				},
 				{
 					"id": "male_npc",
@@ -9601,7 +9617,22 @@
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per interagire con il guerriero",
 					"interactionRadius": 4.0,
-					"dialogues": ["Mi sto allenando per diventare il miglior guerriero del regno."]
+					"dialogueType": "BRANCHING",
+					"dialogueTree": [
+						{
+							"id": 0,
+							"text": "Ehi tu! Sei nuovo qui, vero?",
+							"choices": [
+								{"text": "Si, dammi informazioni.", "next": 1, "setStory": 1},
+								{"text": "Sparisci.", "next": -1}
+							]
+						},
+						{
+							"id": 1,
+							"text": "Ora che ti ho spiegato tutto, la paesana sara' felice di parlarti.",
+							"choices": []
+						}
+					]
 				}
 			]
 		},

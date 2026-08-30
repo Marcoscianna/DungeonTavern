@@ -13,6 +13,9 @@ struct TextMaker;
 
 class DialogueManager {
 private:
+    // Stato Globale
+    int globalStoryProgress;
+
     // Stato dell'interazione
     bool showInteractionPrompt;
     int activeNPC;
@@ -41,6 +44,11 @@ private:
 
     // Metodo helper interno per l'a capo automatico
     std::string wrapText(const std::string& text, int maxLineLen);
+
+    // Puntatori dinamici al dialogo attualmente in uso (Standard o Story)
+    InteractionType activeType;
+    const std::vector<std::string>* activeDialogues{};
+    const std::map<int, DialogueNode>* activeTree{};
 
 public:
     DialogueManager();

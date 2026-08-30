@@ -32,11 +32,19 @@ enum class InteractionType {
 struct DialogueChoice {
     std::string text;
     int nextNodeId; // L'ID del nodo successivo. -1 significa "Chiudi dialogo"
+    int setStoryProgress = -1;
 };
 
 struct DialogueNode {
     std::string npcText;
     std::vector<DialogueChoice> choices;
+};
+
+struct DialogueStateData {
+    int requiredProgress;
+    InteractionType type;
+    std::vector<std::string> dialogues;
+    std::map<int, DialogueNode> dialogueTree;
 };
 
 struct AnimNPCDefinition {
@@ -60,9 +68,14 @@ struct TavernNPC {
     glm::vec3 position;
     float interactionRadius;
     std::string prompt;
+
+    // Dialogo Standard (Usato se non ci sono stati della storia specifici)
     InteractionType type = InteractionType::LINEAR;
     std::vector<std::string> dialogues;
     std::map<int, DialogueNode> dialogueTree;
+
+    // Dialoghi condizionati dalla storia (se l'array è vuoto, è un NPC basico)
+    std::vector<DialogueStateData> storyStates;
 
     std::vector<glm::vec3> waypoints;
     std::vector<float> waitTimes;
@@ -78,6 +91,7 @@ struct TavernNPC {
     bool isWaiting = false;
 
     void update(float deltaT, bool isTalking, const glm::vec3& playerPos, AnimatedNPCRig& animManager, Scene& SC);
+    static std::vector<TavernNPC> loadNPCsFromJson(const std::string& filepath, Scene& SC, AnimatedNPCRig& animManager);
 };
 
 class AnimNPC {
