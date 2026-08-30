@@ -56,6 +56,7 @@
 		{"id": "male_npc2", "VD": "VDanim", "model": "assets/models/npc/male/male2.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "fighter_npc", "VD": "VDanim", "model": "assets/models/npc/fighter/fighter_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "vassoio", "VD": "VDposUV", "model": "assets/models/tavern/elements/vassoio.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
+		{"id":  "archer_npc", "VD": "VDanim", "model": "assets/models/npc/archer/archer.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "muro_sotto", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sotto.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "muro_sopra", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_sopra.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "muro_centro", "VD": "VDposUV", "model": "assets/models/tavern/elements/muro_centro.gltf",  "format":"GLTF", "collider": {"type": "FitAABB", "visible": false}},
@@ -140,7 +141,10 @@
 		{"id": "tex_night", "texture": "assets/textures/skybox/night.jpg", "format": "C"},
 		{"id": "tex_night2", "texture": "assets/textures/skybox/night2.jpg", "format": "C"},
 		{"id": "tex_night3", "texture": "assets/textures/skybox/night3.jpg", "format": "C"},
-		{"id": "tex_sunset", "texture": "assets/textures/skybox/sunset.jpg", "format": "C"}
+		{"id": "tex_sunset", "texture": "assets/textures/skybox/sunset.jpg", "format": "C"},
+		{"id": "tex_archer_diffuse", "texture": "assets/textures/npc/Arissa_DIFF_diffuse.png", "format": "C"},
+		{"id": "tex_archer_normal",  "texture": "assets/textures/npc/Arissa_NM_normal.png",  "format": "C"},
+		{"id": "tex_archer_specular", "texture": "assets/textures/npc/Arissa_SPEC_specular.png", "format": "C"}
 	],
 	"instances": [
 		{
@@ -9643,6 +9647,17 @@
 							"choices": []
 						}
 					]
+				},
+				{
+					"id": "archer_npc",
+					"model": "archer_npc",
+					"texture": ["tex_archer_diffuse", "tex_archer_normal", "tex_archer_specular"],
+					"translate": [-5.0, 0.2, -30.0],
+					"eulerAngles": [90.0, 90.0, 0.0],
+					"scale": [0.018, 0.018, 0.018],
+					"prompt": "Premi E per interagire con l'arciere",
+					"interactionRadius": 4.0,
+					"dialogues": ["Ciao viandante, vuoi un consiglio su come migliorare con l'arco?", "Se vuoi, posso mostrarti alcune tecniche avanzate per diventare un arciere esperto."]
 				}
 			]
 		},

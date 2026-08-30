@@ -281,6 +281,9 @@ public:
                 "fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
                 {{0, 255, 1.0f, 0}}
             },
+                {"archer_npc", "assets/models/npc/archer/archer.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
             {
                 "male_npc", "assets/models/npc/male/male_npc.gltf", "mixamo.com.001", 0, glm::mat4(1.0f),
                 {{0, 255, 1.0f, 0}}
