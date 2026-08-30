@@ -289,7 +289,11 @@ public:
                     {0, 31, 1.0f, 0}, // Segmento 0 (Prima animazione, da frame 0 a 31)
                     {31, 121, 1.0f, 0} // Segmento 1 (Seconda animazione, da frame 31 a 121)
                 }
-            }
+            },
+            {
+                "player", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                {{0, 255, 1.0f, 0}}
+            },
         });
 
         // --- 2. SETUP LOGICO: Estrae i dialoghi e le info dal JSON ---
@@ -649,6 +653,34 @@ public:
                     SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
                 }
             }
+        }
+
+        // =========================================================
+        // UPDATE SKIN PLAYER (Posizione + Animazione)
+        // =========================================================
+
+        // 1. Aggiorna la World Matrix del modello applicando rotazione correttiva e scala
+        auto itPlayer = SC.InstanceIds.find("player");
+        if (itPlayer != SC.InstanceIds.end()) {
+            SC.I[itPlayer->second]->Wm = player.getWorldMatrix() *
+                                          glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                                          glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
+        }
+
+        // 2. Determina se il giocatore si sta muovendo
+        bool isMoving = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
+                        (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ||
+                        (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ||
+                        (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+
+        // 3. Riproduci l'animazione corretta tramite animManager
+        // (0 = Camminata/Movimento, 1 = Idle/Fermo, oppure invertili in base al tuo rig)
+        static int playerCurrentAnim = -1;
+        int targetAnim = isMoving ? 0 : 1;
+
+        if (playerCurrentAnim != targetAnim) {
+            npcAnimManager.play("player", targetAnim, 0.2f);
+            playerCurrentAnim = targetAnim;
         }
 
         // Aggiornamento finale dei modelli animati

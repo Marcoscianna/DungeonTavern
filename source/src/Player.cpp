@@ -242,3 +242,18 @@ glm::mat4 Player::getProjectionMatrix(float aspectRatio) const {
 glm::mat4 Player::getViewProjectionMatrix(float aspectRatio) const {
     return getProjectionMatrix(aspectRatio) * getViewMatrix();
 }
+
+glm::mat4 Player::getWorldMatrix() const {
+    glm::mat4 customWorld = glm::translate(glm::mat4(1.0f), position);
+
+    // 1. Orientamento del giocatore
+    customWorld = glm::rotate(customWorld, glm::radians(-yaw - 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // 2. Raddrizza il modello Mixamo (da sdraiato a in piedi)
+    customWorld = glm::rotate(customWorld, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // 3. Applica la scala corretta (0.018)
+    customWorld = glm::scale(customWorld, glm::vec3(0.018f));
+
+    return customWorld;
+}
