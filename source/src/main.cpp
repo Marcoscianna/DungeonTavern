@@ -38,6 +38,9 @@ struct VertexAnim {
     glm::uvec4 jointIndices;
 };
 
+// Stato del gioco
+enum class GameState { MENU, PLAYING };
+
 // MAIN !
 class DungeonTavern : public BaseProject {
 protected:
@@ -112,6 +115,13 @@ protected:
     // 5. Collider per il trigger della porta
     Collider triggerPorta;
     bool triggerPortaAttivato = false;
+
+    GameState currentState = GameState::MENU;
+    int menuSelection = 0; // 0 = Gioca, 1 = Esci
+    int textTitleId = -1;
+    int textGiocaId = -1;
+    int textEsciId  = -1;
+
 public:
     DungeonTavern() : Ar(4.0f / 3.0f) {
     } // Costruttore molto più pulito ora
@@ -482,74 +492,125 @@ public:
         // 1. UPDATE GAME LOGIC (Dialoghi, Input, Collisioni)
         // =========================================================
 
-        dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
+        // --- GESTIONE INPUT DEL MENU ---
+        static bool upPressedLastFrame = false;
+        static bool downPressedLastFrame = false;
+        static bool enterPressedLastFrame = false;
 
-        // --- LANCIO INIZIALE DEL BOCCALE ---
-        static bool primoFrame = true;
-        if (primoFrame) {
-            // Lancia "boccale_start" dalla faccia del player verso avanti
-            glm::vec3 throwPos = player.position + player.getForwardVector() * 1.0f;
-            throwPos.y += 0.5f;
-            physicsManager.throwObject(SC, "boccale_start", throwPos, player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
-            primoFrame = false;
-        }
+        bool upPressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
+        bool downPressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
+        bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
 
         glm::vec3 oldPlayerPos = player.position;
 
-        // Il giocatore può muoversi solo se NON sta parlando
-        if (!dialogueManager.isDialogueActive()) {
-            player.processInput(window, deltaT, SC, physicsManager);
+        if (currentState == GameState::MENU) {
+
+            // 1.1 Disegna il Titolo
+            if (textTitleId == -1) {
+                textTitleId = txt.print(0.0f, -0.4f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f), glm::vec4(0), glm::vec4(0,0,0,0.8f), 2.0f, 2.0f);
+            }
+
+            // 1.2 Navigazione del Menu
+            if (upPressed && !upPressedLastFrame) menuSelection = 0;
+            if (downPressed && !downPressedLastFrame) menuSelection = 1;
+
+            // 1.3 Disegna le Opzioni
+            std::string strGioca = (menuSelection == 0) ? "> GIOCA <" : "  GIOCA  ";
+            std::string strEsci  = (menuSelection == 1) ? "> ESCI <"  : "  ESCI  ";
+
+            glm::vec4 colorGioca = (menuSelection == 0) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
+            glm::vec4 colorEsci  = (menuSelection == 1) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
+
+            textGiocaId = txt.print(0.0f, 0.1f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorGioca);
+            textEsciId  = txt.print(0.0f, 0.3f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorEsci);
+
+            // 1.4 Selezione
+            if (enterPressed && !enterPressedLastFrame) {
+                if (menuSelection == 0) {
+                    // TRANSIZIONE A PLAYING
+                    currentState = GameState::PLAYING;
+
+                    // Pulisce l'interfaccia del menu
+                    txt.removeText(textTitleId); textTitleId = -1;
+                    txt.removeText(textGiocaId); textGiocaId = -1;
+                    txt.removeText(textEsciId);  textEsciId  = -1;
+
+                    // Lancia il boccale iniziale!
+                    glm::vec3 throwPos = player.position + player.getForwardVector() * 1.0f;
+                    throwPos.y += 0.5f;
+                    physicsManager.throwObject(SC, "boccale_start", throwPos, player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
+
+                } else if (menuSelection == 1) {
+                    // USCITA DAL GIOCO
+                    glfwSetWindowShouldClose(window, GL_TRUE);
+                }
+            }
+
+        } else if (currentState == GameState::PLAYING) {
+
+            // --- LOGICA DI GIOCO ATTIVA SOLO IN PLAYING ---
+            dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
+
+            if (!dialogueManager.isDialogueActive()) {
+                player.processInput(window, deltaT, SC, physicsManager);
+            }
+
+            missionManager.update(deltaT, dialogueManager, SC, physicsManager, txt);
+
+            // GESTIONE OBIETTIVI UI
+            static int objTextId = -1;
+            std::string objStr = "";
+            int prog = dialogueManager.getStoryProgress();
+
+            if (prog == 0) objStr = "Obiettivo: Esci dalla taverna";
+            else if (prog == 1) objStr = "Obiettivo: Parla con l'oste";
+            else if (prog == 3) objStr = "Obiettivo: Torna dall'oste";
+            else if (prog == 5) objStr = "Obiettivo: Torna dall'oste";
+            else if (prog >= 7) objStr = "Demo terminata";
+
+            if (!objStr.empty()) {
+                objTextId = txt.print(-0.95f, -0.9f, objStr, objTextId, "SS", false, false, false, TAL_LEFT, TRH_LEFT, TRV_TOP, glm::vec4(1.0f));
+            } else if (objTextId != -1) {
+                txt.removeText(objTextId);
+                objTextId = -1;
+            }
+
+            // CONTROLLO TRIGGER PORTA
+            if (prog < 6) {
+                if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
+                    if (!triggerPortaAttivato && !dialogueManager.isDialogueActive()) {
+                        dialogueManager.forceStartDialogue("door_guard_r", tavernNPCs, txt, player);
+                        triggerPortaAttivato = true;
+                    }
+                    player.position = oldPlayerPos;
+                } else {
+                    triggerPortaAttivato = false;
+                }
+            }
+            if (prog == 6) {
+                if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
+                    dialogueManager.setStoryProgress(7);
+                }
+            }
         }
 
-        // UPDATE MISSIONI
-        missionManager.update(deltaT, dialogueManager, SC, physicsManager, txt);
+        // Salva l'input per il frame successivo
+        upPressedLastFrame = upPressed;
+        downPressedLastFrame = downPressed;
+        enterPressedLastFrame = enterPressed;
 
-        // --- GESTIONE OBIETTIVI UI ---
-        static int objTextId = -1;
-        std::string objStr = "";
-        int prog = dialogueManager.getStoryProgress();
 
-        if (prog == 0) objStr = "Obiettivo: Esci dalla taverna";
-        else if (prog == 1) objStr = "Obiettivo: Parla con l'oste";
-        else if (prog == 3) objStr = "Obiettivo: Torna dall'oste";
-        else if (prog == 5) objStr = "Obiettivo: Torna dall'oste";
-        else if (prog >= 7) objStr = "Demo terminata";
-
-        if (!objStr.empty()) {
-            objTextId = txt.print(-0.95f, -0.9f, objStr, objTextId, "SS", false, false, false, TAL_LEFT, TRH_LEFT, TRV_TOP, glm::vec4(1.0f));
-        } else if (objTextId != -1) {
-            txt.removeText(objTextId);
-            objTextId = -1;
-        }
+        // =========================================================
+        // AGGIORNAMENTI GLOBALI (Attivi sia nel Menu che in Gioco)
+        // =========================================================
 
         int talkingNPC = dialogueManager.getDialogueNPC();
-
         for (size_t i = 0; i < tavernNPCs.size(); ++i) {
-            bool isTalking = (i == talkingNPC);
+            bool isTalking = (currentState == GameState::PLAYING && i == talkingNPC);
             tavernNPCs[i].update(deltaT, isTalking, player.position, npcAnimManager, SC);
         }
 
         lightManager.update(deltaT, window);
-
-        if (prog < 6) {
-            if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
-
-                if (!triggerPortaAttivato && !dialogueManager.isDialogueActive()) {
-                    // Cerca sempre la guardia di destra
-                    dialogueManager.forceStartDialogue("door_guard_r", tavernNPCs, txt, player);
-                    triggerPortaAttivato = true;
-                }
-
-                player.position = oldPlayerPos;
-            } else {
-                triggerPortaAttivato = false;
-            }
-        }
-        if (prog == 6) {
-            if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
-                dialogueManager.setStoryProgress(7);
-            }
-        }
 
         // =========================================================
         // 2. UPDATE GRAPHICS (Matrici, Uniforms, Rendering)
