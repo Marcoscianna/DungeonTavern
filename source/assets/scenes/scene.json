@@ -158,12 +158,14 @@
 			"elements": [
 				{"id": "boccale_start", "model": "boccale", "texture": ["tex_food"], "translate": [11.5, 3.0, 13.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
 				{"id": "boccale_1", "model": "boccale", "texture": ["tex_food"], "translate": [7.0, 1.2, 0.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
-				{"id": "boccale_2", "model": "boccale", "texture": ["tex_food"], "translate": [10.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
-				{"id": "boccale_3", "model": "boccale", "texture": ["tex_food"], "translate": [13.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
-				{"id": "boccale_4", "model": "boccale", "texture": ["tex_food"], "translate": [15.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
-				{"id": "boccale_5", "model": "boccale", "texture": ["tex_food"], "translate": [18.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
-				{"id": "piatto_1", "model": "piatto", "texture": ["tex_food"], "translate": [8.0, 1.2, 5.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
-				{"id": "piatto_2", "model": "piatto", "texture": ["tex_food"], "translate": [20.0, 1.2, 10.0], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
+				{"id": "boccale_2", "model": "boccale", "texture": ["tex_food"], "translate": [17.9818, 3.28278, -1.88403], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_3", "model": "boccale", "texture": ["tex_food"], "translate": [29.3334, 2.54652, -2.55221], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_4", "model": "boccale", "texture": ["tex_food"], "translate": [28.0908, 8.43472, 27.8072], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "boccale_5", "model": "boccale", "texture": ["tex_food"], "translate": [7.33853, 9.29412, 0.489883], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 1.5, "bounciness": 0.2, "friction": 0.8},
+				{"id": "piatto_1", "model": "piatto", "texture": ["tex_food"], "translate": [14.5424, 8.6393, -7.96794], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
+				{"id": "piatto_2", "model": "piatto", "texture": ["tex_food"], "translate": [8.78, 9.14725, -3.2581], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
+				{"id": "piatto_3", "model": "piatto", "texture": ["tex_food"], "translate": [28.4083, 3.03342, 9.61664], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
+				{"id": "piatto_4", "model": "piatto", "texture": ["tex_food"], "translate": [28.3969, 2.44438, 23.6119], "scale": [5.0, 5.0, 5.0], "physics": true, "mass": 2.0, "bounciness": 0.1, "friction": 0.7},
 				{"id": "tavern_38", "model": "tavern_38", "texture": ["mat38"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_172", "model": "tavern_172", "texture": ["mat172"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
 				{"id": "tavern_189", "model": "tavern_189", "texture": ["mat189"], "translate": [1.0, 5.5, 1.0], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.05, 0.05, 0.05]},
@@ -9537,6 +9539,7 @@
 					"eulerAngles": [90.0, 0.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"dialogueType": "BRANCHING",
+					"prompt": "Premi E per parlare con la guardia",
 					"interactionRadius": 3.0,
 					"dialogueTree": [
 						{
@@ -9565,8 +9568,8 @@
 					"translate": [13.8, 0.3, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per parlare con la guardia",
-					"interactionRadius": 4.0,
+					"prompt": "Premi E per parlare con la guardia esterna",
+					"interactionRadius": 2.0,
 					"dialogueType": "ONE_LINER",
 					"dialogues": ["Meno male che ero fuori sta sera... il collega e' furioso con te."],
 					"storyStates": [
@@ -9626,6 +9629,7 @@
 					"scale": [0.018, 0.018, 0.018],
 					"dialogueType": "ONE_LINER",
 					"interactionRadius": 4.0,
+					"prompt": "Premi E per parlare con l'oste",
 					"dialogues": ["Che mal di testa..."],
 					"storyStates": [
 						{
@@ -9685,26 +9689,36 @@
 					"translate": [13.0, 0.3, 10.0],
 					"eulerAngles": [90.0, 0.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per interagire con il paesano",
+					"prompt": "Premi E per interagire con il gemello dell'oste",
 					"interactionRadius": 4.0,
 					"speed": 1.7,
 					"dialogueType": "ONE_LINER",
 					"dialogues": [
 						"Hic! Questa è indubbiamente la birra migliore di tutta Harrenhal...",
 						"Ancora tu? Prima cantavi come una capra strozzata!",
+						"Mio fratello è furioso, passerai molti guai se non lo aiuti",
 						"Attento a dove cammini, ho quasi rimesso laggiu'."
 					],
 					"waypoints": [
-						[13.0, 0.3, 10.0],
-						[12.9399, 0.3, 12.5194],
-						[27.3126, 0.3, 19.8883],
-						[14.8137, 0.3, 13.752],
-						[7.71665, 0.3, 12.4271],
-						[5.71974, 0.3, 22.7749],
-						[8.18079, 0.3, 13.3265]
+						[22.8964, 0.3, 19.0271],
+						[31.8691, 0.3, 20.501],
+						[31.1759, 5.7, 26.3125],
+						[14.7264, 5.7, 27.7568],
+						[14.7264, 5.7, 27.7268],
+						[31.3756, 5.7, 26.6508],
+						[31.8198, 0.3, 20.6352],
+						[18.2815, 0.3, 15.7171],
+						[16.6872, 0.3, 16.9666],
+						[17.2815, 0.3, 13.7171],
+						[3.02131, 0.3, 10.8771],
+						[2.63759, 5.9, 5.3735],
+						[3.36201, 5.9, -9.00603],
+						[3.09969, 5.9, 5.5668],
+						[3.20854, 0.3, 10.4549],
+						[22.4389, 0.3, 18.025]
 
 					],
-					"waitTimes": [0.0, 5.0, 2.5]
+					"waitTimes": [0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0]
 				},
 				{
 					"id": "fighter_npc",
@@ -9753,8 +9767,8 @@
 					"id": "archer_npc",
 					"model": "archer_npc",
 					"texture": ["tex_archer_diffuse", "tex_archer_normal", "tex_archer_specular"],
-					"translate": [-5.0, 0.2, -30.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
+					"translate": [18.2611, 5.9, -7.83647],
+					"eulerAngles": [90.0, -90.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"prompt": "Premi E per parlare con l'arciere",
 					"interactionRadius": 4.0,
@@ -9801,7 +9815,7 @@
 				{"id": "muro_sopra2", "model": "muro_sopra", "texture": ["mat182"], "translate": [0.31, 2.3, 28.0], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.025, 0.040]},
 				{"id": "muro_retro", "model": "muro_sopra", "texture": ["mat182"], "translate": [17.5, 5.0, 36.8], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.037, 0.028]},
 				{"id": "muro_retro2", "model": "muro_sopra", "texture": ["mat182"], "translate": [22.0, 0.0, 36.8], "eulerAngles": [-90.0, 90.0, 0.0], "scale": [0.01, 0.025, 0.023]},
-				{"id": "muro_sinistra", "model": "muro_sopra", "texture": ["mat182"], "translate": [33.7, 5.0, 11.5], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.037, 0.028]},
+				{"id": "muro_sinistra", "model": "muro_sopra", "texture": ["mat182"], "translate": [33.7, 5.0, 11.6], "eulerAngles": [-90.0, 0.0, 0.0], "scale": [0.01, 0.037, 0.035]},
 				{"id": "muro_fronte", "model": "muro_sopra", "texture": ["mat182"], "translate": [27.4, 5.0, -6.5], "eulerAngles": [-90.0, -90.0, 0.0], "scale": [0.01, 0.0139, 0.029]},
 				{"id": "soffitto1", "model": "muro_sopra", "texture": ["mat182"], "translate": [18.0, 11.6, -7.0], "eulerAngles": [0.0, 0.0, 90.0], "scale": [0.01, 0.038, 0.20]}
 			]
@@ -10062,6 +10076,15 @@
 	],
 	"customColliders": [
 		{
+			"type": "AABB",
+			"params": [19.9434, 5.42836, -12.2383, 0.834187, 5.81132, 5.36565],
+			"visible": false
+		},
+		{
+			"type": "AABB",
+			"params": [33.2405, 4.68503, 26.9698, 12.4663, 5.67858, 36.5356],
+			"visible": false
+		},		{
 			"type": "AABB",
 			"params": [34.4204, -0.56417, -7.05, 12.345, 5.07907, -6.08638],
 			"visible": false

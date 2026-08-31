@@ -325,8 +325,8 @@ public:
             {
                 "male_npc2", "assets/models/npc/male/male2.gltf", "maleCombined", 0, glm::mat4(1.0f),
                 {
-                    {0, 29, 1.0f, 0},
-                    {31, 120, 1.0f, 0},
+                    {0, 28, 1.0f, 0},
+                    {32, 120, 1.0f, 0},
                     {122, 300, 1.0f, 0}
                 }
             },
@@ -357,7 +357,7 @@ public:
         // =====================================================================
         // CONFIGURAZIONE TRIGGER
         // =====================================================================
-        triggerPorta.initAABB(12.5643, -0.363361, -6.37082, 9.56568, 4.13063, -6.6541);
+        triggerPorta.initAABB(12.5643, -0.363361, -6.37082, 9.56568, 4.13063, -7.6541);
         triggerPorta.setWorldMatrix(glm::mat4(1.0f));
 
         // NON TOGLIERE: Trucco anti-crash per il buffer vuoto del TextMaker
@@ -368,7 +368,7 @@ public:
 
     void pipelinesAndDescriptorSetsInit() override {
         //texture depth 2048x2048
-        RPshadow.init(this, 1024, 1024, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 
@@ -610,7 +610,7 @@ public:
         // 2. AGGIORNA MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5, 6)
         // =========================================================
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
-        float renderDistance = 80.0f;
+        float renderDistance = 70.0f;
 
         for (int t : staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {

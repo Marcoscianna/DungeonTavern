@@ -89,9 +89,9 @@ void main() {
         vec3 H_pt = normalize(V + L_pt);
 
         float yDistance = abs(gubo.pLights[i].position.y - fragPos.y);
-        float verticalCutoff = clamp(1.0 - (yDistance / 3.0), 0.0, 1.0);
+        float verticalCutoff = clamp(1.0 - (yDistance / 3.3), 0.0, 1.0);
 
-        float attenuation = 1.0 / (6.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
+        float attenuation = 1.0 / (12.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
         attenuation *= verticalCutoff;
 
         float NdotL_pt = max(dot(N, L_pt), 0.0);
