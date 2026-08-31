@@ -672,6 +672,19 @@ public:
         // =========================================================
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
         float renderDistance = 70.0f;
+        // --- DEFINIZIONE LIMITI BOX TAVERNA (3D: X, Y, Z) ---
+        const float minX = 1.11968f;
+        const float maxX = 19.5197f;
+
+        const float minY = -1.0f;
+        const float maxY = 16.0f;
+
+        const float minZ = -5.76789f;
+        const float maxZ = 21.0792f;
+
+        bool isInTavernRoom = (player.position.x >= minX && player.position.x <= maxX) &&
+                              (player.position.y >= minY && player.position.y <= maxY) &&
+                              (player.position.z >= minZ && player.position.z <= maxZ);
 
         for (int t : staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
@@ -685,7 +698,7 @@ public:
                         isVisible = true;
                     } else {
                         // Verifica se l'oggetto è vicino al giocatore
-                        if (glm::distance(player.position, objPos) < renderDistance) {
+                        if (glm::distance(player.position, objPos) < renderDistance || !isInTavernRoom) {
                             isVisible = true;
                         } else {
                             // Salva dalla sparizione gli oggetti giganti (pavimenti e montagne)
