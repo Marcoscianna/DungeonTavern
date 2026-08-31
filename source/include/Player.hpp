@@ -47,6 +47,10 @@ public:
     int cameraMode = 0;
     bool cPressedLastFrame = false;
 
+    // In Player.hpp dentro la sezione private / protected:
+    bool isThirdPerson = false;
+    bool xPressedLastFrame = false;
+
     // Telecamera 1
     glm::vec3 fixedCamPos1 = glm::vec3(31.0f, 10.8f, 27.0f);
     glm::vec3 fixedCamTarget1 = glm::vec3(12.0f, 6.0f, 12.0f);
@@ -68,6 +72,8 @@ public:
 
     // Helper per verificare se siamo in una telecamera fissa
     bool isFixedCamera() const { return cameraMode != 0; }
+
+    bool getisThirdPerson() const { return isThirdPerson; }
 
     // Aggiornamento dello stato
     void updateMouseLook(GLFWwindow* window);

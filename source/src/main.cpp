@@ -746,7 +746,7 @@ public:
         // 1. Aggiorna la World Matrix del modello applicando rotazione correttiva e scala
         auto itPlayer = SC.InstanceIds.find("player");
         if (itPlayer != SC.InstanceIds.end()) {
-            if (player.isFixedCamera()) {
+            if (player.isFixedCamera() || player.getisThirdPerson()) {
                 SC.I[itPlayer->second]->Wm = player.getWorldMatrix();
             } else {
                 SC.I[itPlayer->second]->Wm = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));

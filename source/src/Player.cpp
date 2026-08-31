@@ -30,6 +30,8 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float ra
     mPressedLastFrame = false;
     cameraMode = 0;
     cPressedLastFrame = false;
+    isThirdPerson = false;
+    xPressedLastFrame = false;
     playerVelocityY = 0.0f;
     FOVy = glm::radians(45.0f);
     nearPlane = 0.1f;
@@ -126,7 +128,7 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
 }
 
 void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager) {
-    // --- DEFINIZIONE LIMITI RETTANGOLO TAVERNA (Piano XZ) ---
+    // --- DEFINIZIONE LIMITI RETTANGOLO TAVERNA (3D: X, Y, Z) ---
     const float minX = 1.11968f;
     const float maxX = 19.5197f;
     const float minZ = -5.76789f;
@@ -136,22 +138,32 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
 
     // Controlla se la posizione del player ricade nel rettangolo
     bool isInTavernRoom = (position.x >= minX && position.x <= maxX) &&
-                              (position.y >= minY && position.y <= maxY) &&
-                              (position.z >= minZ && position.z <= maxZ);
+                          (position.y >= minY && position.y <= maxY) &&
+                          (position.z >= minZ && position.z <= maxZ);
 
-    // --- TOGGLE TELECAMERA FISSA (TASTO C: 0 -> 1 -> 2 -> 0) ---
+    // --- TOGGLE TELECAMERA FISSA TAVERNA (TASTO C: 0 -> 1 -> 2 -> 0) ---
     bool cPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;
     if (cPressed && !cPressedLastFrame) {
         if (isInTavernRoom || isFixedCamera()) {
             cameraMode = (cameraMode + 1) % 3; // Cicla tra 0, 1 e 2
+            if (cameraMode != 0) {
+                isThirdPerson = false; // Disattiva la 3rd person se si passa alle cam fisse
+            }
         }
     }
     cPressedLastFrame = cPressed;
 
-    // Se siamo in prima persona (mode 0), aggiorna l'orientamento con il mouse
-    /*if (cameraMode == 0) {
-        updateMouseLook(window);
-    }*/
+    // --- TOGGLE TERZA PERSONA STILE FORTNITE (TASTO X) ---
+    bool xPressed = glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS;
+    if (xPressed && !xPressedLastFrame) {
+        isThirdPerson = !isThirdPerson;
+        if (isThirdPerson) {
+            cameraMode = 0; // Torna alla modalita dinamica sbloccata
+        }
+    }
+    xPressedLastFrame = xPressed;
+
+    // Aggiorna orientamento mouse
     updateMouseLook(window);
 
     // Limitatore di deltaTime per evitare salti in caso di cali di frame rate
@@ -163,7 +175,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     bool mPressed = glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS;
     if (mPressed && !mPressedLastFrame) {
         flyMode = !flyMode;
-        if (flyMode) playerVelocityY = 0.0f; // Azzera la gravità
+        if (flyMode) playerVelocityY = 0.0f; // Azzera la gravita
     }
     mPressedLastFrame = mPressed;
 
@@ -231,7 +243,7 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         }
     }
 
-    // Gravità e salto
+    // Gravita e salto
     playerVelocityY -= 40.0f * deltaTime;
 
     glm::vec3 testY = resolvedPos;
@@ -256,12 +268,34 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
 }
 
 glm::mat4 Player::getViewMatrix() const {
+    // 1. Telecamere fisse della Taverna (Tasto C)
     if (cameraMode == 1) {
         return glm::lookAt(fixedCamPos1, fixedCamTarget1, glm::vec3(0.0f, 1.0f, 0.0f));
     } else if (cameraMode == 2) {
         return glm::lookAt(fixedCamPos2, fixedCamTarget2, glm::vec3(0.0f, 1.0f, 0.0f));
     }
-    // Default: Prima Persona
+
+    // 2. Terza Persona stile Fortnite (Tasto X)
+    if (isThirdPerson) {
+        glm::vec3 forward = getForwardVector();
+        glm::vec3 right = getRightVector();
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        float distanceBehind = 4.5f; // Distanza dietro le spalle
+        float heightOffset   = 0.2f; // Altezza sopra la testa
+        float sideOffset     = 0.6f; // Spostamento sulla spalla destra
+
+        glm::vec3 camPos = position
+                         - (forward * distanceBehind)
+                         + (up * heightOffset)
+                         + (right * sideOffset);
+
+        glm::vec3 targetPos = position + (forward * 5.0f) + (up * 0.5f);
+
+        return glm::lookAt(camPos, targetPos, up);
+    }
+
+    // 3. Default: Prima Persona
     return glm::lookAt(position, position + getForwardVector(), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -276,19 +310,19 @@ glm::mat4 Player::getViewProjectionMatrix(float aspectRatio) const {
 }
 
 glm::mat4 Player::getWorldMatrix() const {
-    // 1. Applichiamo l'offset verticale (-2.9f per far coincidere il centro/base del modello con la base del collider)
+    // 1. Applichiamo l'offset verticale (-2.9f per far coincidere la base del modello con il pavimento/collider)
     glm::vec3 meshPos = position;
     meshPos.y -= 2.9f;
 
     glm::mat4 customWorld = glm::translate(glm::mat4(1.0f), meshPos);
 
-    // 2. Ruota di +90.0f invece di -90.0f per girarlo di 180 gradi rispetto a prima
+    // 2. Ruota verso lo Yaw di visuale
     customWorld = glm::rotate(customWorld, glm::radians(-yaw + 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // 3. Raddrizza il modello Mixamo (da sdraiato a in piedi)
     customWorld = glm::rotate(customWorld, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    // 4. Applica la scala corretta dal scene.json (0.018)
+    // 4. Applica la scala dal scene.json (0.018)
     customWorld = glm::scale(customWorld, glm::vec3(0.018f));
 
     return customWorld;
