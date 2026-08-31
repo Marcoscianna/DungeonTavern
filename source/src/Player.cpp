@@ -131,10 +131,13 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     const float maxX = 19.5197f;
     const float minZ = -5.76789f;
     const float maxZ = 21.0792f;
+    const float minY = -1.0f;
+    const float maxY = 16.0f;
 
     // Controlla se la posizione del player ricade nel rettangolo
     bool isInTavernRoom = (position.x >= minX && position.x <= maxX) &&
-                          (position.z >= minZ && position.z <= maxZ);
+                              (position.y >= minY && position.y <= maxY) &&
+                              (position.z >= minZ && position.z <= maxZ);
 
     // --- TOGGLE TELECAMERA FISSA (TASTO C: 0 -> 1 -> 2 -> 0) ---
     bool cPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;
