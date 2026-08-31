@@ -52,7 +52,6 @@
 		{"id": "guard_npc", "VD": "VDanim", "model": "assets/models/npc/guard/guard_npc.gltf", "format": "GLTF", "collider": {"type":"BVH", "visible": false,
 			"children": [{"type":"AABB", "params": [-60.0,-40.0,0.0,60.0,40.0,-220.0]}]
 		}},
-		{"id": "player", "VD": "VDanim", "model": "assets/models/npc/guard/guard_npc.gltf", "format": "GLTF"},
 		{"id": "peasant_npc", "VD": "VDanim", "model": "assets/models/npc/peasant/peasant_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "male_npc", "VD": "VDanim", "model": "assets/models/npc/male/male_npc.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "male_npc2", "VD": "VDanim", "model": "assets/models/npc/male/male2.gltf", "format": "GLTF", "collider": {"type":"FitAABB", "visible": false}},
@@ -75,7 +74,8 @@
 		{"id": "well", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Props_01.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "street_lamp", "VD": "VDposUV", "model": "assets/models/castle/SPW_Medieval_Light.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
 		{"id": "floor_square", "VD": "VDposUV", "model": "assets/models/dungeon/floor_Mesh.7127.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
-		{"id":  "barrel", "VD": "VDposUV", "model": "assets/models/dungeon/barrel.001_Mesh.4453.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}}
+		{"id":  "barrel", "VD": "VDposUV", "model": "assets/models/dungeon/barrel.001_Mesh.4453.mgcg",  "format":"MGCG", "collider": {"type": "FitAABB", "visible": false}},
+		{"id":  "player", "VD": "VDanim", "model": "assets/models/player/player.gltf",  "format":"GLTF"}
 	],
 	"textures": [
 		{"id": "tex", "texture": "assets/textures/toChange.jpg", "format": "C"},
@@ -147,7 +147,10 @@
 		{"id": "tex_sunset", "texture": "assets/textures/skybox/sunset.jpg", "format": "C"},
 		{"id": "tex_archer_diffuse", "texture": "assets/textures/npc/Arissa_DIFF_diffuse.png", "format": "C"},
 		{"id": "tex_archer_normal",  "texture": "assets/textures/npc/Arissa_NM_normal.png",  "format": "C"},
-		{"id": "tex_archer_specular", "texture": "assets/textures/npc/Arissa_SPEC_specular.png", "format": "C"}
+		{"id": "tex_archer_specular", "texture": "assets/textures/npc/Arissa_SPEC_specular.png", "format": "C"},
+		{"id": "tex_paladin_diffuse", "texture": "assets/textures/npc/Paladin_diffuse.png", "format": "C"},
+		{"id": "tex_paladin_normal",  "texture": "assets/textures/npc/Paladin_normal.png",  "format": "C"},
+		{"id": "tex_paladin_specular", "texture": "assets/textures/npc/Paladin_specular.png", "format": "C"}
 	],
 	"instances": [
 		{
@@ -9520,8 +9523,8 @@
 				{
 					"id": "player",
 					"model": "player",
-					"texture": ["tex_guard_diffuse", "tex_guard_normal", "tex_guard_specular"],
-					"translate": [11.5, 3.0, -16.0],
+					"texture": ["tex_paladin_diffuse", "tex_paladin_normal", "tex_paladin_specular"],
+					"translate": [0.0, 0.0, 0.0],
 					"eulerAngles": [90.0, 0.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"type": "player"

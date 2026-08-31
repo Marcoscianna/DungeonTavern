@@ -264,15 +264,19 @@ glm::mat4 Player::getViewProjectionMatrix(float aspectRatio) const {
 }
 
 glm::mat4 Player::getWorldMatrix() const {
-    glm::mat4 customWorld = glm::translate(glm::mat4(1.0f), position);
+    // 1. Applichiamo l'offset verticale (-2.9f per far coincidere il centro/base del modello con la base del collider)
+    glm::vec3 meshPos = position;
+    meshPos.y -= 2.9f;
 
-    // 1. Orientamento del giocatore
-    customWorld = glm::rotate(customWorld, glm::radians(-yaw - 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 customWorld = glm::translate(glm::mat4(1.0f), meshPos);
 
-    // 2. Raddrizza il modello Mixamo (da sdraiato a in piedi)
+    // 2. Ruota di +90.0f invece di -90.0f per girarlo di 180 gradi rispetto a prima
+    customWorld = glm::rotate(customWorld, glm::radians(-yaw + 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // 3. Raddrizza il modello Mixamo (da sdraiato a in piedi)
     customWorld = glm::rotate(customWorld, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    // 3. Applica la scala corretta (0.018)
+    // 4. Applica la scala corretta dal scene.json (0.018)
     customWorld = glm::scale(customWorld, glm::vec3(0.018f));
 
     return customWorld;

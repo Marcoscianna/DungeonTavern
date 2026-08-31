@@ -331,7 +331,7 @@ public:
                 }
             },
             {
-                "player", "assets/models/npc/guard/guard_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+                "player", "assets/models/player/player.gltf", "mixamo.com", 0, glm::mat4(1.0f),
                 {{0, 255, 1.0f, 0}}
             },
         });
