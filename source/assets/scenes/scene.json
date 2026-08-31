@@ -24,7 +24,7 @@
 		{"id": "tavern_225", "VD": "VDposUV", "model": "assets/models/tavern/tavern_225.gltf",  "format":"GLTF"},
 		{"id": "tavern_bytilka", "VD": "VDposUV", "model": "assets/models/tavern/tavern_bytilka.gltf",  "format":"GLTF"},
 		{"id": "boccale", "VD": "VDposUV", "model": "assets/models/tavern/elements/boccale.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": false}},
-		{"id": "piatto", "VD": "VDposUV", "model": "assets/models/tavern/elements/piatto.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": true}},
+		{"id": "piatto", "VD": "VDposUV", "model": "assets/models/tavern/elements/piatto.mgcg",  "format":"MGCG",  "collider": {"type":"FitAABB", "visible": false}},
 		{"id": "tavern_fire", "VD": "VDposUV", "model": "assets/models/tavern/tavern_fire.gltf",  "format":"GLTF"},
 		{"id": "tavern_flag_me", "VD": "VDposUV", "model": "assets/models/tavern/tavern_flag_me.gltf",  "format":"GLTF"},
 		{"id": "tavern_flag_wolf", "VD": "VDposUV", "model": "assets/models/tavern/tavern_flag_wolf.gltf",  "format":"GLTF"},
@@ -9533,8 +9533,8 @@
 					"id": "door_guard_r",
 					"model": "guard_npc",
 					"texture": ["tex_guard_diffuse", "tex_guard_normal", "tex_guard_specular"],
-					"translate": [9.0, 0.3, -8.0],
-					"eulerAngles": [90.0, 180.0, 0.0],
+					"translate": [9.0, 0.3, -5.0],
+					"eulerAngles": [90.0, 0.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"dialogueType": "BRANCHING",
 					"interactionRadius": 3.0,
@@ -9554,7 +9554,7 @@
 						{
 							"requiredProgress": 6,
 							"dialogueType": "ONE_LINER",
-							"dialogues": ["Finalmente, niente più disordine", "Vedi di non farlo più!"]
+							"dialogues": ["Finalmente, niente più disordine", "Vedi di non farlo piu'!"]
 						}
 					]
 				},
@@ -9565,28 +9565,23 @@
 					"translate": [13.8, 0.3, -8.0],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"dialogueType": "BRANCHING",
-					"prompt": "Premi E per parlare con la guardia sinistra",
-					"interactionRadius": 3.0,
-					"dialogueTree": [
+					"prompt": "Premi E per parlare con la guardia",
+					"interactionRadius": 4.0,
+					"dialogueType": "ONE_LINER",
+					"dialogues": ["Meno male che ero fuori sta sera... il collega e' furioso con te."],
+					"storyStates": [
 						{
-							"id": 0,
-							"text": "Fermo! Cosa ci fai in giro a quest'ora?",
-							"choices": [
-								{"text": "Voglio solo bere una birra.", "next": 1},
-								{"text": "Fatti gli affari tuoi.", "next": 2},
-								{"text": "[Vattene]", "next": -1}
+							"requiredProgress": 6,
+							"dialogueType": "BRANCHING",
+							"dialogueTree": [
+								{
+									"id": 0,
+									"text": "Vedo che l'oste ti ha dato il permesso di uscire. Fai buon viaggio, e cerca di non bere troppo la prossima volta!",
+									"choices": [
+										{"text": "Grazie, cerchero' di ricordarmene.", "next": -1}
+									]
+								}
 							]
-						},
-						{
-							"id": 1,
-							"text": "D'accordo, ma non creare problemi. Entra.",
-							"choices": []
-						},
-						{
-							"id": 2,
-							"text": "Come osi?! Sparisci dalla mia vista!",
-							"choices": []
 						}
 					]
 				},
@@ -9597,20 +9592,25 @@
 					"translate": [7.8, 1.0, 21.5],
 					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per interagire con la paesana",
-					"interactionRadius": 3.0,
+					"prompt": "Premi E per parlare con la paesana",
+					"interactionRadius": 4.0,
 					"dialogueType": "ONE_LINER",
-					"dialogues": ["Non ho tempo per te, parla col combattente prima!"],
+					"dialogues": ["Non mi parlare. Hai rovinato la festa con le tue urla da ubriacone."],
 					"storyStates": [
 						{
-							"requiredProgress": 1,
+							"requiredProgress": 3,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Stai pulendo? Era ora. Speriamo che tu abbia imparato la lezione."]
+						},
+						{
+							"requiredProgress": 6,
 							"dialogueType": "BRANCHING",
 							"dialogueTree": [
 								{
 									"id": 0,
-									"text": "Oh, vedo che hai parlato col combattente. Cosa ti serve?",
+									"text": "L'oste ti ha perdonato? Sei fortunato che sia un uomo paziente.",
 									"choices": [
-										{"text": "Niente, grazie.", "next": -1}
+										{"text": "Ho imparato la lezione. Addio.", "next": -1}
 									]
 								}
 							]
@@ -9621,11 +9621,11 @@
 					"id": "male_npc",
 					"model": "male_npc",
 					"texture": ["tex_male_diffuse", "tex_male_normal", "tex_male_specular"],
-					"translate": [13.0, 0.3, 20.0],
-					"eulerAngles": [90.0, 90.0, 0.0],
+					"translate": [14.0, 0.3, 21.0],
+					"eulerAngles": [90.0, 180.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
 					"dialogueType": "ONE_LINER",
-					"interactionRadius": 2.5,
+					"interactionRadius": 4.0,
 					"dialogues": ["Che mal di testa..."],
 					"storyStates": [
 						{
@@ -9634,7 +9634,7 @@
 							"dialogueTree": [
 								{
 									"id": 0,
-									"text": "Ah, ti sei svegliato finalmente. Hai distrutto mezza taverna. Inizia a raccogliere i boccali sparsi in giro e portali sul tavolo quadrato in cucina qui a destra. Muoviti!",
+									"text": "Ah, ti sei ripreso finalmente. Hai distrutto mezza taverna. Inizia a raccogliere i boccali sparsi in giro e portali sul tavolo quadrato in cucina qui a destra. Muoviti!",
 									"choices": [{"text": "Ci penso io.", "next": -1, "setStory": 2}]
 								}
 							]
@@ -9688,9 +9688,11 @@
 					"prompt": "Premi E per interagire con il paesano",
 					"interactionRadius": 4.0,
 					"speed": 1.7,
+					"dialogueType": "ONE_LINER",
 					"dialogues": [
-						"Questa taverna è il posto migliore per rilassarsi.",
-						"Vuoi un bicchiere di vino?"
+						"Hic! Questa è indubbiamente la birra migliore di tutta Harrenhal...",
+						"Ancora tu? Prima cantavi come una capra strozzata!",
+						"Attento a dove cammini, ho quasi rimesso laggiu'."
 					],
 					"waypoints": [
 						[13.0, 0.3, 10.0],
@@ -9711,22 +9713,39 @@
 					"translate": [5.0, 0.3, 3.0],
 					"eulerAngles": [90.0, 90.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per interagire con il guerriero",
+					"prompt": "Premi E per parlare col guerriero",
 					"interactionRadius": 4.0,
 					"dialogueType": "BRANCHING",
 					"dialogueTree": [
 						{
 							"id": 0,
-							"text": "Ehi tu! Sei nuovo qui, vero?",
+							"text": "Ehi, attento a dove metti i piedi! Mi hai quasi rovesciato addosso un tavolo intero prima.",
 							"choices": [
-								{"text": "Si, dammi informazioni.", "next": 1, "setStory": 1},
-								{"text": "Sparisci.", "next": -1}
+								{"text": "Scusa, non ricordo nulla...", "next": 1},
+								{"text": "Fatti gli affari tuoi.", "next": 2}
 							]
 						},
 						{
 							"id": 1,
-							"text": "Ora che ti ho spiegato tutto, la paesana sara' felice di parlarti.",
+							"text": "Tsk. Vedi di fare cio' che dice l'oste, prima che ti dia una lezione io stesso.",
 							"choices": []
+						},
+						{
+							"id": 2,
+							"text": "Vuoi rimetterti a litigare? Sbrigati a pulire e sparisci.",
+							"choices": []
+						}
+					],
+					"storyStates": [
+						{
+							"requiredProgress": 4,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Vedo che ti ha messo a raccogliere i piatti. Ben ti sta, sguattero!"]
+						},
+						{
+							"requiredProgress": 6,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Hai finito eh? Vedi di non farti spaccare la faccia la' fuori."]
 						}
 					]
 				},
@@ -9737,9 +9756,22 @@
 					"translate": [-5.0, 0.2, -30.0],
 					"eulerAngles": [90.0, 90.0, 0.0],
 					"scale": [0.018, 0.018, 0.018],
-					"prompt": "Premi E per interagire con l'arciere",
+					"prompt": "Premi E per parlare con l'arciere",
 					"interactionRadius": 4.0,
-					"dialogues": ["Ciao viandante, vuoi un consiglio su come migliorare con l'arco?", "Se vuoi, posso mostrarti alcune tecniche avanzate per diventare un arciere esperto."]
+					"dialogueType": "ONE_LINER",
+					"dialogues": ["Il caos non si addice a questo luogo. Rimedia in fretta ai tuoi errori, viandante."],
+					"storyStates": [
+						{
+							"requiredProgress": 2,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["La precisione richiede disciplina. Una dote che ti manca, visto come lanciavi i boccali stanotte."]
+						},
+						{
+							"requiredProgress": 6,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Il debito e' saldato. Ricorda di mirare meglio, la prossima volta che bevi."]
+						}
+					]
 				}
 			]
 		},

@@ -104,6 +104,14 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
     for (int i = 0; i < scene.InstanceCount; i++) {
         if (i == heldObj) continue;
 
+        if (scene.I[i]->id != nullptr) {
+            std::string objId = *(scene.I[i]->id);
+            // Salta la collisione se l'ID contiene la parola "player" o "Player"
+            if (objId.find("player") != std::string::npos || objId.find("Player") != std::string::npos) {
+                continue;
+            }
+        }
+
         if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
             return true;
         }
@@ -138,9 +146,10 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     cPressedLastFrame = cPressed;
 
     // Se siamo in prima persona (mode 0), aggiorna l'orientamento con il mouse
-    if (cameraMode == 0) {
+    /*if (cameraMode == 0) {
         updateMouseLook(window);
-    }
+    }*/
+    updateMouseLook(window);
 
     // Limitatore di deltaTime per evitare salti in caso di cali di frame rate
     if (deltaTime > 0.1f) {

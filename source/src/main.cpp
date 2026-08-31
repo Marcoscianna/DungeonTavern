@@ -325,17 +325,24 @@ public:
             {
                 "male_npc2", "assets/models/npc/male/male2.gltf", "maleCombined", 0, glm::mat4(1.0f),
                 {
-                    {0, 29, 1.0f, 0}, // Segmento 0 (Prima animazione, da frame 0 a 31)
-                    {31, 120, 1.0f, 0}, // Segmento 1 (Seconda animazione, da frame 31 a 121)
-                    {122, 300, 1.0f, 0} // Segmento 2 (Terza animazione, da frame 121 a 300)
+                    {0, 29, 1.0f, 0},
+                    {31, 120, 1.0f, 0},
+                    {122, 300, 1.0f, 0}
                 }
             },
             {
-                "player", "assets/models/player/player.gltf", "mixamo.com", 0, glm::mat4(1.0f),
-                {{0, 255, 1.0f, 0}}
+                "player", "assets/models/player/player.gltf", "maleCombined", 0, glm::mat4(1.0f),
+                {
+                    {0, 134, 1.0f, 0},
+                    {135, 165, 1.0f, 0},
+                    {166, 184, 1.0f, 0},
+                    {185, 249, 1.0f, 0}
+                },
             },
         });
         tavernNPCs = TavernNPC::loadNPCsFromJson("assets/scenes/scene.json", SC, npcAnimManager);
+        tavernNPCs.erase(std::remove_if(tavernNPCs.begin(), tavernNPCs.end(),
+            [](const TavernNPC& npc) { return npc.name == "player"; }), tavernNPCs.end());
         physicsManager.init(SC, "assets/scenes/scene.json", 0.3f);
         lightManager.init(12.0f);
         lightManager.loadLightsFromJson("assets/scenes/scene.json");
@@ -352,7 +359,6 @@ public:
         // =====================================================================
         triggerPorta.initAABB(12.5643, -0.363361, -6.37082, 9.56568, 4.13063, -6.6541);
         triggerPorta.setWorldMatrix(glm::mat4(1.0f));
-        SC.ColShow.show(&triggerPorta);
 
         // NON TOGLIERE: Trucco anti-crash per il buffer vuoto del TextMaker
         txt.print(-100.0f, -100.0f, " ");
@@ -503,10 +509,11 @@ public:
         std::string objStr = "";
         int prog = dialogueManager.getStoryProgress();
 
-        if (prog == 0 || prog >= 6) objStr = "Obiettivo: Esci dalla taverna";
+        if (prog == 0) objStr = "Obiettivo: Esci dalla taverna";
         else if (prog == 1) objStr = "Obiettivo: Parla con l'oste";
-        else if (prog == 3) objStr = "Obiettivo: Torna dall'oste (Boccali)";
-        else if (prog == 5) objStr = "Obiettivo: Torna dall'oste (Piatti)";
+        else if (prog == 3) objStr = "Obiettivo: Torna dall'oste";
+        else if (prog == 5) objStr = "Obiettivo: Torna dall'oste";
+        else if (prog >= 7) objStr = "Demo terminata";
 
         if (!objStr.empty()) {
             objTextId = txt.print(-0.95f, -0.9f, objStr, objTextId, "SS", false, false, false, TAL_LEFT, TRH_LEFT, TRV_TOP, glm::vec4(1.0f));
@@ -536,6 +543,11 @@ public:
                 player.position = oldPlayerPos;
             } else {
                 triggerPortaAttivato = false;
+            }
+        }
+        if (prog == 6) {
+            if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
+                dialogueManager.setStoryProgress(7);
             }
         }
 
@@ -598,12 +610,46 @@ public:
         // 2. AGGIORNA MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5, 6)
         // =========================================================
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
+        float renderDistance = 80.0f;
 
         for (int t : staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
                 for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
 
-                    ubo.mMat = SC.TI[t].I[i].Wm;
+                    glm::vec3 objPos = glm::vec3(SC.TI[t].I[i].Wm[3]);
+                    bool isVisible = false;
+
+                    // Gli skydome (tecnica 6) seguono sempre il giocatore
+                    if (t == 6) {
+                        isVisible = true;
+                    } else {
+                        // Verifica se l'oggetto è vicino al giocatore
+                        if (glm::distance(player.position, objPos) < renderDistance) {
+                            isVisible = true;
+                        } else {
+                            // Salva dalla sparizione gli oggetti giganti (pavimenti e montagne)
+                            // i cui centri potrebbero trovarsi molto distanti
+                            if (SC.TI[t].I[i].id != nullptr) {
+                                std::string objName = *(SC.TI[t].I[i].id);
+                                if (objName.find("floor") != std::string::npos ||
+                                    objName.find("mountain") != std::string::npos ||
+                                    objName.find("village_building") != std::string::npos ||
+                                    objName.find("barrel") != std::string::npos ||
+                                    objName.find("well") != std::string::npos ||
+                                    objName.find("street_lamp") != std::string::npos ||
+                                    objName.find("muro") != std::string::npos) {
+                                    isVisible = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // Se è visibile usiamo la sua matrice normale, altrimenti lo collassiamo
+                    if (isVisible) {
+                        ubo.mMat = SC.TI[t].I[i].Wm;
+                    } else {
+                        ubo.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
+                    }
 
                     // PASS 0 (Ombre): Salta il pass ombre se è uno Skydome (Tecnica 6)
                     if (t != 6) {
@@ -624,7 +670,6 @@ public:
         // =========================================================
 
         // 1. Aggiorna la World Matrix del modello applicando rotazione correttiva e scala
-        // 1. Visibilità della skin
         auto itPlayer = SC.InstanceIds.find("player");
         if (itPlayer != SC.InstanceIds.end()) {
             if (player.isFixedCamera()) {
@@ -634,25 +679,34 @@ public:
             }
         }
 
-        // 2. Disabilita interazione fisica durante le telecamere fisse
-        bool canInteract = !dialogueManager.isDialogueActive() && !player.isFixedCamera();
-        physicsManager.update(window, deltaT, SC, player, canInteract, txt);
-
-        // 2. Determina se il giocatore si sta muovendo
+        // 2. Determina lo stato degli input del giocatore
         bool isMoving = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
                         (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ||
                         (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ||
                         (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+        bool isRunning = isMoving && (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
+        bool isJumping = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
 
         // 3. Riproduci l'animazione corretta tramite animManager
-        // (0 = Camminata/Movimento, 1 = Idle/Fermo, oppure invertili in base al tuo rig)
         static int playerCurrentAnim = -1;
-        int targetAnim = isMoving ? 0 : 1;
+        int targetAnim = 0; // Animazione 0: Idle (Fermo)
 
+        if (isJumping) {
+            targetAnim = 3; // Animazione 3: Salto
+        } else if (isRunning) {
+            targetAnim = 2; // Animazione 2: Corsa
+        } else if (isMoving) {
+            targetAnim = 1; // Animazione 1: Camminata
+        }
+
+        // Applica il cambio di animazione solo se lo stato è effettivamente cambiato
         if (playerCurrentAnim != targetAnim) {
             npcAnimManager.play("player", targetAnim, 0.2f);
             playerCurrentAnim = targetAnim;
         }
+
+        bool canInteract = !dialogueManager.isDialogueActive() && !player.isFixedCamera();
+        physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
         // Aggiornamento finale dei modelli animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);

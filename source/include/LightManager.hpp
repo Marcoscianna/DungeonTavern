@@ -28,7 +28,7 @@ struct GlobalUniformBufferObject {
     alignas(16) PointLight pLights[50];
     alignas(4)  int numLights;
     alignas(4)  float shadowToggle;
-    alignas(8)  glm::vec2 padding; // Garantisce l'allineamento a 16 byte dell'UBO
+    alignas(8)  glm::vec2 padding;
 };
 
 class LightManager {
