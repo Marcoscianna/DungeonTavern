@@ -136,7 +136,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
         } else {
             int hitIndex = -1;
             Collider raycastPoint;
-            raycastPoint.initPoint(0,0,0);
+            raycastPoint.initSphere(0.0f, 0.0f, 0.0f, 0.15f);
 
             glm::vec3 rayOrigin = player.position;
             rayOrigin.y += 0.5f;
@@ -146,22 +146,22 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
             for (float d = 0.5f; d <= 4.0f; d += 0.1f) {
                 raycastPoint.setWorldMatrix(glm::translate(glm::mat4(1.0f), rayOrigin + rayDir * d));
 
+                // 1. Se il raggio colpisce un muro, si ferma (niente grab attraverso i muri)
                 bool hitWall = false;
                 for (Collider* cld : customColliders) {
-                    if (cld && raycastPoint.collidesWith(*cld)) {
+                    if (raycastPoint.collidesWith(*cld)) {
                         hitWall = true;
                         break;
                     }
                 }
                 if (hitWall) break;
 
-                for (size_t i = 0; i < physicsObjects.size(); i++) {
-                    if (physicsObjects[i].instanceIndex < scene.InstanceCount) {
-                        Instance* inst = scene.I[physicsObjects[i].instanceIndex];
-                        if (inst && inst->C && raycastPoint.collidesWith(*(inst->C))) {
-                            hitIndex = static_cast<int>(i);
-                            break;
-                        }
+                // 2. Controlla gli oggetti
+                for (int i = 0; i < physicsObjects.size(); i++) {
+                    Instance* inst = scene.I[physicsObjects[i].instanceIndex];
+                    if (inst->C && raycastPoint.collidesWith(*(inst->C))) {
+                        hitIndex = i;
+                        break;
                     }
                 }
                 if (hitIndex != -1) break;

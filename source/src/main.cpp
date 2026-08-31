@@ -562,7 +562,7 @@ public:
             std::string objStr = "";
             int prog = dialogueManager.getStoryProgress();
 
-            if (prog == 0) objStr = "Obiettivo: Esci dalla taverna";
+            if (prog == 0 || prog == 6) objStr = "Obiettivo: Esci dalla taverna";
             else if (prog == 1) objStr = "Obiettivo: Parla con l'oste";
             else if (prog == 3) objStr = "Obiettivo: Torna dall'oste";
             else if (prog == 5) objStr = "Obiettivo: Torna dall'oste";
