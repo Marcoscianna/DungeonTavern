@@ -1,7 +1,10 @@
+#define GLM_ENABLE_EXPERIMENTAL
 #include <iostream>
 #include <fstream>
 #include <json.hpp>
 #include <cmath>
+#include <algorithm>
+#include <glm/gtx/norm.hpp>
 
 #include "modules/Starter.hpp"
 #include "modules/TextMaker.hpp"
@@ -34,12 +37,14 @@ void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float 
     floorCollider->initAABB(-50.0f, -1.0f, -50.0f, 50.0f, floorLevel, 50.0f);
     floorCollider->setWorldMatrix(glm::mat4(1.0f));
     physicsObjects.clear();
+
     try {
         std::ifstream ifs(sceneFilePath);
         if (ifs.is_open()) {
             nlohmann::json js;
             ifs >> js;
             ifs.close();
+
             if (js.contains("instances")) {
                 // --- LETTURA CUSTOM COLLIDERS ---
                 if (js.contains("customColliders")) {
@@ -54,26 +59,30 @@ void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float 
                                 customColliders.push_back(cld);
 
                                 if (cc.value("visible", false)) {
-                                    scene.ColShow.show(cld); // Disegna il wireframe per il debug
+                                    scene.ColShow.show(cld);
                                 }
                             }
                         }
                     }
                 }
+
                 for (const auto &tech: js["instances"]) {
                     for (const auto &el: tech["elements"]) {
                         if (el.value("physics", false)) {
                             std::string instId = el["id"].template get<std::string>();
                             auto it = scene.InstanceIds.find(instId);
-                            if (it != scene.InstanceIds.end()) {
+                            if (it != scene.InstanceIds.end() && it->second < scene.InstanceCount && scene.I[it->second] != nullptr) {
 
                                 float m = el.value("mass", 1.5f);
                                 float b = el.value("bounciness", 0.4f);
                                 float f = el.value("friction", 0.85f);
 
-                                // ESTRAIAMO SCALA E ROTAZIONE ORIGINALE DEL MODELLO
                                 Instance* inst = scene.I[it->second];
-                                glm::vec3 oScale(glm::length(glm::vec3(inst->Wm[0])), glm::length(glm::vec3(inst->Wm[1])), glm::length(glm::vec3(inst->Wm[2])));
+                                glm::vec3 oScale(
+                                    glm::length(glm::vec3(inst->Wm[0])),
+                                    glm::length(glm::vec3(inst->Wm[1])),
+                                    glm::length(glm::vec3(inst->Wm[2]))
+                                );
                                 if (std::isnan(oScale.x) || oScale.x < 0.001f) oScale = glm::vec3(1.0f);
 
                                 glm::mat3 rotMat(
@@ -96,7 +105,6 @@ void PhysicsManager::init(Scene& scene, const std::string& sceneFilePath, float 
 }
 
 void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, const Player& player, bool canInteract, TextMaker& txt) {
-    // Limite deltaT per evitare problemi di fisica con frame rate bassi
     if (deltaT > 0.05f) deltaT = 0.05f;
     bool qPressed = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS;
     bool tPressed = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
@@ -134,25 +142,26 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
             rayOrigin.y += 0.5f;
             glm::vec3 rayDir = player.getForwardVector();
 
-            for (float d = 0.5f; d <= 4.0f; d += 0.2f) {
+            // Passo ridotto a 0.1f per evitare di attraversare mesh sottili
+            for (float d = 0.5f; d <= 4.0f; d += 0.1f) {
                 raycastPoint.setWorldMatrix(glm::translate(glm::mat4(1.0f), rayOrigin + rayDir * d));
 
-                // 1. Se il raggio colpisce un muro, si ferma (niente grab attraverso i muri)
                 bool hitWall = false;
                 for (Collider* cld : customColliders) {
-                    if (raycastPoint.collidesWith(*cld)) {
+                    if (cld && raycastPoint.collidesWith(*cld)) {
                         hitWall = true;
                         break;
                     }
                 }
                 if (hitWall) break;
 
-                // 2. Controlla gli oggetti
-                for (int i = 0; i < physicsObjects.size(); i++) {
-                    Instance* inst = scene.I[physicsObjects[i].instanceIndex];
-                    if (inst->C && raycastPoint.collidesWith(*(inst->C))) {
-                        hitIndex = i;
-                        break;
+                for (size_t i = 0; i < physicsObjects.size(); i++) {
+                    if (physicsObjects[i].instanceIndex < scene.InstanceCount) {
+                        Instance* inst = scene.I[physicsObjects[i].instanceIndex];
+                        if (inst && inst->C && raycastPoint.collidesWith(*(inst->C))) {
+                            hitIndex = static_cast<int>(i);
+                            break;
+                        }
                     }
                 }
                 if (hitIndex != -1) break;
@@ -174,7 +183,7 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
     // --- AGGIORNAMENTO UI ---
     bool textExists = (txt.Blocks.find(99) != txt.Blocks.end());
 
-    if (targetUIState != uiState) {
+    if (targetUIState != uiState || (targetUIState != PhysicsUIState::NONE && !textExists)) {
         txt.removeText(99);
         if (targetUIState == PhysicsUIState::GRAB) {
             txt.print(0.0f, 0.7f, "Premi Q per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
@@ -182,13 +191,6 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
             txt.print(0.0f, 0.7f, "Q per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
         }
         uiState = targetUIState;
-    } else if (targetUIState != PhysicsUIState::NONE && !textExists) {
-        // Se il manager dei dialoghi cancella lo schermo, il Physics ripristina la sua scritta in sicurezza
-        if (targetUIState == PhysicsUIState::GRAB) {
-            txt.print(0.0f, 0.7f, "Premi Q per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
-        } else if (targetUIState == PhysicsUIState::HOLD) {
-            txt.print(0.0f, 0.7f, "Q per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
-        }
     }
 
     qPressedLastFrame = qPressed;
@@ -196,28 +198,25 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
     // --- 2. RISOLUZIONE FISICA ---
     for (auto& po : physicsObjects) {
+        if (po.instanceIndex >= scene.InstanceCount) continue;
         Instance* inst = scene.I[po.instanceIndex];
         if (inst == nullptr || inst->C == nullptr) continue;
 
         glm::vec3 scale = po.originalScale;
 
-        // RIMETTE DRITTO L'OGGETTO USANDO LA SUA ROTAZIONE ORIGINALE
         if (po.isHeld) {
             glm::vec3 holdPos = player.position + player.getForwardVector() * 2.0f;
             holdPos.y -= 0.3f;
 
-            // Calcoliamo la rotazione dello sguardo del giocatore
             glm::mat4 playerYawMat = glm::rotate(glm::mat4(1.0f), glm::radians(player.yaw + 90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-            // Riprendiamo la rotazione originale nativa dell'oggetto dal JSON
             glm::mat4 originalRotMat = glm::mat4(po.originalRotation);
 
-            // Combiniamo: Traslazione * (RotazionePlayer * RotazioneOriginale) * Scala
             inst->Wm = glm::translate(glm::mat4(1.0f), holdPos) * playerYawMat * originalRotMat * glm::scale(glm::mat4(1.0f), scale);
             inst->C->setWorldMatrix(inst->Wm);
             continue;
         }
 
-        // Momento angolare
+        // Rotazione angolare
         if (glm::length(po.angularVelocity) > 0.01f) {
             glm::vec3 pos = glm::vec3(inst->Wm[3]);
 
@@ -242,20 +241,15 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
                 return true;
             }
 
-            // 2. Controllo Istanze
             glm::vec3 posA = glm::vec3(inst->Wm[3]);
 
             for (int j = 0; j < scene.InstanceCount; j++) {
                 if (j == po.instanceIndex) continue;
 
                 Instance* otherInst = scene.I[j];
-                if (otherInst->C) {
-
+                if (otherInst && otherInst->C) {
                     glm::vec3 posB = glm::vec3(otherInst->Wm[3]);
-                    float dx = posA.x - posB.x;
-                    float dy = posA.y - posB.y;
-                    float dz = posA.z - posB.z;
-                    float distSq = dx*dx + dy*dy + dz*dz;
+                    float distSq = glm::distance2(posA, posB);
 
                     if (distSq > 25.0f) continue;
 
@@ -263,12 +257,10 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
                 }
             }
 
-            // 3. Controllo Muri Invisibili JSON
             for (Collider* cld : customColliders) {
-                if (inst->C->collidesWith(*cld)) return true;
+                if (cld && inst->C->collidesWith(*cld)) return true;
             }
 
-            // 4. Test contro la faccia del Giocatore
             if (player.playerCollider && inst->C->collidesWith(*(player.playerCollider))) return true;
 
             return false;
@@ -277,9 +269,8 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
         glm::vec3 oldPos = glm::vec3(inst->Wm[3]);
         glm::vec3 newPos = oldPos;
 
-        // Asse Y (Gravità e Rimbalzo a terra)
+        // Gravità e asse Y
         po.velocity.y -= gravity * deltaT;
-        // Limite massimo di velocità verso il basso per evitare che l'oggetto cada troppo velocemente
         if (po.velocity.y < -25.0f) po.velocity.y = -25.0f;
 
         newPos.y += po.velocity.y * deltaT;
@@ -290,14 +281,22 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
             inst->Wm[3][1] = newPos.y;
 
             po.velocity.y *= -po.bounciness;
-            if (std::abs(po.velocity.y) < 1.5f) po.velocity.y = 0.0f;
+            if (std::abs(po.velocity.y) < 1.0f) po.velocity.y = 0.0f;
 
-            po.velocity.x *= po.friction;
-            po.velocity.z *= po.friction;
-            po.angularVelocity *= po.friction;
+            // Attrito basato sul deltaT per consistenza tra diversi framerate
+            float frictionFactor = std::pow(po.friction, deltaT * 60.0f);
+            po.velocity.x *= frictionFactor;
+            po.velocity.z *= frictionFactor;
+            po.angularVelocity *= frictionFactor;
 
-            // Allineamento naturale al suolo (Flattening)
-            if (po.velocity.y == 0.0f && glm::length(po.velocity) < 1.0f && glm::length(po.angularVelocity) < 2.0f) {
+            // Stop definitivo sulle micro-velocità (evita jittering)
+            if (glm::length(glm::vec2(po.velocity.x, po.velocity.z)) < 0.05f) {
+                po.velocity.x = 0.0f;
+                po.velocity.z = 0.0f;
+            }
+
+            // Allineamento (Flattening) senza passare per gli angoli di Eulero
+            if (po.velocity.y == 0.0f && glm::length(po.velocity) < 0.5f && glm::length(po.angularVelocity) < 1.0f) {
                 glm::mat3 rotMat(
                     glm::vec3(inst->Wm[0]) / scale.x,
                     glm::vec3(inst->Wm[1]) / scale.y,
@@ -305,17 +304,8 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
                 );
 
                 glm::quat q = glm::quat_cast(rotMat);
-                glm::vec3 euler = glm::eulerAngles(q);
-
-                const float pi2 = 1.5707963f;
-                glm::vec3 targetEuler(
-                    std::round(euler.x / pi2) * pi2,
-                    euler.y,
-                    std::round(euler.z / pi2) * pi2
-                );
-
-                glm::quat targetQ = glm::quat(targetEuler);
-                q = glm::normalize(glm::slerp(q, targetQ, 10.0f * deltaT));
+                // Slerp verso l'orientamento originale salvato al caricamento
+                q = glm::normalize(glm::slerp(q, po.originalRotation, 5.0f * deltaT));
 
                 inst->Wm = glm::translate(glm::mat4(1.0f), newPos) * glm::mat4(q) * glm::scale(glm::mat4(1.0f), scale);
 
@@ -349,8 +339,9 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
 
 Collider* PhysicsManager::getFloorCollider() const { return floorCollider; }
 const std::vector<Collider*>& PhysicsManager::getCustomColliders() const { return customColliders; }
+
 int PhysicsManager::getHeldInstanceIndex() const {
-    if (heldObjectIndex != -1 && heldObjectIndex < physicsObjects.size()) {
+    if (heldObjectIndex != -1 && static_cast<size_t>(heldObjectIndex) < physicsObjects.size()) {
         return physicsObjects[heldObjectIndex].instanceIndex;
     }
     return -1;
@@ -358,13 +349,13 @@ int PhysicsManager::getHeldInstanceIndex() const {
 
 void PhysicsManager::throwObject(Scene& scene, const std::string& instanceName, glm::vec3 startPos, glm::vec3 velocity) {
     auto it = scene.InstanceIds.find(instanceName);
-    if (it != scene.InstanceIds.end()) {
+    if (it != scene.InstanceIds.end() && it->second < scene.InstanceCount && scene.I[it->second] != nullptr) {
         for (auto& po : physicsObjects) {
             if (po.instanceIndex == it->second) {
-                // Posiziona l'oggetto e applica la forza
                 scene.I[po.instanceIndex]->Wm[3] = glm::vec4(startPos, 1.0f);
                 po.velocity = velocity;
                 po.angularVelocity = glm::vec3(15.0f, 5.0f, 10.0f);
+                po.isHeld = false;
                 break;
             }
         }

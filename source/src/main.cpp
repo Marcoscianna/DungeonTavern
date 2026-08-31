@@ -84,6 +84,16 @@ protected:
     LightManager lightManager;
 
     // ==========================================
+    // SISTEMA SKYDOME: Gestione del cielo
+    // ==========================================
+
+    struct SkydomeRef {
+        std::string id;
+        Instance* instancePtr;
+    };
+    std::vector<SkydomeRef> skydomeInstances;
+
+    // ==========================================
     // SISTEMA NPC: Logica e Grafica
     // ==========================================
 
@@ -219,9 +229,9 @@ public:
         PanimShadow.setCullMode(VK_CULL_MODE_NONE);
 
 
-        DPSZs.uniformBlocksInPool = 300;
+        DPSZs.uniformBlocksInPool = 100;
         DPSZs.texturesInPool = 150;
-        DPSZs.setsInPool = 300;
+        DPSZs.setsInPool = 100;
 
         VDRs.resize(2);
         VDRs[0].init("VDposUV", &VD);
@@ -260,6 +270,23 @@ public:
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
             exit(0);
+        }
+
+        // Popola la cache degli skydome dopo il caricamento della scena
+        skydomeInstances.clear();
+        int staticTechniques[] = {0, 2, 3, 4, 5, 6};
+
+        for (int t : staticTechniques) {
+            if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
+                for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
+                    if (SC.TI[t].I[i].id != nullptr) {
+                        std::string instId = *(SC.TI[t].I[i].id);
+                        if (instId.find("skydome") != std::string::npos || instId.find("sky") != std::string::npos) {
+                            skydomeInstances.push_back({instId, &SC.TI[t].I[i]});
+                        }
+                    }
+                }
+            }
         }
 
         // Inizializzazione moduli di base
@@ -335,8 +362,7 @@ public:
 
     void pipelinesAndDescriptorSetsInit() override {
         //texture depth 2048x2048
-        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this),
-                      RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        RPshadow.init(this, 1024, 1024, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 
@@ -551,42 +577,41 @@ public:
 
         UniformBufferObject ubo{};
 
-        // --- AGGIORNA TUTTI I MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5, 6) ---
-        int staticTechniques[] = {0, 2, 3, 4, 5, 6};
-
-        // ID dello Skydome attivo fornito dal LightManager
+       // =========================================================
+        // 1. GESTIONE SKYDOME (Attivo/Inattivo)
+        // =========================================================
         std::string activeSkyId = lightManager.getCurrentSkydomeInstanceId();
+
+        for (auto& skyRef : skydomeInstances) {
+            if (skyRef.id == activeSkyId) {
+                // Skydome attivo: centrato sul player e visibile
+                skyRef.instancePtr->Wm = glm::translate(glm::mat4(1.0f), player.position) *
+                                         glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                                         glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
+            } else {
+                // Skydome inattivo: sposta lontano sotto la mappa (evita matrici con scala 0)
+                skyRef.instancePtr->Wm = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -10000.0f, 0.0f));
+            }
+        }
+
+        // =========================================================
+        // 2. AGGIORNA MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5, 6)
+        // =========================================================
+        int staticTechniques[] = {0, 2, 3, 4, 5, 6};
 
         for (int t : staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
                 for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
 
-                    if (SC.TI[t].I[i].id != nullptr) {
-                        std::string instId = *(SC.TI[t].I[i].id);
-
-                        // Se l'istanza corrente fa parte degli skydome
-                        if (instId.find("skydome") != std::string::npos || instId.find("sky") != std::string::npos) {
-
-                            // Verifica se è esattamente l'istanza attiva del giorno/notte
-                            if (instId == activeSkyId) {
-                                // Centrato sulla posizione del giocatore + ROTAZIONE DI 180 GRADI sull'asse Y
-                                SC.TI[t].I[i].Wm = glm::translate(glm::mat4(1.0f), player.position) *
-                                                  glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-                                                  glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
-                            } else {
-                                // Nasconde gli skydome inattivi
-                                SC.TI[t].I[i].Wm = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
-                            }
-                        }
-                    }
-
                     ubo.mMat = SC.TI[t].I[i].Wm;
 
-                    // PASS 0 (Ombre)
-                    ubo.mvpMat = gubo.lightVP * ubo.mMat;
-                    SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+                    // PASS 0 (Ombre): Salta il pass ombre se è uno Skydome (Tecnica 6)
+                    if (t != 6) {
+                        ubo.mvpMat = gubo.lightVP * ubo.mMat;
+                        SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+                    }
 
-                    // PASS 1 (Colore)
+                    // PASS 1 (Colore/Schermo)
                     ubo.mvpMat = ViewPrj * ubo.mMat;
                     SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
                     SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
@@ -636,8 +661,6 @@ public:
         // UPDATE PHYSICS (Gravità per oggetti dinamici)
         // =========================================================
 
-        canInteract = !dialogueManager.isDialogueActive();
-        physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
         // Aggiornamento FPS
         static float elapsedT = 0.0f;

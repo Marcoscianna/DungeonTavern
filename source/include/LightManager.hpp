@@ -1,10 +1,17 @@
 #pragma once
 
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
 #include <GLFW/glfw3.h>
 #include <json.hpp>
 
@@ -20,7 +27,8 @@ struct GlobalUniformBufferObject {
     alignas(16) glm::mat4 lightVP;
     alignas(16) PointLight pLights[50];
     alignas(4)  int numLights;
-    float shadowToggle;
+    alignas(4)  float shadowToggle;
+    alignas(8)  glm::vec2 padding; // Garantisce l'allineamento a 16 byte dell'UBO
 };
 
 class LightManager {
@@ -60,16 +68,16 @@ public:
                 ifs.close();
 
                 if (js.contains("lights")) {
+                    internalLights.clear();
                     for (const auto& l : js["lights"]) {
                         glm::vec3 pos(l["position"][0], l["position"][1], l["position"][2]);
                         glm::vec3 col(l["color"][0], l["color"][1], l["color"][2]);
                         float intensity = l.value("intensity", 1.0f);
 
-                        // Genera un offset casuale (0.0 -> 10.0) per asincronizzare le fiamme
-                        float offset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 10.0f;
-
-                        float f1 = 10.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 25.0f;
-                        float f2 = 15.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 20.0f;
+                        // Genera offset casuali per asincronizzare le torce
+                        float offset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 100.0f;
+                        float f1 = 8.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 12.0f;
+                        float f2 = 18.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 22.0f;
 
                         internalLights.push_back({pos, col * intensity, offset, f1, f2});
                     }
@@ -84,6 +92,7 @@ public:
     void update(float deltaT, GLFWwindow* window) {
         totalTime += deltaT;
 
+        // Toggle velocita del tempo con il tasto N
         if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
             if (!nPressed) {
                 timeSpeed = (timeSpeed == 0.05f) ? 1.0f : 0.05f;
@@ -96,18 +105,19 @@ public:
         timeOfDay += timeSpeed * deltaT;
         if (timeOfDay >= 24.0f) timeOfDay -= 24.0f;
 
+        // Calcolo illuminazione in base all'ora
         float dayFactor = 0.0f;
         if (timeOfDay >= 6.0f && timeOfDay <= 18.0f) {
-            dayFactor = sin((timeOfDay - 6.0f) / 12.0f * 3.14159265f);
+            dayFactor = std::sin((timeOfDay - 6.0f) / 12.0f * 3.14159265f);
         }
 
-        // 4. Posizione e Colore Luce Direzionale (Sole/Luna)
+        // Posizione Sole/Luna
         float sunAngle = (timeOfDay - 12.0f) / 12.0f * 90.0f;
-
         glm::mat4 lightView = glm::rotate(glm::mat4(1.0f), glm::radians(sunAngle), glm::vec3(0.0f, 1.0f, 0.0f)) *
                               glm::rotate(glm::mat4(1.0f), glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         currentDirLightDir = glm::vec3(lightView * glm::vec4(0.0f, -1.0f, 0.0f, 0.0f));
 
+        // Colori luce e cielo
         glm::vec4 dayLight   = glm::vec4(1.0f, 0.95f, 0.8f, 1.0f) * 5.0f;
         glm::vec4 nightLight = glm::vec4(0.15f, 0.25f, 0.6f, 1.0f) * 0.1f;
         currentDirLightColor = glm::mix(nightLight, dayLight, dayFactor);
@@ -121,23 +131,23 @@ public:
         gubo.lightDir = currentDirLightDir;
         gubo.lightColor = currentDirLightColor;
 
-        gubo.numLights = std::min((int)internalLights.size(), 50);
-        for(int i = 0; i < gubo.numLights; i++) {
+        gubo.numLights = std::min(static_cast<int>(internalLights.size()), 50);
+        for (int i = 0; i < gubo.numLights; i++) {
             gubo.pLights[i].position = internalLights[i].position;
 
-            // --- FLICKERING ---
+            // --- FLICKERING ORGANICO ---
             float t = totalTime + internalLights[i].randomOffset;
+            float wave1 = std::sin(t * internalLights[i].freq1);
+            float wave2 = std::cos(t * internalLights[i].freq2);
+            float noise = std::sin(t * 45.0f) * 0.05f; // Micro-crepitio rapido
 
-            float wave = sin(t * internalLights[i].freq1) * cos(t * internalLights[i].freq2);
-            float flicker = 0.8f + 0.2f * wave;
-
+            float flicker = 0.85f + 0.12f * (wave1 * wave2) + noise;
             gubo.pLights[i].color = internalLights[i].baseColor * flicker;
         }
     }
 
     float getTimeOfDay() const { return timeOfDay; }
 
-    // Restituisce l'ID dell'istanza dello Skydome da mostrare in base all'ora attuale
     std::string getCurrentSkydomeInstanceId() const {
         if (timeOfDay >= 6.0f && timeOfDay < 17.0f) {
             return "skydome_day";
@@ -147,11 +157,11 @@ public:
             return "skydome_night";
         } else if (timeOfDay >= 23.0f || timeOfDay < 4.0f) {
             return "skydome_night2";
-        } else { // Tra 4.0 e 6.0 (Alba / Prima mattina)
+        } else {
             return "skydome_night3";
         }
     }
 
-    glm::vec4 getSkyColor() { return currentSkyColor; }
-    bool isTimeAccelerated() { return timeSpeed > 1.0f; }
+    glm::vec4 getSkyColor() const { return currentSkyColor; }
+    bool isTimeAccelerated() const { return timeSpeed > 1.0f; }
 };
