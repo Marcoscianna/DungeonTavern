@@ -92,8 +92,9 @@ protected:
 
     struct SkydomeRef {
         std::string id;
-        Instance* instancePtr;
+        Instance *instancePtr;
     };
+
     std::vector<SkydomeRef> skydomeInstances;
 
     // ==========================================
@@ -120,13 +121,13 @@ protected:
     int menuSelection = 0; // 0 = Gioca, 1 = Esci
     int textTitleId = -1;
     int textGiocaId = -1;
-    int textEsciId  = -1;
+    int textEsciId = -1;
 
     // ID Testi della Legenda nel Menu
     int textControlsKbdHeaderId = -1;
-    int textControlsKbdLinesId  = -1;
+    int textControlsKbdLinesId = -1;
     int textControlsPadHeaderId = -1;
-    int textControlsPadLinesId  = -1;
+    int textControlsPadLinesId = -1;
 
 public:
     DungeonTavern() : Ar(4.0f / 3.0f) {
@@ -231,8 +232,8 @@ public:
         //Pemissive.setCullMode(VK_CULL_MODE_NONE);
 
         Psky.init(this, &VD, "shaders/static.vert.spv",
-               "shaders/sky.frag.spv",
-               {&DSLglobal, &DSLemissive});
+                  "shaders/sky.frag.spv",
+                  {&DSLglobal, &DSLemissive});
 
         Pwood.init(this, &VD, "shaders/static.vert.spv", "shaders/wood.frag.spv", {&DSLglobal, &DSLlocal});
         Pstone.init(this, &VD, "shaders/static.vert.spv", "shaders/stone.frag.spv", {&DSLglobal, &DSLlocal});
@@ -279,9 +280,9 @@ public:
                         {.P = &Pmetal, .texDefs = {{}, {{true, 0, {}}}}}
                     }, 1, &VD);
         PRs[6].init("SkyTech", {
-                                {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
-                                {.P = &Psky, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}}
-                            }, 2, &VD);
+                        {.P = &Pshadow, .texDefs = {{}, {{true, 0, {}}}}},
+                        {.P = &Psky, .texDefs = {{}, {{true, 0, {}}, {true, 1, {}}}}}
+                    }, 2, &VD);
 
         if (SC.init(this, 2, VDRs, PRs, "assets/scenes/scene.json") != 0) {
             std::cout << "ERROR LOADING THE SCENE\n";
@@ -292,7 +293,7 @@ public:
         skydomeInstances.clear();
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
 
-        for (int t : staticTechniques) {
+        for (int t: staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
                 for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
                     if (SC.TI[t].I[i].id != nullptr) {
@@ -331,7 +332,8 @@ public:
                 "fighter_npc", "assets/models/npc/fighter/fighter_npc.gltf", "mixamo.com", 0, glm::mat4(1.0f),
                 {{0, 255, 1.0f, 0}}
             },
-                {"archer_npc", "assets/models/npc/archer/archer.gltf", "mixamo.com", 0, glm::mat4(1.0f),
+            {
+                "archer_npc", "assets/models/npc/archer/archer.gltf", "mixamo.com", 0, glm::mat4(1.0f),
                 {{0, 255, 1.0f, 0}}
             },
             {
@@ -358,7 +360,7 @@ public:
         });
         tavernNPCs = TavernNPC::loadNPCsFromJson("assets/scenes/scene.json", SC, npcAnimManager);
         tavernNPCs.erase(std::remove_if(tavernNPCs.begin(), tavernNPCs.end(),
-            [](const TavernNPC& npc) { return npc.name == "player"; }), tavernNPCs.end());
+                                        [](const TavernNPC &npc) { return npc.name == "player"; }), tavernNPCs.end());
         physicsManager.init(SC, "assets/scenes/scene.json", 0.3f);
         lightManager.init(12.0f);
         lightManager.loadLightsFromJson("assets/scenes/scene.json");
@@ -367,8 +369,10 @@ public:
         // CONFIGURAZIONE MISSIONI
         // =====================================================================
 
-        missionManager.addCollectionMission(2, "boccale", "tavolo_quadrato1", 3, "Trova i boccali", "Hai raccolto tutti i boccali!", 10.0f, 10.0f);
-        missionManager.addCollectionMission(4, "piatto", "tavolo_quadrato1", 5, "Trova i piatti", "Hai raccolto tutti i piatti!", 10.0f, 10.0f);
+        missionManager.addCollectionMission(2, "boccale", "tavolo_quadrato1", 3, "Trova i boccali",
+                                            "Hai raccolto tutti i boccali!", 10.0f, 10.0f);
+        missionManager.addCollectionMission(4, "piatto", "tavolo_quadrato1", 5, "Trova i piatti",
+                                            "Hai raccolto tutti i piatti!", 10.0f, 10.0f);
 
         // =====================================================================
         // CONFIGURAZIONE TRIGGER
@@ -384,7 +388,8 @@ public:
 
     void pipelinesAndDescriptorSetsInit() override {
         // Texture depth 2048x2048
-        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
+        RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this),
+                      RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
 
@@ -514,7 +519,8 @@ public:
         // Input Menu (Tastiera + Gamepad)
         bool kbdUp = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
         bool kbdDown = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
-        bool kbdEnter = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+        bool kbdEnter = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) ==
+                        GLFW_PRESS;
 
         bool gamepadUp = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS ||
                                         applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) < -0.5f);
@@ -530,10 +536,11 @@ public:
         glm::vec3 oldPlayerPos = player.position;
 
         if (currentState == GameState::MENU) {
-
             // 1.1 Titolo del Gioco
             if (textTitleId == -1) {
-                textTitleId = txt.print(0.0f, -0.65f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f), glm::vec4(0), glm::vec4(0,0,0,0.8f), 2.0f, 2.0f);
+                textTitleId = txt.print(0.0f, -0.65f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false,
+                                        TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f),
+                                        glm::vec4(0), glm::vec4(0, 0, 0, 0.8f), 2.0f, 2.0f);
             }
 
             // 1.2 Navigazione del Menu
@@ -542,42 +549,50 @@ public:
 
             // 1.3 Opzioni Menu
             std::string strGioca = (menuSelection == 0) ? "> GIOCA <" : "  GIOCA  ";
-            std::string strEsci  = (menuSelection == 1) ? "> ESCI <"  : "  ESCI  ";
+            std::string strEsci = (menuSelection == 1) ? "> ESCI <" : "  ESCI  ";
 
             glm::vec4 colorGioca = (menuSelection == 0) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
-            glm::vec4 colorEsci  = (menuSelection == 1) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
+            glm::vec4 colorEsci = (menuSelection == 1) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
 
-            textGiocaId = txt.print(0.0f, -0.35f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorGioca);
-            textEsciId  = txt.print(0.0f, -0.20f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorEsci);
+            textGiocaId = txt.print(0.0f, -0.35f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER,
+                                    TRH_CENTER, TRV_MIDDLE, colorGioca);
+            textEsciId = txt.print(0.0f, -0.20f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER,
+                                   TRV_MIDDLE, colorEsci);
 
             // 1.4 LEGENDA DEI COMANDI
             // Colonna Sinistra: Tastiera e Mouse
             if (textControlsKbdHeaderId == -1) {
-                textControlsKbdHeaderId = txt.print(-0.55f, 0.05f, "CONTROLLI TASTIERA", textControlsKbdHeaderId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
+                textControlsKbdHeaderId = txt.print(-0.55f, 0.05f, "CONTROLLI TASTIERA", textControlsKbdHeaderId, "SS",
+                                                    false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP,
+                                                    glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
             }
             std::string kbdText =
-                "SHIFT : Corsa\n"
-                "SPAZIO : Salto\n"
-                "E : Interagisci / Dialogo\n"
-                "Q : Prendi / Lascia Oggetti\n"
-                "M : Vola\n"
-                "C : Telecamera 1a persona\n"
-                "X : Telecamera 3a persona";
-            textControlsKbdLinesId = txt.print(-0.55f, 0.15f, kbdText, textControlsKbdLinesId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
+                    "SHIFT : Corsa\n"
+                    "SPAZIO : Salto\n"
+                    "E : Interagisci / Dialogo\n"
+                    "Q : Prendi / Lascia Oggetti\n"
+                    "M : Vola\n"
+                    "C : Telecamera 1a persona\n"
+                    "X : Telecamera 3a persona";
+            textControlsKbdLinesId = txt.print(-0.55f, 0.15f, kbdText, textControlsKbdLinesId, "SS", false, false,
+                                               false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
 
             // Colonna Destra: Gamepad
             if (textControlsPadHeaderId == -1) {
-                textControlsPadHeaderId = txt.print(0.55f, 0.05f, "CONTROLLI GAMEPAD", textControlsPadHeaderId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
+                textControlsPadHeaderId = txt.print(0.55f, 0.05f, "CONTROLLI GAMEPAD", textControlsPadHeaderId, "SS",
+                                                    false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP,
+                                                    glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
             }
             std::string padText =
-                "L3 / RT : Corsa\n"
-                "Tasto A : Salto\n"
-                "Tasto A : Interagisci / Dialogo\n"
-                "Tasto X : Prendi / Lascia Oggetti\n"
-                "Tasto Y : Vola\n"
-                "Freccia dx : Telecamera\n"
-                "Freccia sx : Telecamera 3a persona";
-            textControlsPadLinesId = txt.print(0.55f, 0.15f, padText, textControlsPadLinesId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
+                    "L3 / RT : Corsa\n"
+                    "Tasto A : Salto\n"
+                    "Tasto A : Interagisci / Dialogo\n"
+                    "Tasto X : Prendi / Lascia Oggetti\n"
+                    "Tasto Y : Vola\n"
+                    "Freccia dx : Telecamera\n"
+                    "Freccia sx : Telecamera 3a persona";
+            textControlsPadLinesId = txt.print(0.55f, 0.15f, padText, textControlsPadLinesId, "SS", false, false, false,
+                                               TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
 
             // 1.5 Selezione Opzione
             if (enterPressed && !enterPressedLastFrame) {
@@ -586,27 +601,32 @@ public:
                     currentState = GameState::PLAYING;
 
                     // Pulisce la UI del menu e della legenda
-                    txt.removeText(textTitleId);             textTitleId = -1;
-                    txt.removeText(textGiocaId);             textGiocaId = -1;
-                    txt.removeText(textEsciId);              textEsciId  = -1;
-                    txt.removeText(textControlsKbdHeaderId); textControlsKbdHeaderId = -1;
-                    txt.removeText(textControlsKbdLinesId);  textControlsKbdLinesId  = -1;
-                    txt.removeText(textControlsPadHeaderId); textControlsPadHeaderId = -1;
-                    txt.removeText(textControlsPadLinesId);  textControlsPadLinesId  = -1;
+                    txt.removeText(textTitleId);
+                    textTitleId = -1;
+                    txt.removeText(textGiocaId);
+                    textGiocaId = -1;
+                    txt.removeText(textEsciId);
+                    textEsciId = -1;
+                    txt.removeText(textControlsKbdHeaderId);
+                    textControlsKbdHeaderId = -1;
+                    txt.removeText(textControlsKbdLinesId);
+                    textControlsKbdLinesId = -1;
+                    txt.removeText(textControlsPadHeaderId);
+                    textControlsPadHeaderId = -1;
+                    txt.removeText(textControlsPadLinesId);
+                    textControlsPadLinesId = -1;
 
                     // Lancia il boccale iniziale
                     glm::vec3 throwPos = player.position + player.getForwardVector() * 1.0f;
                     throwPos.y += 0.5f;
-                    physicsManager.throwObject(SC, "boccale_start", throwPos, player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
-
+                    physicsManager.throwObject(SC, "boccale_start", throwPos,
+                                               player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
                 } else if (menuSelection == 1) {
                     // USCITA DAL GIOCO
                     glfwSetWindowShouldClose(window, GL_TRUE);
                 }
             }
-
         } else if (currentState == GameState::PLAYING) {
-
             // --- LOGICA DI GIOCO ATTIVA SOLO IN PLAYING ---
             dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
 
@@ -618,6 +638,7 @@ public:
 
             // GESTIONE OBIETTIVI UI
             static int objTextId = -1;
+            static std::string lastObjStr = "";
             std::string objStr = "";
             int prog = dialogueManager.getStoryProgress();
 
@@ -627,11 +648,15 @@ public:
             else if (prog == 5) objStr = "Obiettivo: Torna dall'oste";
             else if (prog >= 7) objStr = "Demo terminata";
 
-            if (!objStr.empty()) {
-                objTextId = txt.print(-0.95f, -0.9f, objStr, objTextId, "SS", false, false, false, TAL_LEFT, TRH_LEFT, TRV_TOP, glm::vec4(1.0f));
-            } else if (objTextId != -1) {
-                txt.removeText(objTextId);
-                objTextId = -1;
+            if (objStr != lastObjStr) {
+                if (!objStr.empty()) {
+                    objTextId = txt.print(-0.95f, -0.9f, objStr, objTextId, "SS", false, false, false, TAL_LEFT,
+                                          TRH_LEFT, TRV_TOP, glm::vec4(1.0f));
+                } else if (objTextId != -1) {
+                    txt.removeText(objTextId);
+                    objTextId = -1;
+                }
+                lastObjStr = objStr;
             }
 
             // CONTROLLO TRIGGER PORTA
@@ -698,10 +723,11 @@ public:
         // 1. GESTIONE SKYDOME
         std::string activeSkyId = lightManager.getCurrentSkydomeInstanceId();
 
-        for (auto& skyRef : skydomeInstances) {
+        for (auto &skyRef: skydomeInstances) {
             if (skyRef.id == activeSkyId) {
                 skyRef.instancePtr->Wm = glm::translate(glm::mat4(1.0f), player.position) *
-                                         glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                                         glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+                                                     glm::vec3(1.0f, 0.0f, 0.0f)) *
                                          glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
             } else {
                 skyRef.instancePtr->Wm = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -10000.0f, 0.0f));
@@ -711,6 +737,7 @@ public:
         // 2. AGGIORNA MATERIALI STATICI
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
         float renderDistance = 70.0f;
+        float renderDistSq = renderDistance * renderDistance;
 
         const float minX = 1.11968f;
         const float maxX = 19.5197f;
@@ -723,48 +750,74 @@ public:
                               (player.position.y >= minY && player.position.y <= maxY) &&
                               (player.position.z >= minZ && player.position.z <= maxZ);
 
-        for (int t : staticTechniques) {
+        static bool cullingInitialized = false;
+        static std::vector<std::vector<bool> > isLargeObject(7);
+
+        if (!cullingInitialized) {
+            for (int t: staticTechniques) {
+                if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
+                    isLargeObject[t].resize(SC.TI[t].InstanceCount, false);
+                    for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
+                        if (SC.TI[t].I[i].id != nullptr) {
+                            const std::string &objName = *(SC.TI[t].I[i].id);
+                            if (objName.find("floor") != std::string::npos ||
+                                objName.find("mountain") != std::string::npos ||
+                                objName.find("village_building") != std::string::npos ||
+                                objName.find("barrel") != std::string::npos ||
+                                objName.find("well") != std::string::npos ||
+                                objName.find("street_lamp") != std::string::npos ||
+                                objName.find("muro") != std::string::npos) {
+                                isLargeObject[t][i] = true;
+                            }
+                        }
+                    }
+                }
+            }
+            cullingInitialized = true;
+        }
+
+        // Matrice costantemente a zero per gli oggetti invisibili
+        static const glm::mat4 zeroMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
+
+        // ====================================================================
+        // IL LOOP DI RENDERING
+        // ====================================================================
+        for (int t: staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
                 for (int i = 0; i < SC.TI[t].InstanceCount; i++) {
-
-                    glm::vec3 objPos = glm::vec3(SC.TI[t].I[i].Wm[3]);
                     bool isVisible = false;
 
-                    if (t == 6) {
+                    if (t == 6 || !isInTavernRoom || isLargeObject[t][i]) {
                         isVisible = true;
                     } else {
-                        if (glm::distance(player.position, objPos) < renderDistance || !isInTavernRoom) {
+                        glm::vec3 objPos = glm::vec3(SC.TI[t].I[i].Wm[3]);
+                        glm::vec3 diff = player.position - objPos;
+                        float distSq = (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z);
+
+                        if (distSq < renderDistSq) {
                             isVisible = true;
-                        } else {
-                            if (SC.TI[t].I[i].id != nullptr) {
-                                std::string objName = *(SC.TI[t].I[i].id);
-                                if (objName.find("floor") != std::string::npos ||
-                                    objName.find("mountain") != std::string::npos ||
-                                    objName.find("village_building") != std::string::npos ||
-                                    objName.find("barrel") != std::string::npos ||
-                                    objName.find("well") != std::string::npos ||
-                                    objName.find("street_lamp") != std::string::npos ||
-                                    objName.find("muro") != std::string::npos) {
-                                    isVisible = true;
-                                }
-                            }
                         }
                     }
 
                     if (isVisible) {
                         ubo.mMat = SC.TI[t].I[i].Wm;
+
+                        if (t != 6) {
+                            ubo.mvpMat = gubo.lightVP * ubo.mMat;
+                            SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+                        }
+
+                        ubo.mvpMat = ViewPrj * ubo.mMat;
+                        SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
+                        SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
                     } else {
-                        ubo.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
-                    }
+                        ubo.mMat = zeroMat;
+                        ubo.mvpMat = zeroMat;
 
-                    if (t != 6) {
-                        ubo.mvpMat = gubo.lightVP * ubo.mMat;
-                        SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+                        if (t != 6) SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
+                        SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
+                        SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
                     }
-
-                    ubo.mvpMat = ViewPrj * ubo.mMat;
-                    SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
-                    SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
                 }
             }
         }
@@ -796,7 +849,8 @@ public:
 
         bool isRunningKbd = isMoving && (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
         bool isRunningGamepad = isMoving && hasGamepad && (gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.5f ||
-                                                           gamepadState.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB] == GLFW_PRESS);
+                                                           gamepadState.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB] ==
+                                                           GLFW_PRESS);
         bool isRunning = isRunningKbd || isRunningGamepad;
 
         bool isJumpingKbd = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
