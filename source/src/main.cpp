@@ -228,7 +228,7 @@ public:
         Pemissive.init(this, &VD, "shaders/static.vert.spv",
                        "shaders/emissive.frag.spv",
                        {&DSLglobal, &DSLemissive});
-        Pemissive.setCullMode(VK_CULL_MODE_NONE);
+        //Pemissive.setCullMode(VK_CULL_MODE_NONE);
 
         Psky.init(this, &VD, "shaders/static.vert.spv",
                "shaders/sky.frag.spv",
@@ -239,10 +239,10 @@ public:
         Pmetal.init(this, &VD, "shaders/static.vert.spv", "shaders/metal.frag.spv", {&DSLglobal, &DSLlocal});
 
         Pshadow.init(this, &VD, "shaders/shadow.vert.spv", "shaders/shadow.frag.spv", {&DSLglobal, &DSLlocal});
-        Pshadow.setCullMode(VK_CULL_MODE_NONE);
+        //Pshadow.setCullMode(VK_CULL_MODE_NONE);
         PanimShadow.init(this, &VDanim, "shaders/shadow_anim.vert.spv", "shaders/shadow.frag.spv",
                          {&DSLglobal, &DSLanim});
-        PanimShadow.setCullMode(VK_CULL_MODE_NONE);
+        //PanimShadow.setCullMode(VK_CULL_MODE_NONE);
 
 
         DPSZs.uniformBlocksInPool = 100;
@@ -677,10 +677,6 @@ public:
         glm::mat4 ViewPrj = player.getViewProjectionMatrix(Ar);
         SC.updateColliderVisualizer(currentImage, ViewPrj);
 
-        // AGGIORNAMENTO DINAMICO COLORE DEL CIELO (CLEAR VALUE)
-        glm::vec4 sky = lightManager.getSkyColor();
-        RP.properties[0].clearValue = {sky.r, sky.g, sky.b, 1.0f};
-
         // CALCOLO DELLA TELECAMERA DEL SOLE (SHADOW MAPPING)
         GlobalUniformBufferObject gubo{};
         gubo.eyePos = player.position;
@@ -695,7 +691,6 @@ public:
         glm::mat4 lightViewMat = glm::lookAt(lightPos, tavernCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 
         gubo.lightVP = lightProj * lightViewMat;
-
         DSglobal.map((int) currentImage, &gubo, 0);
 
         UniformBufferObject ubo{};
@@ -830,22 +825,10 @@ public:
         // Aggiornamento modelli animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);
 
-        // Aggiornamento FPS
-        static float elapsedT = 0.0f;
-        static int countedFrames = 0;
-
-        countedFrames++;
-        elapsedT += deltaT;
-        if (elapsedT > 1.0f) {
-            float Fps = (float) countedFrames / elapsedT;
-            elapsedT = 0.0f;
-            countedFrames = 0;
-        }
-
         txt.updateCommandBuffer();
 
         // DEBUG: PREMI 'P' PER STAMPARE LA POSIZIONE
-        static bool pPressed = false;
+        /*static bool pPressed = false;
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (!pPressed) {
                 std::cout << "{\n";
@@ -858,7 +841,7 @@ public:
             }
         } else {
             pPressed = false;
-        }
+        }*/
     }
 };
 

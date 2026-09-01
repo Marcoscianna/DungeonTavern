@@ -9545,6 +9545,16 @@
 						{
 							"id": 0,
 							"text": "Fermo! Dove credi di andare? Hai fatto un disastro stanotte. Vai a parlare con l'oste al bancone e sistema il tuo casino prima di uscire!",
+							"choices": [{"text": "D'accordo...", "next": -1, "setStory": 1}, {"text": "Non ci penso neanche, ho fretta!", "next": 1}]
+						},
+						{
+							"id": 1,
+							"text": "Forse non hai capito.... Non puoi uscire finche' non avrai sistemato il tutto!!",
+							"choices": [{"text": "D'accordo...", "next": -1, "setStory": 1}, {"text": "Fallo tu!!", "next": 2}]
+						},
+						{
+							"id": 2,
+							"text": "Non costringermi a chiamare il boia... La cittadina  puo' fare a meno di te! Pulisci il tuo casino o ti faccio passare la voglia di bere per sempre!!",
 							"choices": [{"text": "D'accordo...", "next": -1, "setStory": 1}]
 						}
 					],
@@ -9557,7 +9567,7 @@
 						{
 							"requiredProgress": 6,
 							"dialogueType": "ONE_LINER",
-							"dialogues": ["Finalmente, niente più disordine", "Vedi di non farlo piu'!"]
+							"dialogues": ["Finalmente, niente piu' disordine", "Vedi di non farlo piu'!"]
 						}
 					]
 				},
@@ -9639,7 +9649,12 @@
 								{
 									"id": 0,
 									"text": "Ah, ti sei ripreso finalmente. Hai distrutto mezza taverna. Inizia a raccogliere i boccali sparsi in giro e portali sul tavolo quadrato in cucina qui a destra. Muoviti!",
-									"choices": [{"text": "Ci penso io.", "next": -1, "setStory": 2}]
+									"choices": [{"text": "Ci penso io.", "next": -1, "setStory": 2}, {"text": "Altrimenti...", "next": 1}]
+								},
+								{
+									"id": 1,
+									"text": "Altrimenti cosa? Vuoi che ti faccia buttare fuori dalla taverna? Non ho tempo da perdere con te. Raccogli i boccali e portali sul tavolo quadrato in cucina qui a destra.",
+									"choices": [{"text": "Okay scusa, faccio subito", "next": -1, "setStory": 2}]
 								}
 							]
 						},
@@ -9694,9 +9709,9 @@
 					"speed": 1.7,
 					"dialogueType": "ONE_LINER",
 					"dialogues": [
-						"Hic! Questa è indubbiamente la birra migliore di tutta Harrenhal...",
+						"Hic! Questa e' indubbiamente la birra migliore di tutta Harrenhal...",
 						"Ancora tu? Prima cantavi come una capra strozzata!",
-						"Mio fratello è furioso, passerai molti guai se non lo aiuti",
+						"Mio fratello e' furioso, passerai molti guai se non lo aiuti",
 						"Attento a dove cammini, ho quasi rimesso laggiu'."
 					],
 					"waypoints": [
