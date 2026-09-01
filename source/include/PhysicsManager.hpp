@@ -31,6 +31,9 @@ enum class PhysicsUIState { NONE, GRAB, HOLD };
 
 class PhysicsManager {
 private:
+    bool xPressedLastFrame = false;
+    bool lbPressedLastFrame = false;
+
     std::vector<PhysicsObject> physicsObjects;
 
     // Lista dei collider customizzati letti dal JSON

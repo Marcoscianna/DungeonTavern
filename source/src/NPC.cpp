@@ -121,7 +121,8 @@ std::vector<TavernNPC> TavernNPC::loadNPCsFromJson(const std::string& filepath, 
                             TavernNPC data;
                             data.name = npcId;
 
-                            data.prompt = el.value("prompt", "Premi E per interagire");
+                            // Prompt aggiornato con doppio indicatore Tastiera/Gamepad
+                            data.prompt = el.value("prompt", "Premi E / (A) per parlare");
                             data.interactionRadius = el.value("interactionRadius", 10.0f);
                             data.speed = el.value("speed", 1.0f);
 
@@ -230,7 +231,7 @@ std::vector<TavernNPC> TavernNPC::loadNPCsFromJson(const std::string& filepath, 
                 npc.waypoints = it->second.waypoints;
                 npc.waitTimes = it->second.waitTimes;
             } else {
-                npc.prompt = "Premi E per interagire";
+                npc.prompt = "Premi E / (A) per parlare";
                 npc.interactionRadius = 10.0f;
                 npc.type = InteractionType::LINEAR;
                 npc.dialogues.push_back("Benvenuto nella taverna.");
@@ -258,8 +259,8 @@ std::vector<TavernNPC> TavernNPC::loadNPCsFromJson(const std::string& filepath, 
     // Fallback di sicurezza
     if (resultNPCs.empty()) {
         resultNPCs = {
-            {"door_guard_r", glm::vec3(9.0f, 0.0f, -8.0f), 10.0f, "Premi E per interagire", InteractionType::LINEAR, {"Benvenuto nella taverna."}, {}},
-            {"door_guard_l", glm::vec3(13.8f, 0.0f, -8.0f), 10.0f, "Premi E per interagire", InteractionType::LINEAR, {"La porta è chiusa per stanotte."}, {}}
+            {"door_guard_r", glm::vec3(9.0f, 0.0f, -8.0f), 10.0f, "Premi E / (A) per parlare", InteractionType::LINEAR, {"Benvenuto nella taverna."}, {}},
+            {"door_guard_l", glm::vec3(13.8f, 0.0f, -8.0f), 10.0f, "Premi E / (A) per parlare", InteractionType::LINEAR, {"La porta è chiusa per stanotte."}, {}}
         };
     }
 

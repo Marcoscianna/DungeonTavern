@@ -32,6 +32,7 @@ void Player::init(glm::vec3 startPos, float startYaw, float startPitch, float ra
     cPressedLastFrame = false;
     isThirdPerson = false;
     xPressedLastFrame = false;
+    rPressedLastFrame = false;
     playerVelocityY = 0.0f;
     FOVy = glm::radians(45.0f);
     nearPlane = 0.1f;
@@ -108,7 +109,6 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
 
         if (scene.I[i]->id != nullptr) {
             std::string objId = *(scene.I[i]->id);
-            // Salta la collisione se l'ID contiene la parola "player" o "Player"
             if (objId.find("player") != std::string::npos || objId.find("Player") != std::string::npos) {
                 continue;
             }
@@ -128,7 +128,39 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
 }
 
 void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scene, const PhysicsManager& physManager) {
-    // --- DEFINIZIONE LIMITI RETTANGOLO TAVERNA (3D: X, Y, Z) ---
+    // --- CONTROLLO INPUT DA GAMEPAD / JOYSTICK ---
+    GLFWgamepadstate gamepadState;
+    bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
+
+    // Filter Deadzone per Stick Analogici
+    auto applyDeadzone = [](float value, float threshold = 0.15f) -> float {
+        if (std::abs(value) < threshold) return 0.0f;
+        return value;
+    };
+
+    // --- TOGGLE FULLSCREEN (TASTO R o BACK/SELECT) ---
+    bool rPressed = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) ||
+                    (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS);
+
+    if (rPressed && !rPressedLastFrame) {
+        static int savedX = 100, savedY = 100, savedWidth = 1280, savedHeight = 720;
+
+        bool isFullscreen = (glfwGetWindowMonitor(window) != nullptr);
+        if (!isFullscreen) {
+            glfwGetWindowPos(window, &savedX, &savedY);
+            glfwGetWindowSize(window, &savedWidth, &savedHeight);
+
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+            glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        } else {
+            glfwSetWindowMonitor(window, nullptr, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
+        }
+    }
+    rPressedLastFrame = rPressed;
+
+    // --- LIMITI TAVERNA ---
     const float minX = 1.11968f;
     const float maxX = 19.5197f;
     const float minZ = -5.76789f;
@@ -136,73 +168,105 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     const float minY = -1.0f;
     const float maxY = 16.0f;
 
-    // Controlla se la posizione del player ricade nel rettangolo
     bool isInTavernRoom = (position.x >= minX && position.x <= maxX) &&
                           (position.y >= minY && position.y <= maxY) &&
                           (position.z >= minZ && position.z <= maxZ);
 
-    // --- TOGGLE TELECAMERA FISSA TAVERNA (TASTO C: 0 -> 1 -> 2 -> 0) ---
-    bool cPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;
+    // --- TOGGLE TELECAMERA FISSA TAVERNA (TASTO C o D-PAD DESTRA) ---
+    bool cPressed = (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) ||
+                    (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT] == GLFW_PRESS);
+
     if (cPressed && !cPressedLastFrame) {
         if (isInTavernRoom || isFixedCamera()) {
-            cameraMode = (cameraMode + 1) % 3; // Cicla tra 0, 1 e 2
+            cameraMode = (cameraMode + 1) % 3;
             if (cameraMode != 0) {
-                isThirdPerson = false; // Disattiva la 3rd person se si passa alle cam fisse
+                isThirdPerson = false;
             }
         }
     }
     cPressedLastFrame = cPressed;
 
-    // --- TOGGLE TERZA PERSONA STILE FORTNITE (TASTO X) ---
-    bool xPressed = glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS;
+    // --- TOGGLE TERZA PERSONA (TASTO X o D-PAD SINISTRA) ---
+    bool xPressed = (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) ||
+                    (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT] == GLFW_PRESS);
+
     if (xPressed && !xPressedLastFrame) {
         isThirdPerson = !isThirdPerson;
         if (isThirdPerson) {
-            cameraMode = 0; // Torna alla modalita dinamica sbloccata
+            cameraMode = 0;
         }
     }
     xPressedLastFrame = xPressed;
 
-    // Aggiorna orientamento mouse
+    // --- ROTAZIONE VISUALE (MOUSE o STICK DESTRO GAMEPAD) ---
     updateMouseLook(window);
+    if (hasGamepad) {
+        float rightStickX = applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]);
+        float rightStickY = applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
 
-    // Limitatore di deltaTime per evitare salti in caso di cali di frame rate
-    if (deltaTime > 0.1f) {
-        deltaTime = 0.1f;
+        float gamepadRotSensitivity = 120.0f * deltaTime;
+        yaw += rightStickX * gamepadRotSensitivity;
+        pitch -= rightStickY * gamepadRotSensitivity; // Invertito per feeling naturale
+
+        if (pitch > 89.0f) pitch = 89.0f;
+        if (pitch < -89.0f) pitch = -89.0f;
     }
 
-    // --- TOGGLE FLY MODE (TASTO M) ---
-    bool mPressed = glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS;
+    if (deltaTime > 0.1f) deltaTime = 0.1f;
+
+    // --- TOGGLE FLY MODE (TASTO M o TASTO Y / TRIANGOLO) ---
+    bool mPressed = (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) ||
+                    (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_Y] == GLFW_PRESS);
+
     if (mPressed && !mPressedLastFrame) {
         flyMode = !flyMode;
-        if (flyMode) playerVelocityY = 0.0f; // Azzera la gravita
+        if (flyMode) playerVelocityY = 0.0f;
     }
     mPressedLastFrame = mPressed;
 
-    float velocity = moveSpeed * deltaTime * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 2.0f : 1.0f);
+    // --- CORSA (SHIFT o GRILLETTO DESTRO / L3) ---
+    bool isRunningInput = (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ||
+                          (hasGamepad && (gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.5f ||
+                                          gamepadState.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB] == GLFW_PRESS));
+
+    float velocity = moveSpeed * deltaTime * (isRunningInput ? 2.0f : 1.0f);
     glm::vec3 forward = getForwardVector();
     glm::vec3 forwardFlat = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
     glm::vec3 rightFlat = getRightVector();
 
-    // --- LOGICA FLY MODE ---
-    if (flyMode) {
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) position += forward * velocity;
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) position -= forward * velocity;
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) position -= rightFlat * velocity;
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) position += rightFlat * velocity;
-        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) position.y += velocity * 2.0f;
-
-        playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
-        return;
-    }
-
-    // 1. Input orizzontale (WASD)
+    // --- MOVIMENTO WASD / STICK SINISTRO ---
     glm::vec3 desiredMove(0.0f);
+
+    // Tastiera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) desiredMove += forwardFlat;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) desiredMove -= forwardFlat;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) desiredMove -= rightFlat;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) desiredMove += rightFlat;
 
+    // Gamepad Stick Sinistro
+    if (hasGamepad) {
+        float leftStickX = applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_X]);
+        float leftStickY = applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]);
+
+        desiredMove += rightFlat * leftStickX;
+        desiredMove -= forwardFlat * leftStickY;
+    }
+
+    // --- LOGICA FLY MODE ---
+    if (flyMode) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS ||
+           (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] == GLFW_PRESS)) {
+            position.y += velocity * 2.0f;
+        }
+        if (glm::length(desiredMove) > 0.01f) {
+            position += glm::normalize(desiredMove) * velocity;
+        }
+
+        playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
+        return;
+    }
+
+    // Movimento con scomposizione dello Step
     if (glm::length(desiredMove) > 0.01f) {
         desiredMove = glm::normalize(desiredMove) * velocity;
     }
@@ -210,7 +274,6 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
     glm::vec3 resolvedPos = position;
     float stepHeight = 0.6f;
 
-    // SUB-STEPPING
     float moveLength = glm::length(desiredMove);
     int numSteps = static_cast<int>(moveLength / 0.1f) + 1;
     glm::vec3 stepMove = desiredMove / static_cast<float>(numSteps);
@@ -243,18 +306,21 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         }
     }
 
-    // Gravita e salto
+    // Gravità e Salto (SPAZIO o TASTO A / CROCE)
     playerVelocityY -= 40.0f * deltaTime;
 
     glm::vec3 testY = resolvedPos;
     testY.y += playerVelocityY * deltaTime;
+
+    bool jumpInput = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) ||
+                     (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS);
 
     if (!checkCollisionAt(testY, scene, physManager)) {
         resolvedPos.y = testY.y;
     } else {
         if (playerVelocityY < 0.0f) {
             playerVelocityY = 0.0f;
-            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            if (jumpInput) {
                 playerVelocityY = 12.0f;
             }
         } else {
@@ -268,22 +334,22 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
 }
 
 glm::mat4 Player::getViewMatrix() const {
-    // 1. Telecamere fisse della Taverna (Tasto C)
+    // 1. Telecamere fisse della Taverna (Tasto C / D-Pad Destra)
     if (cameraMode == 1) {
         return glm::lookAt(fixedCamPos1, fixedCamTarget1, glm::vec3(0.0f, 1.0f, 0.0f));
     } else if (cameraMode == 2) {
         return glm::lookAt(fixedCamPos2, fixedCamTarget2, glm::vec3(0.0f, 1.0f, 0.0f));
     }
 
-    // 2. Terza Persona stile Fortnite (Tasto X)
+    // 2. Terza Persona stile Fortnite (Tasto X / D-Pad Sinistra)
     if (isThirdPerson) {
         glm::vec3 forward = getForwardVector();
         glm::vec3 right = getRightVector();
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        float distanceBehind = 4.5f; // Distanza dietro le spalle
-        float heightOffset   = 0.2f; // Altezza sopra la testa
-        float sideOffset     = 0.6f; // Spostamento sulla spalla destra
+        float distanceBehind = 4.5f;
+        float heightOffset   = 0.2f;
+        float sideOffset     = 0.6f;
 
         glm::vec3 camPos = position
                          - (forward * distanceBehind)
@@ -310,19 +376,12 @@ glm::mat4 Player::getViewProjectionMatrix(float aspectRatio) const {
 }
 
 glm::mat4 Player::getWorldMatrix() const {
-    // 1. Applichiamo l'offset verticale (-2.9f per far coincidere la base del modello con il pavimento/collider)
     glm::vec3 meshPos = position;
     meshPos.y -= 2.9f;
 
     glm::mat4 customWorld = glm::translate(glm::mat4(1.0f), meshPos);
-
-    // 2. Ruota verso lo Yaw di visuale
     customWorld = glm::rotate(customWorld, glm::radians(-yaw + 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    // 3. Raddrizza il modello Mixamo (da sdraiato a in piedi)
     customWorld = glm::rotate(customWorld, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    // 4. Applica la scala dal scene.json (0.018)
     customWorld = glm::scale(customWorld, glm::vec3(0.018f));
 
     return customWorld;

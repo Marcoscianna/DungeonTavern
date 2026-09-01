@@ -51,6 +51,8 @@ public:
     bool isThirdPerson = false;
     bool xPressedLastFrame = false;
 
+    bool rPressedLastFrame;
+
     // Telecamera 1
     glm::vec3 fixedCamPos1 = glm::vec3(31.0f, 10.8f, 27.0f);
     glm::vec3 fixedCamTarget1 = glm::vec3(12.0f, 6.0f, 12.0f);

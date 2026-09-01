@@ -122,9 +122,15 @@ protected:
     int textGiocaId = -1;
     int textEsciId  = -1;
 
+    // ID Testi della Legenda nel Menu
+    int textControlsKbdHeaderId = -1;
+    int textControlsKbdLinesId  = -1;
+    int textControlsPadHeaderId = -1;
+    int textControlsPadLinesId  = -1;
+
 public:
     DungeonTavern() : Ar(4.0f / 3.0f) {
-    } // Costruttore molto più pulito ora
+    }
 
     void setWindowParameters() override {
         windowWidth = 800;
@@ -370,14 +376,14 @@ public:
         triggerPorta.initAABB(12.5643, -0.363361, -6.37082, 9.56568, 4.13063, -7.6541);
         triggerPorta.setWorldMatrix(glm::mat4(1.0f));
 
-        // NON TOGLIERE: Trucco anti-crash per il buffer vuoto del TextMaker
+        // Anti-crash per il buffer vuoto del TextMaker
         txt.print(-100.0f, -100.0f, " ");
 
         submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
     }
 
     void pipelinesAndDescriptorSetsInit() override {
-        //texture depth 2048x2048
+        // Texture depth 2048x2048
         RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this), RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
         RP.create();
@@ -396,11 +402,8 @@ public:
 
         // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
-        // Per le 6 tecniche
         for (int t = 0; t < 7; t++) {
-            // Per i 2 Passaggi (Shadow, Color)
             for (int p = 0; p < 2; p++) {
-                // Inseriamo la shadow map nel Set 0
                 PRs[t].PT[p].texDefs[0].push_back(shadowTexDef);
             }
         }
@@ -481,8 +484,20 @@ public:
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
 
+        // =========================================================
+        // LETTURA DELLO STATO DEL GAMEPAD
+        // =========================================================
+        GLFWgamepadstate gamepadState;
+        bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
+
+        auto applyDeadzone = [](float value, float threshold = 0.15f) -> float {
+            if (std::abs(value) < threshold) return 0.0f;
+            return value;
+        };
+
         // --- TOGGLE OMBRE ---
-        bool lPressed = glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS;
+        bool gamepadL = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB] == GLFW_PRESS);
+        bool lPressed = (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) || gamepadL;
         if (lPressed && !lPressedLastFrame) {
             shadowsEnabled = !shadowsEnabled;
         }
@@ -492,50 +507,94 @@ public:
         // 1. UPDATE GAME LOGIC (Dialoghi, Input, Collisioni)
         // =========================================================
 
-        // --- GESTIONE INPUT DEL MENU ---
         static bool upPressedLastFrame = false;
         static bool downPressedLastFrame = false;
         static bool enterPressedLastFrame = false;
 
-        bool upPressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
-        bool downPressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
-        bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+        // Input Menu (Tastiera + Gamepad)
+        bool kbdUp = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
+        bool kbdDown = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
+        bool kbdEnter = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+
+        bool gamepadUp = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS ||
+                                        applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) < -0.5f);
+        bool gamepadDown = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS ||
+                                          applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) > 0.5f);
+        bool gamepadEnter = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_X] == GLFW_PRESS ||
+                                           gamepadState.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS);
+
+        bool upPressed = kbdUp || gamepadUp;
+        bool downPressed = kbdDown || gamepadDown;
+        bool enterPressed = kbdEnter || gamepadEnter;
 
         glm::vec3 oldPlayerPos = player.position;
 
         if (currentState == GameState::MENU) {
 
-            // 1.1 Disegna il Titolo
+            // 1.1 Titolo del Gioco
             if (textTitleId == -1) {
-                textTitleId = txt.print(0.0f, -0.4f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f), glm::vec4(0), glm::vec4(0,0,0,0.8f), 2.0f, 2.0f);
+                textTitleId = txt.print(0.0f, -0.65f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f), glm::vec4(0), glm::vec4(0,0,0,0.8f), 2.0f, 2.0f);
             }
 
             // 1.2 Navigazione del Menu
             if (upPressed && !upPressedLastFrame) menuSelection = 0;
             if (downPressed && !downPressedLastFrame) menuSelection = 1;
 
-            // 1.3 Disegna le Opzioni
+            // 1.3 Opzioni Menu
             std::string strGioca = (menuSelection == 0) ? "> GIOCA <" : "  GIOCA  ";
             std::string strEsci  = (menuSelection == 1) ? "> ESCI <"  : "  ESCI  ";
 
             glm::vec4 colorGioca = (menuSelection == 0) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
             glm::vec4 colorEsci  = (menuSelection == 1) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
 
-            textGiocaId = txt.print(0.0f, 0.1f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorGioca);
-            textEsciId  = txt.print(0.0f, 0.3f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorEsci);
+            textGiocaId = txt.print(0.0f, -0.35f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorGioca);
+            textEsciId  = txt.print(0.0f, -0.20f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE, colorEsci);
 
-            // 1.4 Selezione
+            // 1.4 LEGENDA DEI COMANDI
+            // Colonna Sinistra: Tastiera e Mouse
+            if (textControlsKbdHeaderId == -1) {
+                textControlsKbdHeaderId = txt.print(-0.55f, 0.05f, "CONTROLLI TASTIERA", textControlsKbdHeaderId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
+            }
+            std::string kbdText =
+                "SHIFT : Corsa\n"
+                "SPAZIO : Salto\n"
+                "E : Interagisci / Dialogo\n"
+                "Q : Prendi / Lascia Oggetti\n"
+                "M : Vola\n"
+                "C : Telecamera 1a persona\n"
+                "X : Telecamera 3a persona";
+            textControlsKbdLinesId = txt.print(-0.55f, 0.15f, kbdText, textControlsKbdLinesId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
+
+            // Colonna Destra: Gamepad
+            if (textControlsPadHeaderId == -1) {
+                textControlsPadHeaderId = txt.print(0.55f, 0.05f, "CONTROLLI GAMEPAD", textControlsPadHeaderId, "SS", false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
+            }
+            std::string padText =
+                "L3 / RT : Corsa\n"
+                "Tasto A : Salto\n"
+                "Tasto A : Interagisci / Dialogo\n"
+                "Tasto X : Prendi / Lascia Oggetti\n"
+                "Tasto Y : Vola\n"
+                "Freccia dx : Telecamera\n"
+                "Freccia sx : Telecamera 3a persona";
+            textControlsPadLinesId = txt.print(0.55f, 0.15f, padText, textControlsPadLinesId, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
+
+            // 1.5 Selezione Opzione
             if (enterPressed && !enterPressedLastFrame) {
                 if (menuSelection == 0) {
                     // TRANSIZIONE A PLAYING
                     currentState = GameState::PLAYING;
 
-                    // Pulisce l'interfaccia del menu
-                    txt.removeText(textTitleId); textTitleId = -1;
-                    txt.removeText(textGiocaId); textGiocaId = -1;
-                    txt.removeText(textEsciId);  textEsciId  = -1;
+                    // Pulisce la UI del menu e della legenda
+                    txt.removeText(textTitleId);             textTitleId = -1;
+                    txt.removeText(textGiocaId);             textGiocaId = -1;
+                    txt.removeText(textEsciId);              textEsciId  = -1;
+                    txt.removeText(textControlsKbdHeaderId); textControlsKbdHeaderId = -1;
+                    txt.removeText(textControlsKbdLinesId);  textControlsKbdLinesId  = -1;
+                    txt.removeText(textControlsPadHeaderId); textControlsPadHeaderId = -1;
+                    txt.removeText(textControlsPadLinesId);  textControlsPadLinesId  = -1;
 
-                    // Lancia il boccale iniziale!
+                    // Lancia il boccale iniziale
                     glm::vec3 throwPos = player.position + player.getForwardVector() * 1.0f;
                     throwPos.y += 0.5f;
                     physicsManager.throwObject(SC, "boccale_start", throwPos, player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
@@ -599,9 +658,8 @@ public:
         downPressedLastFrame = downPressed;
         enterPressedLastFrame = enterPressed;
 
-
         // =========================================================
-        // AGGIORNAMENTI GLOBALI (Attivi sia nel Menu che in Gioco)
+        // AGGIORNAMENTI GLOBALI (Menu & Game)
         // =========================================================
 
         int talkingNPC = dialogueManager.getDialogueNPC();
@@ -616,19 +674,14 @@ public:
         // 2. UPDATE GRAPHICS (Matrici, Uniforms, Rendering)
         // =========================================================
 
-        // Matrice ViewProjection calcolata dal Player
         glm::mat4 ViewPrj = player.getViewProjectionMatrix(Ar);
         SC.updateColliderVisualizer(currentImage, ViewPrj);
 
-        // =========================================================
         // AGGIORNAMENTO DINAMICO COLORE DEL CIELO (CLEAR VALUE)
-        // =========================================================
         glm::vec4 sky = lightManager.getSkyColor();
         RP.properties[0].clearValue = {sky.r, sky.g, sky.b, 1.0f};
 
-        // =========================================================
         // CALCOLO DELLA TELECAMERA DEL SOLE (SHADOW MAPPING)
-        // =========================================================
         GlobalUniformBufferObject gubo{};
         gubo.eyePos = player.position;
         gubo.shadowToggle = shadowsEnabled ? 1.0f : 0.0f;
@@ -637,10 +690,7 @@ public:
         glm::mat4 lightProj = glm::ortho(-50.0f, 50.0f, -150.0f, 150.0f, -50.0f, 100.0f);
         lightProj[1][1] *= -1;
 
-        // Scegliamo un punto fisso al centro della taverna
         glm::vec3 tavernCenter = glm::vec3(11.0f, 0.0f, -25.0f);
-
-        // Posizioniamo il sole rispetto al centro della taverna
         glm::vec3 lightPos = tavernCenter - gubo.lightDir * 50.0f;
         glm::mat4 lightViewMat = glm::lookAt(lightPos, tavernCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -650,35 +700,27 @@ public:
 
         UniformBufferObject ubo{};
 
-       // =========================================================
-        // 1. GESTIONE SKYDOME (Attivo/Inattivo)
-        // =========================================================
+        // 1. GESTIONE SKYDOME
         std::string activeSkyId = lightManager.getCurrentSkydomeInstanceId();
 
         for (auto& skyRef : skydomeInstances) {
             if (skyRef.id == activeSkyId) {
-                // Skydome attivo: centrato sul player e visibile
                 skyRef.instancePtr->Wm = glm::translate(glm::mat4(1.0f), player.position) *
                                          glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
                                          glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
             } else {
-                // Skydome inattivo: sposta lontano sotto la mappa (evita matrici con scala 0)
                 skyRef.instancePtr->Wm = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -10000.0f, 0.0f));
             }
         }
 
-        // =========================================================
-        // 2. AGGIORNA MATERIALI STATICI (Tecniche 0, 2, 3, 4, 5, 6)
-        // =========================================================
+        // 2. AGGIORNA MATERIALI STATICI
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
         float renderDistance = 70.0f;
-        // --- DEFINIZIONE LIMITI BOX TAVERNA (3D: X, Y, Z) ---
+
         const float minX = 1.11968f;
         const float maxX = 19.5197f;
-
         const float minY = -1.0f;
         const float maxY = 16.0f;
-
         const float minZ = -5.76789f;
         const float maxZ = 21.0792f;
 
@@ -693,16 +735,12 @@ public:
                     glm::vec3 objPos = glm::vec3(SC.TI[t].I[i].Wm[3]);
                     bool isVisible = false;
 
-                    // Gli skydome (tecnica 6) seguono sempre il giocatore
                     if (t == 6) {
                         isVisible = true;
                     } else {
-                        // Verifica se l'oggetto è vicino al giocatore
                         if (glm::distance(player.position, objPos) < renderDistance || !isInTavernRoom) {
                             isVisible = true;
                         } else {
-                            // Salva dalla sparizione gli oggetti giganti (pavimenti e montagne)
-                            // i cui centri potrebbero trovarsi molto distanti
                             if (SC.TI[t].I[i].id != nullptr) {
                                 std::string objName = *(SC.TI[t].I[i].id);
                                 if (objName.find("floor") != std::string::npos ||
@@ -718,20 +756,17 @@ public:
                         }
                     }
 
-                    // Se è visibile usiamo la sua matrice normale, altrimenti lo collassiamo
                     if (isVisible) {
                         ubo.mMat = SC.TI[t].I[i].Wm;
                     } else {
                         ubo.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
                     }
 
-                    // PASS 0 (Ombre): Salta il pass ombre se è uno Skydome (Tecnica 6)
                     if (t != 6) {
                         ubo.mvpMat = gubo.lightVP * ubo.mMat;
                         SC.TI[t].I[i].DS[0][1]->map((int) currentImage, &ubo, 0);
                     }
 
-                    // PASS 1 (Colore/Schermo)
                     ubo.mvpMat = ViewPrj * ubo.mMat;
                     SC.TI[t].I[i].DS[1][0]->map((int) currentImage, &gubo, 0);
                     SC.TI[t].I[i].DS[1][1]->map((int) currentImage, &ubo, 0);
@@ -740,10 +775,9 @@ public:
         }
 
         // =========================================================
-        // UPDATE SKIN PLAYER (Posizione + Animazione)
+        // UPDATE SKIN PLAYER & ANIMAZIONI
         // =========================================================
 
-        // 1. Aggiorna la World Matrix del modello applicando rotazione correttiva e scala
         auto itPlayer = SC.InstanceIds.find("player");
         if (itPlayer != SC.InstanceIds.end()) {
             if (player.isFixedCamera() || player.getisThirdPerson()) {
@@ -753,27 +787,38 @@ public:
             }
         }
 
-        // 2. Determina lo stato degli input del giocatore
-        bool isMoving = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
-                        (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ||
-                        (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ||
-                        (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
-        bool isRunning = isMoving && (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
-        bool isJumping = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+        // Rilevamento stato del movimento (Tastiera + Gamepad)
+        float leftStickX = hasGamepad ? applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_X]) : 0.0f;
+        float leftStickY = hasGamepad ? applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) : 0.0f;
 
-        // 3. Riproduci l'animazione corretta tramite animManager
+        bool isMovingKbd = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
+                           (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ||
+                           (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ||
+                           (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+
+        bool isMovingGamepad = (std::abs(leftStickX) > 0.0f || std::abs(leftStickY) > 0.0f);
+        bool isMoving = isMovingKbd || isMovingGamepad;
+
+        bool isRunningKbd = isMoving && (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
+        bool isRunningGamepad = isMoving && hasGamepad && (gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.5f ||
+                                                           gamepadState.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB] == GLFW_PRESS);
+        bool isRunning = isRunningKbd || isRunningGamepad;
+
+        bool isJumpingKbd = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+        bool isJumpingGamepad = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS);
+        bool isJumping = isJumpingKbd || isJumpingGamepad;
+
         static int playerCurrentAnim = -1;
-        int targetAnim = 0; // Animazione 0: Idle (Fermo)
+        int targetAnim = 0; // 0: Idle
 
         if (isJumping) {
-            targetAnim = 3; // Animazione 3: Salto
+            targetAnim = 3; // 3: Salto
         } else if (isRunning) {
-            targetAnim = 2; // Animazione 2: Corsa
+            targetAnim = 2; // 2: Corsa
         } else if (isMoving) {
-            targetAnim = 1; // Animazione 1: Camminata
+            targetAnim = 1; // 1: Camminata
         }
 
-        // Applica il cambio di animazione solo se lo stato è effettivamente cambiato
         if (playerCurrentAnim != targetAnim) {
             npcAnimManager.play("player", targetAnim, 0.2f);
             playerCurrentAnim = targetAnim;
@@ -782,13 +827,8 @@ public:
         bool canInteract = !dialogueManager.isDialogueActive() && !player.isFixedCamera();
         physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
-        // Aggiornamento finale dei modelli animati
+        // Aggiornamento modelli animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);
-
-        // =========================================================
-        // UPDATE PHYSICS (Gravità per oggetti dinamici)
-        // =========================================================
-
 
         // Aggiornamento FPS
         static float elapsedT = 0.0f;
@@ -804,9 +844,7 @@ public:
 
         txt.updateCommandBuffer();
 
-        // =========================================================
-        // DEBUG: PREMI 'P' PER STAMPARE LA POSIZIONE NELLA CONSOLE
-        // =========================================================
+        // DEBUG: PREMI 'P' PER STAMPARE LA POSIZIONE
         static bool pPressed = false;
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (!pPressed) {

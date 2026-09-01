@@ -110,91 +110,109 @@ void PhysicsManager::update(GLFWwindow* window, float deltaT, Scene& scene, cons
     bool tPressed = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
     PhysicsUIState targetUIState = PhysicsUIState::NONE;
 
-    // --- 1. RAYCASTING E GRABBING ---
-    if (canInteract) {
-        if (heldObjectIndex != -1) {
-            targetUIState = PhysicsUIState::HOLD;
+    // --- 1. LETTURA INPUT (Tastiera + Gamepad) ---
+bool qPressedKey = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS;
+bool tPressedKey = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
 
-            if (qPressed && !qPressedLastFrame) {
-                physicsObjects[heldObjectIndex].isHeld = false;
+GLFWgamepadstate gamepadState;
+bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
+
+// Tasto per afferrare/lasciare: Key Q oppure Tasto X sul Pad
+bool grabPressed = qPressedKey || (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_X] == GLFW_PRESS);
+bool grabTriggered = grabPressed && !qPressedLastFrame;
+
+// Tasto per lanciare: Key T oppure Left Bumper (LB) sul Pad
+bool throwPressed = tPressedKey || (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] == GLFW_PRESS);
+bool throwTriggered = throwPressed && !tPressedLastFrame;
+
+
+
+// --- 2. RAYCASTING E GRABBING ---
+if (canInteract) {
+    if (heldObjectIndex != -1) {
+        targetUIState = PhysicsUIState::HOLD;
+
+        if (grabTriggered) {
+            // Rilascio semplice dell'oggetto
+            physicsObjects[heldObjectIndex].isHeld = false;
+            physicsObjects[heldObjectIndex].velocity = glm::vec3(0.0f);
+            heldObjectIndex = -1;
+        } else if (throwTriggered) {
+            // Lancio dell'oggetto
+            PhysicsObject& heldObj = physicsObjects[heldObjectIndex];
+            heldObj.isHeld = false;
+
+            float throwForce = 25.0f;
+            heldObj.velocity = player.getForwardVector() * (throwForce / heldObj.mass) + glm::vec3(0.0f, 5.0f / heldObj.mass, 0.0f);
+
+            float rx = ((rand() % 100) / 50.0f) - 1.0f;
+            float ry = ((rand() % 100) / 50.0f) - 1.0f;
+            float rz = ((rand() % 100) / 50.0f) - 1.0f;
+            heldObj.angularVelocity = glm::vec3(rx, ry, rz) * (15.0f / heldObj.mass);
+
+            heldObjectIndex = -1;
+        }
+    } else {
+        int hitIndex = -1;
+        Collider raycastPoint;
+        raycastPoint.initSphere(0.0f, 0.0f, 0.0f, 0.15f);
+
+        glm::vec3 rayOrigin = player.position;
+        rayOrigin.y += 0.5f;
+        glm::vec3 rayDir = player.getForwardVector();
+
+        for (float d = 0.5f; d <= 4.0f; d += 0.1f) {
+            raycastPoint.setWorldMatrix(glm::translate(glm::mat4(1.0f), rayOrigin + rayDir * d));
+
+            bool hitWall = false;
+            for (Collider* cld : customColliders) {
+                if (raycastPoint.collidesWith(*cld)) {
+                    hitWall = true;
+                    break;
+                }
+            }
+            if (hitWall) break;
+
+            for (int i = 0; i < physicsObjects.size(); i++) {
+                Instance* inst = scene.I[physicsObjects[i].instanceIndex];
+                if (inst->C && raycastPoint.collidesWith(*(inst->C))) {
+                    hitIndex = i;
+                    break;
+                }
+            }
+            if (hitIndex != -1) break;
+        }
+
+        if (hitIndex != -1) {
+            targetUIState = PhysicsUIState::GRAB;
+            if (grabTriggered) {
+                heldObjectIndex = hitIndex;
+                physicsObjects[heldObjectIndex].isHeld = true;
                 physicsObjects[heldObjectIndex].velocity = glm::vec3(0.0f);
-                heldObjectIndex = -1;
-            } else if (tPressed && !tPressedLastFrame) {
-                PhysicsObject& heldObj = physicsObjects[heldObjectIndex];
-                heldObj.isHeld = false;
-
-                float throwForce = 25.0f;
-                heldObj.velocity = player.getForwardVector() * (throwForce / heldObj.mass) + glm::vec3(0.0f, 5.0f / heldObj.mass, 0.0f);
-
-                float rx = ((rand() % 100) / 50.0f) - 1.0f;
-                float ry = ((rand() % 100) / 50.0f) - 1.0f;
-                float rz = ((rand() % 100) / 50.0f) - 1.0f;
-                heldObj.angularVelocity = glm::vec3(rx, ry, rz) * (15.0f / heldObj.mass);
-
-                heldObjectIndex = -1;
-            }
-        } else {
-            int hitIndex = -1;
-            Collider raycastPoint;
-            raycastPoint.initSphere(0.0f, 0.0f, 0.0f, 0.15f);
-
-            glm::vec3 rayOrigin = player.position;
-            rayOrigin.y += 0.5f;
-            glm::vec3 rayDir = player.getForwardVector();
-
-            // Passo ridotto a 0.1f per evitare di attraversare mesh sottili
-            for (float d = 0.5f; d <= 4.0f; d += 0.1f) {
-                raycastPoint.setWorldMatrix(glm::translate(glm::mat4(1.0f), rayOrigin + rayDir * d));
-
-                // 1. Se il raggio colpisce un muro, si ferma (niente grab attraverso i muri)
-                bool hitWall = false;
-                for (Collider* cld : customColliders) {
-                    if (raycastPoint.collidesWith(*cld)) {
-                        hitWall = true;
-                        break;
-                    }
-                }
-                if (hitWall) break;
-
-                // 2. Controlla gli oggetti
-                for (int i = 0; i < physicsObjects.size(); i++) {
-                    Instance* inst = scene.I[physicsObjects[i].instanceIndex];
-                    if (inst->C && raycastPoint.collidesWith(*(inst->C))) {
-                        hitIndex = i;
-                        break;
-                    }
-                }
-                if (hitIndex != -1) break;
-            }
-
-            if (hitIndex != -1) {
-                targetUIState = PhysicsUIState::GRAB;
-                if (qPressed && !qPressedLastFrame) {
-                    heldObjectIndex = hitIndex;
-                    physicsObjects[heldObjectIndex].isHeld = true;
-                    physicsObjects[heldObjectIndex].velocity = glm::vec3(0.0f);
-                    physicsObjects[heldObjectIndex].angularVelocity = glm::vec3(0.0f);
-                    targetUIState = PhysicsUIState::HOLD;
-                }
+                physicsObjects[heldObjectIndex].angularVelocity = glm::vec3(0.0f);
+                targetUIState = PhysicsUIState::HOLD;
             }
         }
     }
+}
 
-    // --- AGGIORNAMENTO UI ---
-    bool textExists = (txt.Blocks.find(99) != txt.Blocks.end());
+// --- AGGIORNAMENTO TESTI UI ---
+bool textExists = (txt.Blocks.find(99) != txt.Blocks.end());
 
-    if (targetUIState != uiState || (targetUIState != PhysicsUIState::NONE && !textExists)) {
-        txt.removeText(99);
-        if (targetUIState == PhysicsUIState::GRAB) {
-            txt.print(0.0f, 0.7f, "Premi Q per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
-        } else if (targetUIState == PhysicsUIState::HOLD) {
-            txt.print(0.0f, 0.7f, "Q per lasciare, T per lanciare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
-        }
-        uiState = targetUIState;
+if (targetUIState != uiState || (targetUIState != PhysicsUIState::NONE && !textExists)) {
+    txt.removeText(99);
+    if (targetUIState == PhysicsUIState::GRAB) {
+        txt.print(0.0f, 0.7f, "Premi Q / (X) per afferrare", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
+    } else if (targetUIState == PhysicsUIState::HOLD) {
+        txt.print(0.0f, 0.7f, "Q / (X) lascia | T / (LB) me scaglia", 99, "SS", false, false, false, TAL_CENTER, TRH_CENTER, TRV_MIDDLE);
     }
+    uiState = targetUIState;
+}
 
-    qPressedLastFrame = qPressed;
-    tPressedLastFrame = tPressed;
+// Salva lo stato dei tasti per il frame successivo
+qPressedLastFrame = grabPressed;
+tPressedLastFrame = throwPressed;
+
 
     // --- 2. RISOLUZIONE FISICA ---
     for (auto& po : physicsObjects) {

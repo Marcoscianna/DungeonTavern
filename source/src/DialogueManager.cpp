@@ -10,7 +10,7 @@ DialogueManager::DialogueManager()
       inDialogue(false), dialogueNPC(-1), dialogueIndex(0),
       dialogueTextId(-1), interactionPromptTextId(-1),
       dialogueRevealCount(0.0f), dialogueRevealSpeed(45.0f),
-      debounce(false), curDebounce(0),currentTreeNodeId(0), selectedChoiceIndex(0), globalStoryProgress(0) {}
+      debounce(false), curDebounce(0), currentTreeNodeId(0), selectedChoiceIndex(0), globalStoryProgress(0) {}
 
 bool DialogueManager::isDialogueActive() const {
     return inDialogue;
@@ -41,6 +41,10 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
 
     int maxChars = std::max(15, (int)(windowWidth / 22));
 
+    // Lettura Gamepad
+    GLFWgamepadstate gamepadState;
+    bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
+
     // 1. Calcolo Distanze
     showInteractionPrompt = false;
     activeNPC = -1;
@@ -59,7 +63,7 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-    // 2. Gestione UI Prompt "Premi E"
+    // 2. Gestione UI Prompt "Premi E / (A)"
     if(showInteractionPrompt && !inDialogue) {
         if(interactionPromptTextId == -1 || activeNPC != lastActiveNPC) {
             std::string p = wrapText(npcs[activeNPC].prompt, maxChars);
@@ -79,9 +83,12 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
         }
     }
 
-    // 3. Input Dialogo e Navigazione
-    bool ePressed = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
-    bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
+    // 3. Input Dialogo e Navigazione (Tastiera + Gamepad)
+    bool ePressed = (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) ||
+                    (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS);
+
+    bool enterPressed = (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) ||
+                        (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS);
 
     if((showInteractionPrompt || inDialogue) && (ePressed || enterPressed) && !debounce) {
         debounce = true;
@@ -114,7 +121,6 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                     inDialogue = true;
                     dialogueNPC = activeNPC;
 
-                    // Salviamo i puntatori al dialogo selezionato per questo NPC
                     activeType = tempType;
                     activeDialogues = tempDialogues;
                     activeTree = tempTree;
@@ -176,7 +182,7 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
                         if (ePressed || enterPressed) dialogueEnded = true;
                         else debounce = false;
                     } else {
-                        if (enterPressed) {
+                        if (enterPressed || ePressed) {
                             int setStory = node.choices[selectedChoiceIndex].setStoryProgress;
                             if (setStory != -1) {
                                 globalStoryProgress = setStory;
@@ -209,12 +215,19 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
     if(!ePressed && !enterPressed) debounce = false;
     if(curDebounce > 0) --curDebounce;
 
-    // Navigazioni nelle scelte (W / S)
+    // Navigazione nelle scelte del dialogo a rami (W/S, FRECCE o DPAD/STICK GAMEPAD)
     static bool upPressedLastFrame = false;
     static bool downPressedLastFrame = false;
 
-    bool upPressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
-    bool downPressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
+    bool upPressed = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ||
+                     (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ||
+                     (hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS ||
+                                     gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -0.5f));
+
+    bool downPressed = (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ||
+                       (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ||
+                       (hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS ||
+                                       gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > 0.5f));
 
     if (inDialogue && dialogueNPC >= 0 && activeType == InteractionType::BRANCHING) {
         const auto& node = activeTree->at(currentTreeNodeId);
@@ -222,10 +235,10 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
 
         if (isFinished && !node.choices.empty()) {
             if (upPressed && !upPressedLastFrame) {
-                selectedChoiceIndex = (selectedChoiceIndex > 0) ? selectedChoiceIndex - 1 : node.choices.size() - 1;
+                selectedChoiceIndex = (selectedChoiceIndex > 0) ? selectedChoiceIndex - 1 : static_cast<int>(node.choices.size()) - 1;
             }
             if (downPressed && !downPressedLastFrame) {
-                selectedChoiceIndex = (selectedChoiceIndex + 1) % node.choices.size();
+                selectedChoiceIndex = (selectedChoiceIndex + 1) % static_cast<int>(node.choices.size());
             }
         }
     }
@@ -243,8 +256,8 @@ void DialogueManager::update(GLFWwindow* window, float deltaT, Player& player,
 
             if (dialogueRevealCount >= npcText.length() && !node.choices.empty()) {
                 choicesText = "\n\n";
-                for (int i = 0; i < node.choices.size(); ++i) {
-                    if (i == selectedChoiceIndex) choicesText += "> " + node.choices[i].text + " <\n";
+                for (size_t i = 0; i < node.choices.size(); ++i) {
+                    if (static_cast<int>(i) == selectedChoiceIndex) choicesText += "> " + node.choices[i].text + " <\n";
                     else choicesText += "  " + node.choices[i].text + "\n";
                 }
             }
@@ -278,7 +291,7 @@ int DialogueManager::getDialogueNPC() const {
 }
 
 void DialogueManager::forceStartDialogue(const std::string& npcName, const std::vector<TavernNPC>& npcs, TextMaker& txt, Player& player) {
-    if (inDialogue) return; // Non interrompere un dialogo già attivo
+    if (inDialogue) return;
 
     int targetNpcIndex = -1;
     for (size_t i = 0; i < npcs.size(); ++i) {
@@ -288,9 +301,8 @@ void DialogueManager::forceStartDialogue(const std::string& npcName, const std::
         }
     }
 
-    if (targetNpcIndex == -1) return; // NPC non trovato
+    if (targetNpcIndex == -1) return;
 
-    // Configurazione del dialogo corretto in base al progresso della storia
     InteractionType tempType = npcs[targetNpcIndex].type;
     const std::vector<std::string>* tempDialogues = &npcs[targetNpcIndex].dialogues;
     const std::map<int, DialogueNode>* tempTree = &npcs[targetNpcIndex].dialogueTree;
@@ -322,7 +334,6 @@ void DialogueManager::forceStartDialogue(const std::string& npcName, const std::
         selectedChoiceIndex = 0;
         dialogueRevealCount = 0.0f;
 
-        // Rivolgi automaticamente il giocatore verso l'NPC
         glm::vec3 dir = npcs[dialogueNPC].position - player.position;
         float len = glm::length(glm::vec2(dir.x, dir.z));
         if(len > 0.001f) {
