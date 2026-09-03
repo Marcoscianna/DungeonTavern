@@ -47,7 +47,6 @@ public:
     int cameraMode = 0;
     bool cPressedLastFrame = false;
 
-    // In Player.hpp dentro la sezione private / protected:
     bool isThirdPerson = false;
     bool xPressedLastFrame = false;
 
