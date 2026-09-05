@@ -333,6 +333,18 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         }
     }
 
+    // Limite radiale mondo su piano XZ
+    const glm::vec2 worldCenterXZ(15.0f, -40.0f);
+    const float worldRadius = 90.0f;
+    glm::vec2 playerXZ(resolvedPos.x, resolvedPos.z);
+    glm::vec2 deltaXZ = playerXZ - worldCenterXZ;
+    float deltaLen = glm::length(deltaXZ);
+    if (deltaLen > worldRadius && deltaLen > 0.0001f) {
+        glm::vec2 clampedXZ = worldCenterXZ + (deltaXZ / deltaLen) * worldRadius;
+        resolvedPos.x = clampedXZ.x;
+        resolvedPos.z = clampedXZ.y;
+    }
+
     // Aggiorna posizione finale e collider
     position = resolvedPos;
     playerCollider->setWorldMatrix(glm::translate(glm::mat4(1.0f), position));
