@@ -60,6 +60,25 @@ public:
     int getHeldInstanceIndex() const;
 
     void throwObject(Scene& scene, const std::string& instanceName, glm::vec3 startPos, glm::vec3 velocity);
+
+    // Esponi la dimensione della cella
+    float getCellSize() const { return 5.0f; }
+
+    // Esponi la griglia spaziale popolata nell'ultimo frame
+    const std::unordered_map<int, std::vector<Instance*>>& getSpatialGrid() const {
+        return spatialGrid;
+    }
+
+    // Esponi la logica di calcolo dell'ID
+    static int getCellID(glm::vec3 pos, float cellSize) {
+        int x = static_cast<int>(std::floor(pos.x / cellSize));
+        int y = static_cast<int>(std::floor(pos.y / cellSize));
+        int z = static_cast<int>(std::floor(pos.z / cellSize));
+        return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    }
+
+private:
+    std::unordered_map<int, std::vector<Instance*>> spatialGrid;
 };
 
 #endif // PHYSICS_MANAGER_HPP

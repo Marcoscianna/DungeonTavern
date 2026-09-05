@@ -221,8 +221,8 @@ void PhysicsManager::update(GLFWwindow *window, float deltaT, Scene &scene, cons
     tPressedLastFrame = throwPressed;
 
     // --- CREAZIONE SPATIAL HASH GRID ---
-    float cellSize = 5.0f;
-    std::unordered_map<int, std::vector<Instance*>> spatialGrid;
+    float cellSize = getCellSize();
+    spatialGrid.clear();
 
     auto getCellID = [cellSize](glm::vec3 pos) -> int {
         int x = static_cast<int>(std::floor(pos.x / cellSize));
@@ -288,10 +288,12 @@ void PhysicsManager::update(GLFWwindow *window, float deltaT, Scene &scene, cons
 
             glm::vec3 posA = glm::vec3(inst->Wm[3]);
 
+            float currentCellSize = getCellSize();
+
             // Calcolo delle coordinate della cella corrente
-            int myCellX = static_cast<int>(std::floor(posA.x / cellSize));
-            int myCellY = static_cast<int>(std::floor(posA.y / cellSize));
-            int myCellZ = static_cast<int>(std::floor(posA.z / cellSize));
+            int myCellX = static_cast<int>(std::floor(posA.x / currentCellSize));
+            int myCellY = static_cast<int>(std::floor(posA.y / currentCellSize));
+            int myCellZ = static_cast<int>(std::floor(posA.z / currentCellSize));
 
             // Controllo solo la cella dell'oggetto e le 26 adiacenti
             for (int dx = -1; dx <= 1; ++dx) {
@@ -314,7 +316,6 @@ void PhysicsManager::update(GLFWwindow *window, float deltaT, Scene &scene, cons
                 }
             }
 
-            // (Il controllo con customColliders e playerCollider rimane invariato)
             for (Collider *cld: customColliders) {
                 if (cld && inst->C->collidesWith(*cld)) return true;
             }

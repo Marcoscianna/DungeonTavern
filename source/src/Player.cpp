@@ -101,25 +101,54 @@ bool Player::checkCollisionAt(const glm::vec3& testPos, const Scene& scene, cons
         return true;
     }
 
-    // 2. Test contro gli oggetti della scena
     int heldObj = physManager.getHeldInstanceIndex();
 
-    for (int i = 0; i < scene.InstanceCount; i++) {
-        if (i == heldObj) continue;
+    // --- NUOVA LOGICA: PARTIZIONAMENTO SPAZIALE ---
 
-        if (scene.I[i]->id != nullptr) {
-            std::string objId = *(scene.I[i]->id);
-            if (objId.find("player") != std::string::npos || objId.find("Player") != std::string::npos) {
-                continue;
+    // NOTA: Devi avere accesso a cellSize (es. 5.0f) e spatialGrid dal physManager.
+    // Ipotizziamo che tu le abbia esposte.
+    float cellSize = physManager.getCellSize();
+    const auto& grid = physManager.getSpatialGrid();
+
+    // Calcoliamo in quale cella si trova il testPos del player
+    int myCellX = static_cast<int>(std::floor(testPos.x / cellSize));
+    int myCellY = static_cast<int>(std::floor(testPos.y / cellSize));
+    int myCellZ = static_cast<int>(std::floor(testPos.z / cellSize));
+
+    // Controlliamo SOLO le 27 celle (la nostra + 26 vicine)
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dz = -1; dz <= 1; ++dz) {
+                // Calcolo hash identico a quello nel PhysicsManager
+                int neighborID = ((myCellX + dx) * 73856093) ^ ((myCellY + dy) * 19349663) ^ ((myCellZ + dz) * 83492791);
+
+                auto it = grid.find(neighborID);
+                if (it != grid.end()) {
+                    for (Instance* inst : it->second) {
+
+                        // Ignoriamo l'oggetto attualmente in mano (non possiamo collidere con lui)
+                        // NOTA: Qui presuppongo tu possa ottenere l'indice dell'istanza o confrontare il puntatore
+                        if (heldObj != -1 && scene.I[heldObj] == inst) continue;
+
+                        // Ignoriamo la mesh del player stesso (come facevi nel tuo codice originale)
+                        if (inst->id != nullptr) {
+                            std::string objId = *(inst->id);
+                            if (objId.find("player") != std::string::npos || objId.find("Player") != std::string::npos) {
+                                continue;
+                            }
+                        }
+
+                        // TEST DI COLLISIONE EFFETTIVO
+                        if (inst->C != nullptr && playerCollider->collidesWith(*(inst->C))) {
+                            return true; // Trovata collisione!
+                        }
+                    }
+                }
             }
-        }
-
-        if (scene.I[i]->C != nullptr && playerCollider->collidesWith(*(scene.I[i]->C))) {
-            return true;
         }
     }
 
-    // 3. Test contro i muri custom invisibili del JSON
+    // 3. Test contro i muri custom invisibili del JSON (Rimane inalterato)
     for (Collider* cld : physManager.getCustomColliders()) {
         if (playerCollider->collidesWith(*cld)) return true;
     }
