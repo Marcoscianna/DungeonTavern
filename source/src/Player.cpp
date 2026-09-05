@@ -229,9 +229,12 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
                           (hasGamepad && (gamepadState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.5f ||
                                           gamepadState.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB] == GLFW_PRESS));
 
-    float velocity = moveSpeed * deltaTime * (isRunningInput ? 2.0f : 1.0f);
+    float velocity = moveSpeed * deltaTime * (isRunningInput ? 1.8f : 1.0f);
     glm::vec3 forward = getForwardVector();
-    glm::vec3 forwardFlat = glm::normalize(glm::vec3(forward.x, 0.0f, forward.z));
+    glm::vec3 forwardFlatRaw(forward.x, 0.0f, forward.z);
+    glm::vec3 forwardFlat = (glm::length(forwardFlatRaw) > 0.0001f)
+                          ? glm::normalize(forwardFlatRaw)
+                          : glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 rightFlat = getRightVector();
 
     // --- MOVIMENTO WASD / STICK SINISTRO ---
@@ -276,6 +279,8 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
 
     float moveLength = glm::length(desiredMove);
     int numSteps = static_cast<int>(moveLength / 0.1f) + 1;
+    if (numSteps < 1) numSteps = 1;
+    if (numSteps > 8) numSteps = 8;
     glm::vec3 stepMove = desiredMove / static_cast<float>(numSteps);
 
     for (int i = 0; i < numSteps; i++) {
