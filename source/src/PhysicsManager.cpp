@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include <glm/gtx/norm.hpp>
+#include <unordered_map>
 
 #include "modules/Starter.hpp"
 #include "modules/TextMaker.hpp"
@@ -219,6 +220,25 @@ void PhysicsManager::update(GLFWwindow *window, float deltaT, Scene &scene, cons
     qPressedLastFrame = grabPressed;
     tPressedLastFrame = throwPressed;
 
+    // --- CREAZIONE SPATIAL HASH GRID ---
+    float cellSize = 5.0f;
+    std::unordered_map<int, std::vector<Instance*>> spatialGrid;
+
+    auto getCellID = [cellSize](glm::vec3 pos) -> int {
+        int x = static_cast<int>(std::floor(pos.x / cellSize));
+        int y = static_cast<int>(std::floor(pos.y / cellSize));
+        int z = static_cast<int>(std::floor(pos.z / cellSize));
+        return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    };
+
+    // Popoliamo la griglia con tutte le istanze della scena
+    for (int i = 0; i < scene.InstanceCount; ++i) {
+        Instance* inst = scene.I[i];
+        if (inst && inst->C) {
+            int cellID = getCellID(glm::vec3(inst->Wm[3]));
+            spatialGrid[cellID].push_back(inst);
+        }
+    }
 
     // --- 2. RISOLUZIONE FISICA ---
     for (auto &po: physicsObjects) {
@@ -264,30 +284,40 @@ void PhysicsManager::update(GLFWwindow *window, float deltaT, Scene &scene, cons
             if (!inst->C) return false;
             inst->C->setWorldMatrix(inst->Wm);
 
-            if (floorCollider != nullptr && inst->C->collidesWith(*floorCollider)) {
-                return true;
-            }
+            if (floorCollider != nullptr && inst->C->collidesWith(*floorCollider)) return true;
 
             glm::vec3 posA = glm::vec3(inst->Wm[3]);
 
-            for (int j = 0; j < scene.InstanceCount; j++) {
-                if (j == po.instanceIndex) continue;
+            // Calcolo delle coordinate della cella corrente
+            int myCellX = static_cast<int>(std::floor(posA.x / cellSize));
+            int myCellY = static_cast<int>(std::floor(posA.y / cellSize));
+            int myCellZ = static_cast<int>(std::floor(posA.z / cellSize));
 
-                Instance *otherInst = scene.I[j];
-                if (otherInst && otherInst->C) {
-                    glm::vec3 posB = glm::vec3(otherInst->Wm[3]);
-                    float distSq = glm::distance2(posA, posB);
+            // Controllo solo la cella dell'oggetto e le 26 adiacenti
+            for (int dx = -1; dx <= 1; ++dx) {
+                for (int dy = -1; dy <= 1; ++dy) {
+                    for (int dz = -1; dz <= 1; ++dz) {
+                        int neighborID = ((myCellX + dx) * 73856093) ^ ((myCellY + dy) * 19349663) ^ ((myCellZ + dz) * 83492791);
 
-                    if (distSq > 25.0f) continue;
+                        if (spatialGrid.find(neighborID) != spatialGrid.end()) {
+                            for (Instance* otherInst : spatialGrid[neighborID]) {
+                                if (otherInst == inst) continue; // Salta te stesso
 
-                    if (inst->C->collidesWith(*(otherInst->C))) return true;
+                                glm::vec3 posB = glm::vec3(otherInst->Wm[3]);
+                                float distSq = glm::distance2(posA, posB);
+
+                                if (distSq > 25.0f) continue;
+                                if (inst->C->collidesWith(*(otherInst->C))) return true;
+                            }
+                        }
+                    }
                 }
             }
 
+            // (Il controllo con customColliders e playerCollider rimane invariato)
             for (Collider *cld: customColliders) {
                 if (cld && inst->C->collidesWith(*cld)) return true;
             }
-
             if (player.playerCollider && inst->C->collidesWith(*(player.playerCollider))) return true;
 
             return false;
