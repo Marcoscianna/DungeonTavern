@@ -495,6 +495,23 @@ public:
         GLFWgamepadstate gamepadState;
         bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
 
+        if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) || (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS)){
+            static int savedX = 100, savedY = 100, savedWidth = 1280, savedHeight = 720;
+
+            bool isFullscreen = (glfwGetWindowMonitor(window) != nullptr);
+            if (!isFullscreen) {
+                glfwGetWindowPos(window, &savedX, &savedY);
+                glfwGetWindowSize(window, &savedWidth, &savedHeight);
+
+                GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+                const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+                glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+            } else {
+                glfwSetWindowMonitor(window, nullptr, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
+            }
+        }
+
         auto applyDeadzone = [](float value, float threshold = 0.15f) -> float {
             if (std::abs(value) < threshold) return 0.0f;
             return value;

@@ -167,28 +167,6 @@ void Player::processInput(GLFWwindow* window, float deltaTime, const Scene& scen
         return value;
     };
 
-    // --- TOGGLE FULLSCREEN (TASTO R o BACK/SELECT) ---
-    bool rPressed = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) ||
-                    (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS);
-
-    if (rPressed && !rPressedLastFrame) {
-        static int savedX = 100, savedY = 100, savedWidth = 1280, savedHeight = 720;
-
-        bool isFullscreen = (glfwGetWindowMonitor(window) != nullptr);
-        if (!isFullscreen) {
-            glfwGetWindowPos(window, &savedX, &savedY);
-            glfwGetWindowSize(window, &savedWidth, &savedHeight);
-
-            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
-
-            glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-        } else {
-            glfwSetWindowMonitor(window, nullptr, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
-        }
-    }
-    rPressedLastFrame = rPressed;
-
     // --- LIMITI TAVERNA ---
     const float minX = 1.11968f;
     const float maxX = 19.5197f;
