@@ -413,6 +413,7 @@ public:
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
         for (int t = 0; t < 7; t++) {
             for (int p = 0; p < 2; p++) {
+                PRs[t].PT[p].texDefs[0].clear();
                 PRs[t].PT[p].texDefs[0].push_back(shadowTexDef);
             }
         }
@@ -499,22 +500,41 @@ public:
         GLFWgamepadstate gamepadState;
         bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
 
-        if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) || (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS)){
-            static int savedX = 100, savedY = 100, savedWidth = 1280, savedHeight = 720;
+        // =========================================================
+        // TOGGLE FULLSCREEN (Tasto R o Tasto BACK sul Gamepad)
+        // =========================================================
+        static bool rPressedLastFrame = false;
+        bool rPressed = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) ||
+                        (hasGamepad && gamepadState.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS);
 
-            bool isFullscreen = (glfwGetWindowMonitor(window) != nullptr);
+        if (rPressed && !rPressedLastFrame) {
+            static int savedX = 100, savedY = 100, savedWidth = 800, savedHeight = 600;
+            static bool isFullscreen = false; // Usiamo una variabile locale indipendente
+
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
             if (!isFullscreen) {
+                // Salva posizione e dimensioni attuali
                 glfwGetWindowPos(window, &savedX, &savedY);
                 glfwGetWindowSize(window, &savedWidth, &savedHeight);
 
-                GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-                const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+                // Modalità "Borderless Windowed"
+                glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE); // Rimuove la cornice
+                glfwSetWindowPos(window, 0, 0); // Sposta in alto a sinistra
+                glfwSetWindowSize(window, mode->width, mode->height); // Copre tutto il monitor
 
-                glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+                isFullscreen = true;
             } else {
-                glfwSetWindowMonitor(window, nullptr, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
+                // Ripristina la finestra normale
+                glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE); // Ripristina la cornice
+                glfwSetWindowPos(window, savedX, savedY);
+                glfwSetWindowSize(window, savedWidth, savedHeight);
+
+                isFullscreen = false;
             }
         }
+        rPressedLastFrame = rPressed;
 
         auto applyDeadzone = [](float value, float threshold = 0.15f) -> float {
             if (std::abs(value) < threshold) return 0.0f;
