@@ -18,7 +18,7 @@ void main() {
         discard;
     }
 
-    // 1. Sommiamo il colore base all'emissione (senza moltiplicatori esagerati)
+    // 1. Sommiamo il colore base all'emissione 
     vec3 hdrColor = albedo.rgb + (emission.rgb * 1.5);
 
     // 2. Mappatura dell'esposizione: preserva la saturazione dei rossi/arancioni

@@ -11,6 +11,8 @@ layout(location = 1) in vec2 fragUV;
 layout(location = 2) in vec3 fragNorm;
 
 layout(location = 0) out vec4 outColor;
+
+// Texture del materiale base
 layout(binding = 1, set = 1) uniform sampler2D albedoMap;
 
 layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
@@ -26,45 +28,52 @@ layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
 layout(binding = 1, set = 0) uniform sampler2D shadowMap;
 
 void main() {
+    // Normalizzazione necessaria perché l'interpolazione del rasterizer può alterare la lunghezza dei vettori
     vec3 N = normalize(fragNorm);
+
+    // Lettura dell'albedo e conversione nello spazio lineare
     vec3 albedo = pow(texture(albedoMap, fragUV).rgb, vec3(2.2));
+
     vec3 V = normalize(gubo.eyePos - fragPos);
 
-    // ==========================================
-    // 1. LUCE DIREZIONALE (Sole/Luna)
-    // ==========================================
+    // --- RISOLUZIONE LUCE DIREZIONALE (Sole/Luna) ---
     vec3 L = normalize(-gubo.lightDir);
     vec3 H = normalize(V + L);
     float NdotL = max(dot(N, L), 0.0);
     float HdotN = max(dot(H, N), 0.0);
 
+    // Parametri speculari hardcoded per materiali generici non riflettenti
     float specularStrength = 0.02;
     vec3 specular = vec3(0.0);
 
     if (NdotL > 0.0) {
-        // Esponente 128.0 restringe il riflesso, togliendo l'effetto "cono gigante"
+        // Esponente a 128.0 per ottenere un riflesso speculare molto stretto
         specular = vec3(pow(HdotN, 128.0)) * specularStrength;
     }
 
-// --- CALCOLO OMBRA CON PCF (Soft Shadows) ---
+    // --- CALCOLO OMBRA CON PCF (Percentage-Closer Filtering) ---
     float shadow = 1.0;
     if(gubo.shadowToggle > 0.0) {
+        // Proiezione del frammento nello spazio della Shadow Map
         vec4 lightSpacePos = gubo.lightVP * vec4(fragPos, 1.0);
         vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
         projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
         shadow = 1.0;
 
+        // Eseguiamo il check solo se il frammento rientra nel frustum della luce direzionale
         if(projCoords.z > -1.0 && projCoords.z < 1.0 &&
            projCoords.x > 0.0 && projCoords.x < 1.0 &&
            projCoords.y > 0.0 && projCoords.y < 1.0) {
 
+            // Bias adattivo (slope-scale) per compensare i limiti di risoluzione della depth map
+            // ed evitare l'artefatto dello "shadow acne"
             float bias = max(0.015 * (1.0 - NdotL), 0.005);
 
             vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
             float currentShadow = 0.0;
 
-            // PCF: Campioniamo la griglia 3x3
+            // Filtro PCF 3x3: campioniamo i 9 texel adiacenti per creare un effetto di penombra morbida
             for(int x = -1; x <= 1; ++x) {
                 for(int y = -1; y <= 1; ++y) {
                     float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
@@ -76,22 +85,23 @@ void main() {
             shadow = 1.0 - (currentShadow / 9.0);
         }
     }
-    //shadow = mix(1.0, shadow, gubo.shadowToggle);
+
     vec3 finalLight = (albedo * NdotL + specular) * gubo.lightColor.rgb * shadow;
 
-    // ==========================================
-    // 2. LUCI PUNTIFORMI (Fuoco e Candele)
-    // ==========================================
+    // --- RISOLUZIONE LUCI PUNTIFORMI (Torce, Candele, Fuoco) ---
     for(int i = 0; i < gubo.numLights; i++) {
         vec3 lightVec = gubo.pLights[i].position - fragPos;
         float distance = length(lightVec);
         vec3 L_pt = normalize(lightVec);
         vec3 H_pt = normalize(V + L_pt);
 
+        // Smorzamento verticale custom: impedisce alla luce
+        // di "bucare" il soffitto o il pavimento limitando la sua influenza sull'asse Y
         float yDistance = abs(gubo.pLights[i].position.y - fragPos.y);
         float verticalCutoff = clamp(1.0 - (yDistance / 3.3), 0.0, 1.0);
 
-        float attenuation = 1.0 / (12.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
+        // Attenuazione quadratica basata sulla distanza
+        float attenuation = 1.0 / (6.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
         attenuation *= verticalCutoff;
 
         float NdotL_pt = max(dot(N, L_pt), 0.0);
@@ -105,14 +115,15 @@ void main() {
         finalLight += (albedo * NdotL_pt + specular_pt) * gubo.pLights[i].color * attenuation;
     }
 
-    // ==========================================
-    // 3. COMPOSIZIONE FINALE
-    // ==========================================
+    // --- COMPOSIZIONE FINALE E POST-PROCESSING ---
+    // Luce ambientale minima per evitare i neri assoluti nelle zone in ombra
     vec3 ambient = 0.02 * albedo;
     vec3 color = ambient + finalLight;
 
-    // Tone mapping e Gamma correction
+    // Tone mapping (Reinhard): comprime i valori HDR superiori a 1.0 per farli rientrare nel range visibile
     color = color / (color + vec3(1.0));
+
+    // Gamma correction: riporta i colori nello spazio sRGB per la corretta visualizzazione sul monitor
     color = pow(color, vec3(1.0 / 2.2));
 
     outColor = vec4(color, 1.0);

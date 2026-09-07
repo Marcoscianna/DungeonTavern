@@ -15,6 +15,7 @@ file(GLOB SRC_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.cpp")
 add_executable(${PROJECT_NAME} ${SRC_FILES}
         source/src/DialogueManager.cpp
 )
+#set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
 target_include_directories(${PROJECT_NAME} PRIVATE "${INCLUDE_DIR}")
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 

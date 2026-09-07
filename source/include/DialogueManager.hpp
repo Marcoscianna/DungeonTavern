@@ -13,59 +13,63 @@ struct TextMaker;
 
 class DialogueManager {
 private:
-    // Stato Globale
+    // Avanzamento globale della trama (utile per sbloccare nuovi dialoghi o missioni)
     int globalStoryProgress;
 
-    // Stato dell'interazione
+    // Gestione del focus sull'NPC più vicino
     bool showInteractionPrompt;
     int activeNPC;
     int lastActiveNPC;
 
-    // Stato del dialogo
+    // Flag e indici per la conversazione correntemente attiva
     bool inDialogue;
     int dialogueNPC;
     int dialogueIndex;
 
-    // ID dei testi per il TextMaker
+    // Handle della UI per aggiornare o rimuovere le stringhe a schermo
     int dialogueTextId;
     int interactionPromptTextId;
 
-    // Effetto Macchina da Scrivere
+    // Contatori per l'effetto "typewriter" (rivelazione progressiva dei caratteri)
     float dialogueRevealCount;
     float dialogueRevealSpeed;
 
-    // Input Debounce
+    // Sistema anti-rimbalzo (debounce) per evitare doppi input indesiderati
     bool debounce;
     int curDebounce;
 
-    // Variabili per dialghi
+    // Navigazione nei dialoghi ad albero
     int currentTreeNodeId;
     int selectedChoiceIndex;
 
-    // Metodo helper interno per l'a capo automatico
-    std::string wrapText(const std::string& text, int maxLineLen);
+    // Utility per il word-wrapping dinamico in modo da non uscire dai bordi dello schermo
+    std::string wrapText(const std::string &text, int maxLineLen);
 
-    // Puntatori dinamici al dialogo attualmente in uso (Standard o Story)
+    // Riferimenti ai dati del dialogo in corso (variano in base allo stato della storia o al tipo di NPC)
     InteractionType activeType;
-    const std::vector<std::string>* activeDialogues{};
-    const std::map<int, DialogueNode>* activeTree{};
+    const std::vector<std::string> *activeDialogues{};
+    const std::map<int, DialogueNode> *activeTree{};
 
 public:
     DialogueManager();
 
-    // Metodo principale chiamato ogni frame
-    void update(GLFWwindow* window, float deltaT, Player& player,
-                const std::vector<TavernNPC>& npcs, TextMaker& txt, int windowWidth);
+    // Loop principale: controlla distanze NPC, gestisce input utente e aggiorna render testo
+    void update(GLFWwindow *window, float deltaT, Player &player,
+                const std::vector<TavernNPC> &npcs, TextMaker &txt, int windowWidth);
 
-    // Getter per bloccare il movimento del player nel main
+    // Blocca l'input di movimento del player all'esterno della classe
     bool isDialogueActive() const;
 
-    // Pulizia
-    void cleanup(TextMaker& txt);
+    // Pulizia finale per non lasciare stringhe UI appese alla chiusura/cambio stato
+    void cleanup(TextMaker &txt);
 
     int getDialogueNPC() const;
+
     int getStoryProgress() const { return globalStoryProgress; }
     void setStoryProgress(int progress) { globalStoryProgress = progress; }
-    void forceStartDialogue(const std::string& npcName, const std::vector<TavernNPC>& npcs, TextMaker& txt, Player& player);
+
+    // Avvia un dialogo bypassando il check di distanza
+    void forceStartDialogue(const std::string &npcName, const std::vector<TavernNPC> &npcs, TextMaker &txt,
+                            Player &player);
 };
 #endif //SKELETONTOCHANGE_DIALOGUEMANAGER_HPP

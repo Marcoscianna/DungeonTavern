@@ -46,7 +46,7 @@ void main() {
         specular_dir = albedo * pow(HdotN, 256.0) * specularStrength;
     }
 
-// --- CALCOLO OMBRA CON PCF (Soft Shadows) ---
+// --- CALCOLO OMBRA CON PCF ---
     float shadow = 1.0;
     if(gubo.shadowToggle > 0.0) {
         vec4 lightSpacePos = gubo.lightVP * vec4(fragPos, 1.0);
@@ -108,7 +108,7 @@ void main() {
     // ==========================================
     // 3. COMPOSIZIONE FINALE
     // ==========================================
-    vec3 ambient = vec3(0.005) * albedo;
+    vec3 ambient = vec3(0.01) * albedo;
     vec3 color = ambient + finalLight;
 
     // Tone mapping e Gamma correction

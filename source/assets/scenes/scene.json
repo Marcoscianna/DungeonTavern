@@ -9560,7 +9560,12 @@
 						{
 							"requiredProgress": 1,
 							"dialogueType": "ONE_LINER",
-							"dialogues": ["L'oste ti sta aspettando.", "Pulisci il tuo casino!"]
+							"dialogues": ["L'oste ti sta aspettando.", "...", "Cosa pensi di fare?", "Non puoi uscire finche' non avrai sistemato il tutto!", "Non farmi riperte quello che ti ho detto!"]
+						},
+						{
+							"requiredProgress": 2,
+							"dialogueType": "ONE_LINER",
+							"dialogues": ["Continua a pulire e forse potrai uscire", "Pulisci il tuo casino!"]
 						},
 						{
 							"requiredProgress": 6,

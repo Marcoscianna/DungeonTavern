@@ -7,6 +7,7 @@
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
+#include <stb_image.h>
 
 #include <json.hpp>
 
@@ -29,7 +30,7 @@ struct Vertex {
     glm::vec3 norm;
 };
 
-// Il vertice per i modelli animati
+// Vertice per modelli animati
 struct VertexAnim {
     glm::vec3 pos;
     glm::vec2 UV;
@@ -38,10 +39,9 @@ struct VertexAnim {
     glm::uvec4 jointIndices;
 };
 
-// Stato del gioco
 enum class GameState { MENU, PLAYING };
 
-// MAIN !
+// Main app
 class DungeonTavern : public BaseProject {
 protected:
     // Descriptor Layouts
@@ -52,7 +52,7 @@ protected:
     VertexDescriptor VDanim;
     Pipeline Panim;
 
-    // Vertex formants, Pipelines and Render passes
+    // Vertex formats, Pipelines and Render passes
     VertexDescriptor VD;
     RenderPass RP;
     Pipeline P, Pemissive, Pwood, Pstone, Pmetal, Psky;
@@ -63,31 +63,30 @@ protected:
     bool shadowsEnabled = true;
     bool lPressedLastFrame = false;
 
-    // Models, textures and Descriptors (values assigned to the uniforms)
+    // Models, textures and Descriptors
     DescriptorSet DSglobal;
 
-    // To support loading assets from a scene.json file
+    // Supporto per il caricamento asset dal file scene.json
     Scene SC;
     std::vector<VertexDescriptorRef> VDRs;
     std::vector<TechniqueRef> PRs;
 
-    // to provide textual feedback
+    // Feedback testuale a schermo
     TextMaker txt;
 
-    // Other application parameters
     float Ar; // Aspect ratio
 
-    // Oggetto Player per gestire movimento e visuale
+    // Gestione player (movimento/visuale)
     Player player;
 
-    // Oggetto per gestire la fisica degli oggetti
+    // Gestione fisica
     PhysicsManager physicsManager;
 
-    // Oggetto per gestire il ciclo giorno/notte e le luci dinamiche
+    // Gestione ciclo giorno/notte e luci
     LightManager lightManager;
 
     // ==========================================
-    // SISTEMA SKYDOME: Gestione del cielo
+    // Skydome
     // ==========================================
 
     struct SkydomeRef {
@@ -98,22 +97,21 @@ protected:
     std::vector<SkydomeRef> skydomeInstances;
 
     // ==========================================
-    // SISTEMA NPC: Logica e Grafica
+    // Setup NPC
     // ==========================================
 
-    // 1. Logica: Lista degli NPC per gestire collisioni e dialoghi
+    // Logica e collisioni NPC
     std::vector<TavernNPC> tavernNPCs;
 
-    // 2. Grafica: Gestore (Manager) dei modelli 3D animati
+    // Manager animazioni 3D
     AnimatedNPCRig npcAnimManager;
 
-    // 3. Manager dei Dialoghi: Gestisce stato, UI e interazioni
+    // Manager per UI e logica dei dialoghi
     DialogueManager dialogueManager;
 
-    // 4. Manager delle Missioni
     MissionManager missionManager;
 
-    // 5. Collider per il trigger della porta
+    // Trigger porta
     Collider triggerPorta;
     bool triggerPortaAttivato = false;
 
@@ -123,7 +121,7 @@ protected:
     int textGiocaId = -1;
     int textEsciId = -1;
 
-    // ID Testi della Legenda nel Menu
+    // ID UI per la legenda del menu
     int textControlsKbdHeaderId = -1;
     int textControlsKbdLinesId = -1;
     int textControlsPadHeaderId = -1;
@@ -150,19 +148,25 @@ public:
     }
 
     void localInit() override {
-        // 1. Crea il Layout per l'UBO Animato
+        GLFWimage images[1];
+        images[0].pixels = stbi_load("assets/textures/icon.png", &images[0].width, &images[0].height, 0, 4);
+
+        if (images[0].pixels) {
+            glfwSetWindowIcon(window, 1, images);
+            stbi_image_free(images[0].pixels);
+        } else {
+            std::cout << "Warning: Impossibile caricare l'icona. Motivo: " << stbi_failure_reason() << "\n";
+        }
+
+        // Layout per UBO Animato
         DSLanim.init(this, {
                          {
                              0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT,
                              sizeof(AnimUniformBufferObject), 1
                          },
-                         {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-                         // Indice 0: Diffuse
-                         {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1},
-                         // Indice 1: Normal
-                         {
-                             3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1
-                         } // Indice 2: Specular
+                         {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}, // Diffuse
+                         {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}, // Normal
+                         {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1} // Specular
                      });
 
         DSLlocal.init(this, {
@@ -289,7 +293,7 @@ public:
             exit(0);
         }
 
-        // Popola la cache degli skydome dopo il caricamento della scena
+        // Cache skydome
         skydomeInstances.clear();
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
 
@@ -308,11 +312,11 @@ public:
 
         // Inizializzazione moduli di base
         txt.init(this, (int) windowWidth, (int) windowHeight);
-        player.init(glm::vec3(11.5f, 3.0f, 13.0f), 90.0f, 10.0f, 0.5f);
+        player.init(glm::vec3(12.0f, 3.0f, 13.0f), 90.0f, 10.0f, 0.5f);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // =====================================================================
-        // CONFIGURAZIONE MANAGER
+        // Configurazione Manager
         // =====================================================================
 
         npcAnimManager.init({
@@ -366,7 +370,7 @@ public:
         lightManager.loadLightsFromJson("assets/scenes/scene.json");
 
         // =====================================================================
-        // CONFIGURAZIONE MISSIONI
+        // Configurazione Missioni
         // =====================================================================
 
         missionManager.addCollectionMission(2, "boccale", "tavolo_quadrato1", 3, "Trova i boccali",
@@ -375,19 +379,19 @@ public:
                                             "Hai raccolto tutti i piatti!", 10.0f, 10.0f);
 
         // =====================================================================
-        // CONFIGURAZIONE TRIGGER
+        // Configurazione Trigger
         // =====================================================================
         triggerPorta.initAABB(12.5643, -0.363361, -6.37082, 9.56568, 4.13063, -7.6541);
         triggerPorta.setWorldMatrix(glm::mat4(1.0f));
 
-        // Anti-crash per il buffer vuoto del TextMaker
+        // Anti-crash per buffer vuoto TextMaker
         txt.print(-100.0f, -100.0f, " ");
 
         submitCommandBuffer("main", 0, populateCommandBufferAccess, this);
     }
 
     void pipelinesAndDescriptorSetsInit() override {
-        // Texture depth 2048x2048
+        // Shadow map depth
         RPshadow.init(this, 2048, 2048, 1, RenderPass::getStandardAttchmentsProperties(AT_DEPTH_ONLY, this),
                       RenderPass::getStandardDependencies(ATDEP_NO_DEP), true);
         RPshadow.create();
@@ -405,7 +409,7 @@ public:
 
         DSglobal.init(this, &DSLglobal, {RPshadow.attachments[0].getViewAndSampler()});
 
-        // INIEZIONE DELLA SHADOW MAP NELLE TECNICHE
+        // Setup shadow map nelle techniques
         TextureDefs shadowTexDef = {false, 0, RPshadow.attachments[0].getViewAndSampler()};
         for (int t = 0; t < 7; t++) {
             for (int p = 0; p < 2; p++) {
@@ -468,12 +472,12 @@ public:
     }
 
     void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
-        // PASS 0: Disegna le ombre nella mappa del sole
+        // Pass 0: Ombre (sole)
         RPshadow.begin(commandBuffer, 0);
         SC.populateCommandBuffer(commandBuffer, 0, currentImage);
         RPshadow.end(commandBuffer);
 
-        // PASS 1: Disegna la scena su schermo
+        // Pass 1: Scena principale
         RP.begin(commandBuffer, currentImage);
         SC.populateCommandBuffer(commandBuffer, 1, currentImage);
         RP.end(commandBuffer);
@@ -490,7 +494,7 @@ public:
         }
 
         // =========================================================
-        // LETTURA DELLO STATO DEL GAMEPAD
+        // Input Gamepad
         // =========================================================
         GLFWgamepadstate gamepadState;
         bool hasGamepad = glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepadState);
@@ -500,7 +504,7 @@ public:
             return value;
         };
 
-        // --- TOGGLE OMBRE ---
+        // --- Toggle Ombre ---
         bool gamepadL = hasGamepad && (gamepadState.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB] == GLFW_PRESS);
         bool lPressed = (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) || gamepadL;
         if (lPressed && !lPressedLastFrame) {
@@ -509,14 +513,14 @@ public:
         lPressedLastFrame = lPressed;
 
         // =========================================================
-        // 1. UPDATE GAME LOGIC (Dialoghi, Input, Collisioni)
+        // 1. Update Game Logic (Dialoghi, Input, Collisioni)
         // =========================================================
 
         static bool upPressedLastFrame = false;
         static bool downPressedLastFrame = false;
         static bool enterPressedLastFrame = false;
 
-        // Input Menu (Tastiera + Gamepad)
+        // Input menu
         bool kbdUp = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
         bool kbdDown = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
         bool kbdEnter = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_E) ==
@@ -536,18 +540,17 @@ public:
         glm::vec3 oldPlayerPos = player.position;
 
         if (currentState == GameState::MENU) {
-            // 1.1 Titolo del Gioco
+            // Titolo Menu
             if (textTitleId == -1) {
                 textTitleId = txt.print(0.0f, -0.65f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false,
                                         TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f),
                                         glm::vec4(0), glm::vec4(0, 0, 0, 0.8f), 2.0f, 2.0f);
             }
 
-            // 1.2 Navigazione del Menu
+            // Navigazione
             if (upPressed && !upPressedLastFrame) menuSelection = 0;
             if (downPressed && !downPressedLastFrame) menuSelection = 1;
 
-            // 1.3 Opzioni Menu
             std::string strGioca = (menuSelection == 0) ? "> GIOCA <" : "  GIOCA  ";
             std::string strEsci = (menuSelection == 1) ? "> ESCI <" : "  ESCI  ";
 
@@ -559,8 +562,7 @@ public:
             textEsciId = txt.print(0.0f, -0.20f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER,
                                    TRV_MIDDLE, colorEsci);
 
-            // 1.4 LEGENDA DEI COMANDI
-            // Colonna Sinistra: Tastiera e Mouse
+            // UI Legenda comandi - Colonna SX
             if (textControlsKbdHeaderId == -1) {
                 textControlsKbdHeaderId = txt.print(-0.55f, 0.05f, "CONTROLLI TASTIERA", textControlsKbdHeaderId, "SS",
                                                     false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP,
@@ -577,7 +579,7 @@ public:
             textControlsKbdLinesId = txt.print(-0.55f, 0.15f, kbdText, textControlsKbdLinesId, "SS", false, false,
                                                false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
 
-            // Colonna Destra: Gamepad
+            // UI Legenda comandi - Colonna DX
             if (textControlsPadHeaderId == -1) {
                 textControlsPadHeaderId = txt.print(0.55f, 0.05f, "CONTROLLI GAMEPAD", textControlsPadHeaderId, "SS",
                                                     false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP,
@@ -594,13 +596,12 @@ public:
             textControlsPadLinesId = txt.print(0.55f, 0.15f, padText, textControlsPadLinesId, "SS", false, false, false,
                                                TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
 
-            // 1.5 Selezione Opzione
+            // Invio selezione
             if (enterPressed && !enterPressedLastFrame) {
                 if (menuSelection == 0) {
-                    // TRANSIZIONE A PLAYING
                     currentState = GameState::PLAYING;
 
-                    // Pulisce la UI del menu e della legenda
+                    // Cleanup UI
                     txt.removeText(textTitleId);
                     textTitleId = -1;
                     txt.removeText(textGiocaId);
@@ -616,18 +617,16 @@ public:
                     txt.removeText(textControlsPadLinesId);
                     textControlsPadLinesId = -1;
 
-                    // Lancia il boccale iniziale
+                    // Lancia l'oggetto iniziale
                     glm::vec3 throwPos = player.position + player.getForwardVector() * 1.0f;
                     throwPos.y += 0.5f;
                     physicsManager.throwObject(SC, "boccale_start", throwPos,
                                                player.getForwardVector() * 15.0f + glm::vec3(0, 3.0f, 0));
                 } else if (menuSelection == 1) {
-                    // USCITA DAL GIOCO
                     glfwSetWindowShouldClose(window, GL_TRUE);
                 }
             }
         } else if (currentState == GameState::PLAYING) {
-            // --- LOGICA DI GIOCO ATTIVA SOLO IN PLAYING ---
             dialogueManager.update(window, deltaT, player, tavernNPCs, txt, windowWidth);
 
             if (!dialogueManager.isDialogueActive()) {
@@ -636,7 +635,7 @@ public:
 
             missionManager.update(deltaT, dialogueManager, SC, physicsManager, txt);
 
-            // GESTIONE OBIETTIVI UI
+            // UI Testo obiettivi
             static int objTextId = -1;
             static std::string lastObjStr = "";
             std::string objStr = "";
@@ -659,7 +658,7 @@ public:
                 lastObjStr = objStr;
             }
 
-            // CONTROLLO TRIGGER PORTA
+            // Controllo trigger porta
             if (prog < 6) {
                 if (player.playerCollider && triggerPorta.collidesWith(*(player.playerCollider))) {
                     if (!triggerPortaAttivato && !dialogueManager.isDialogueActive()) {
@@ -678,13 +677,13 @@ public:
             }
         }
 
-        // Salva l'input per il frame successivo
+        // Setup input prev frame
         upPressedLastFrame = upPressed;
         downPressedLastFrame = downPressed;
         enterPressedLastFrame = enterPressed;
 
         // =========================================================
-        // AGGIORNAMENTI GLOBALI (Menu & Game)
+        // Aggiornamenti globali
         // =========================================================
 
         int talkingNPC = dialogueManager.getDialogueNPC();
@@ -696,13 +695,13 @@ public:
         lightManager.update(deltaT, window);
 
         // =========================================================
-        // 2. UPDATE GRAPHICS (Matrici, Uniforms, Rendering)
+        // 2. Update Graphics (Matrici, Uniforms, Rendering)
         // =========================================================
 
         glm::mat4 ViewPrj = player.getViewProjectionMatrix(Ar);
         SC.updateColliderVisualizer(currentImage, ViewPrj);
 
-        // CALCOLO DELLA TELECAMERA DEL SOLE (SHADOW MAPPING)
+        // Telecamera ombra direzionale
         GlobalUniformBufferObject gubo{};
         gubo.eyePos = player.position;
         gubo.shadowToggle = shadowsEnabled ? 1.0f : 0.0f;
@@ -720,7 +719,7 @@ public:
 
         UniformBufferObject ubo{};
 
-        // 1. GESTIONE SKYDOME
+        // Gestione Skydome
         std::string activeSkyId = lightManager.getCurrentSkydomeInstanceId();
 
         for (auto &skyRef: skydomeInstances) {
@@ -734,7 +733,7 @@ public:
             }
         }
 
-        // 2. AGGIORNA MATERIALI STATICI
+        // Setup materiali statici e Frustum/Distance Culling
         int staticTechniques[] = {0, 2, 3, 4, 5, 6};
         float renderDistance = 70.0f;
         float renderDistSq = renderDistance * renderDistance;
@@ -776,11 +775,10 @@ public:
             cullingInitialized = true;
         }
 
-        // Matrice costantemente a zero per gli oggetti invisibili
         static const glm::mat4 zeroMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.0f));
 
         // ====================================================================
-        // IL LOOP DI RENDERING
+        // Render Loop
         // ====================================================================
         for (int t: staticTechniques) {
             if (t < SC.TechniqueInstanceCount && SC.TI[t].I != nullptr) {
@@ -823,7 +821,7 @@ public:
         }
 
         // =========================================================
-        // UPDATE SKIN PLAYER & ANIMAZIONI
+        // Player e Animazioni
         // =========================================================
 
         auto itPlayer = SC.InstanceIds.find("player");
@@ -835,7 +833,7 @@ public:
             }
         }
 
-        // Rilevamento stato del movimento (Tastiera + Gamepad)
+        // Rilevamento stato di movimento e input controller
         float leftStickX = hasGamepad ? applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_X]) : 0.0f;
         float leftStickY = hasGamepad ? applyDeadzone(gamepadState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) : 0.0f;
 
@@ -876,12 +874,12 @@ public:
         bool canInteract = !dialogueManager.isDialogueActive() && !player.isFixedCamera();
         physicsManager.update(window, deltaT, SC, player, canInteract, txt);
 
-        // Aggiornamento modelli animati
+        // Update npc animati
         npcAnimManager.update(SC, currentImage, gubo, ViewPrj, deltaT);
 
         txt.updateCommandBuffer();
 
-        // DEBUG: PREMI 'P' PER STAMPARE LA POSIZIONE
+        // Debug utils
         /*static bool pPressed = false;
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (!pPressed) {

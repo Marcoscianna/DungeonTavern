@@ -41,7 +41,7 @@ void main() {
     float specularStrength = 0.008; // Leggermente riflettente
     vec3 specular_dir = vec3(0.0);
     if (NdotL > 0.0) {
-        specular_dir = vec3(pow(HdotN, 32.0)) * specularStrength;
+        specular_dir = vec3(pow(HdotN, 16.0)) * specularStrength;
     }
 
 // --- CALCOLO OMBRA CON PCF (Soft Shadows) ---
@@ -89,7 +89,7 @@ void main() {
         float yDistance = abs(gubo.pLights[i].position.y - fragPos.y);
         float verticalCutoff = clamp(1.0 - (yDistance / 3.0), 0.0, 1.0);
 
-        float attenuation = 1.0 / (6.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
+        float attenuation = 1.0 / (12.0*(1.0 + 0.09 * distance + 0.032 * (distance * distance)));
         attenuation *= verticalCutoff;
 
         float NdotL_pt = max(dot(N, L_pt), 0.0);
@@ -97,7 +97,7 @@ void main() {
 
         vec3 specular_pt = vec3(0.0);
         if (NdotL_pt > 0.0) {
-            specular_pt = vec3(pow(HdotN_pt, 16.0)) * (specularStrength * 2.0);
+            specular_pt = vec3(pow(HdotN_pt, 8.0)) * (specularStrength);
         }
 
         finalLight += (albedo * NdotL_pt + specular_pt) * gubo.pLights[i].color * attenuation;
