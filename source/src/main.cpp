@@ -141,6 +141,11 @@ public:
 
     void onWindowResize(int w, int h) override {
         std::cout << "Window resized to: " << w << " x " << h << "\n";
+        if (w == 0 || h == 0) return;
+
+        windowWidth = w;
+        windowHeight = h;
+
         Ar = (float) w / (float) h;
         RP.width = w;
         RP.height = h;
@@ -511,8 +516,8 @@ public:
             static int savedX = 100, savedY = 100, savedWidth = 800, savedHeight = 600;
             static bool isFullscreen = false; // Usiamo una variabile locale indipendente
 
-            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+            GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode *mode = glfwGetVideoMode(primaryMonitor);
 
             if (!isFullscreen) {
                 // Salva posizione e dimensioni attuali
@@ -573,61 +578,92 @@ public:
         glm::vec3 oldPlayerPos = player.position;
 
         if (currentState == GameState::MENU) {
-            // Titolo Menu
-            if (textTitleId == -1) {
-                textTitleId = txt.print(0.0f, -0.65f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false,
-                                        TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f),
-                                        glm::vec4(0), glm::vec4(0, 0, 0, 0.8f), 2.0f, 2.0f);
-            }
+            float fontScale = (float) windowHeight / 600.0f;
 
-            // Navigazione
+            // 1. Calcola l'input di navigazione
             if (upPressed && !upPressedLastFrame) menuSelection = 0;
             if (downPressed && !downPressedLastFrame) menuSelection = 1;
 
-            std::string strGioca = (menuSelection == 0) ? "> GIOCA <" : "  GIOCA  ";
-            std::string strEsci = (menuSelection == 1) ? "> ESCI <" : "  ESCI  ";
+            static int lastMenuSelection = -1;
+            static int lastWinW = 0, lastWinH = 0;
 
-            glm::vec4 colorGioca = (menuSelection == 0) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
-            glm::vec4 colorEsci = (menuSelection == 1) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
+            bool sizeChanged = (windowWidth != lastWinW || windowHeight != lastWinH);
 
-            textGiocaId = txt.print(0.0f, -0.35f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER,
-                                    TRH_CENTER, TRV_MIDDLE, colorGioca);
-            textEsciId = txt.print(0.0f, -0.20f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER, TRH_CENTER,
-                                   TRV_MIDDLE, colorEsci);
+            if (menuSelection != lastMenuSelection || sizeChanged) {
+                // Aggiorna lo stato
+                lastMenuSelection = menuSelection;
+                lastWinW = windowWidth;
+                lastWinH = windowHeight;
 
-            // UI Legenda comandi - Colonna SX
-            if (textControlsKbdHeaderId == -1) {
+                // Fattore di scala dinamico
+                float fontScale = (float) windowHeight / 600.0f;
+
+                printf("Window size: %d x %d, fontScale: %.2f\n", windowWidth, windowHeight, fontScale);
+
+                // Titolo Menu
+                textTitleId = txt.print(0.0f, -0.65f, "DUNGEON TAVERN", textTitleId, "SS", false, true, false,
+                                        TAL_CENTER, TRH_CENTER, TRV_MIDDLE, glm::vec4(1.0f, 0.7f, 0.1f, 1.0f),
+                                        glm::vec4(0), glm::vec4(0, 0, 0, 0.8f), 1.5f * fontScale, 1.5f * fontScale);
+
+                // Voci di menu
+                std::string strGioca = (menuSelection == 0) ? "> GIOCA <" : "  GIOCA  ";
+                std::string strEsci = (menuSelection == 1) ? "> ESCI <" : "  ESCI  ";
+
+                glm::vec4 colorGioca = (menuSelection == 0) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
+                glm::vec4 colorEsci = (menuSelection == 1) ? glm::vec4(1.0f, 1.0f, 0.0f, 1.0f) : glm::vec4(0.8f);
+
+                textGiocaId = txt.print(0.0f, -0.35f, strGioca, textGiocaId, "SS", false, true, false, TAL_CENTER,
+                                        TRH_CENTER, TRV_MIDDLE, colorGioca, glm::vec4(0), glm::vec4(0),
+                                        0.8f * fontScale, 0.8f * fontScale);
+
+                textEsciId = txt.print(0.0f, -0.20f, strEsci, textEsciId, "SS", false, true, false, TAL_CENTER,
+                                       TRH_CENTER,
+                                       TRV_MIDDLE, colorEsci, glm::vec4(0), glm::vec4(0),
+                                       0.8f * fontScale, 0.8f * fontScale);
+
+                // UI Legenda comandi - Colonna SX
                 textControlsKbdHeaderId = txt.print(-0.55f, 0.05f, "CONTROLLI TASTIERA", textControlsKbdHeaderId, "SS",
                                                     false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP,
-                                                    glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
-            }
-            std::string kbdText =
-                    "SHIFT : Corsa\n"
-                    "SPAZIO : Salto\n"
-                    "E : Interagisci / Dialogo\n"
-                    "Q : Prendi / Lascia Oggetti\n"
-                    "M : Vola\n"
-                    "C : Telecamera 1a persona\n"
-                    "X : Telecamera 3a persona";
-            textControlsKbdLinesId = txt.print(-0.55f, 0.15f, kbdText, textControlsKbdLinesId, "SS", false, false,
-                                               false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
+                                                    glm::vec4(0.3f, 0.9f, 1.0f, 1.0f),
+                                                    glm::vec4(0), glm::vec4(0),
+                                                    0.51f * fontScale, 0.51f * fontScale);
 
-            // UI Legenda comandi - Colonna DX
-            if (textControlsPadHeaderId == -1) {
+                std::string kbdText =
+                        "SHIFT : Corsa\n"
+                        "SPAZIO : Salto\n"
+                        "E : Interagisci / Dialogo\n"
+                        "Q : Prendi / Lascia Oggetti\n"
+                        "M : Vola\n"
+                        "C : Telecamera 1a persona\n"
+                        "X : Telecamera 3a persona";
+
+                textControlsKbdLinesId = txt.print(-0.55f, 0.15f, kbdText, textControlsKbdLinesId, "SS", false, false,
+                                                   false, TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f),
+                                                   glm::vec4(0), glm::vec4(0),
+                                                   0.51f * fontScale, 0.51f * fontScale);
+
+                // UI Legenda comandi - Colonna DX
                 textControlsPadHeaderId = txt.print(0.55f, 0.05f, "CONTROLLI GAMEPAD", textControlsPadHeaderId, "SS",
                                                     false, true, false, TAL_CENTER, TRH_CENTER, TRV_TOP,
-                                                    glm::vec4(0.3f, 0.9f, 1.0f, 1.0f));
+                                                    glm::vec4(0.3f, 0.9f, 1.0f, 1.0f),
+                                                    glm::vec4(0), glm::vec4(0),
+                                                    0.51f * fontScale, 0.51f * fontScale);
+
+                std::string padText =
+                        "L3 / RT : Corsa\n"
+                        "Tasto A : Salto\n"
+                        "Tasto A : Interagisci / Dialogo\n"
+                        "Tasto X : Prendi / Lascia Oggetti\n"
+                        "Tasto Y : Vola\n"
+                        "Freccia dx : Telecamera\n"
+                        "Freccia sx : Telecamera 3a persona";
+
+                textControlsPadLinesId = txt.print(0.55f, 0.15f, padText, textControlsPadLinesId, "SS", false, false,
+                                                   false,
+                                                   TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f),
+                                                   glm::vec4(0), glm::vec4(0),
+                                                   0.51f * fontScale, 0.51f * fontScale);
             }
-            std::string padText =
-                    "L3 / RT : Corsa\n"
-                    "Tasto A : Salto\n"
-                    "Tasto A : Interagisci / Dialogo\n"
-                    "Tasto X : Prendi / Lascia Oggetti\n"
-                    "Tasto Y : Vola\n"
-                    "Freccia dx : Telecamera\n"
-                    "Freccia sx : Telecamera 3a persona";
-            textControlsPadLinesId = txt.print(0.55f, 0.15f, padText, textControlsPadLinesId, "SS", false, false, false,
-                                               TAL_CENTER, TRH_CENTER, TRV_TOP, glm::vec4(0.9f));
 
             // Invio selezione
             if (enterPressed && !enterPressedLastFrame) {
