@@ -74,10 +74,13 @@ Make sure you have the following installed on your system:
    git clone https://github.com/Marcoscianna/DungeonTavern
    cd DungeonTavern
 
-### Preview
+## 📸 Preview
 
-<p align="center">
-  <img src="screenshots/preview1.png" width="30%" alt="Preview 1" />
-  <img src="screenshots/preview2.png" width="30%" alt="Preview 2" />
-  <img src="screenshots/preview3.png" width="30%" alt="Preview 3" />
-</p>
+![Dungeon Tavern Preview 1](screenshots/preview1.png)
+![Dungeon Tavern Preview 2](screenshots/preview2.png)
+![Dungeon Tavern Preview 3](screenshots/preview3.png)
+
+---
+
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
