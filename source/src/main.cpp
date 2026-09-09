@@ -519,17 +519,13 @@ public:
                 glfwGetWindowPos(window, &savedX, &savedY);
                 glfwGetWindowSize(window, &savedWidth, &savedHeight);
 
-                // Modalità "Borderless Windowed"
-                glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE); // Rimuove la cornice
-                glfwSetWindowPos(window, 0, 0); // Sposta in alto a sinistra
-                glfwSetWindowSize(window, mode->width, mode->height); // Copre tutto il monitor
+                // Modalità "Full screen"
+                glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 
                 isFullscreen = true;
             } else {
                 // Ripristina la finestra normale
-                glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE); // Ripristina la cornice
-                glfwSetWindowPos(window, savedX, savedY);
-                glfwSetWindowSize(window, savedWidth, savedHeight);
+                glfwSetWindowMonitor(window, nullptr, savedX, savedY, savedWidth, savedHeight, 0);
 
                 isFullscreen = false;
             }
